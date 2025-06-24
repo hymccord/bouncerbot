@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+    <PropertyGroup>
+        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+        <EnableTransitivePinning>true</EnableTransitivePinning>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.6" />
+        <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.6" />
+        <PackageVersion Include="NetCord.Hosting.Services" Version="1.0.0-alpha.390" />
+    </ItemGroup>
+</Project>
