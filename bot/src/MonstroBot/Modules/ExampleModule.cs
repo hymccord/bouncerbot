@@ -1,3 +1,5 @@
+using MonstroBot.Attributes;
+
 using NetCord;
 using NetCord.Rest;
 using NetCord.Services;
@@ -52,7 +54,7 @@ public class VerifyModule : ApplicationCommandModule<ApplicationCommandContext>
 
 
 [SlashCommand("guild", "Guild command")]
-[RequireContext<ApplicationCommandContext>(RequiredContext.Guild, "These commands can only be used in a server.")]
+[GuildOnly<ApplicationCommandContext>]
 public class GuildCommandsModule : ApplicationCommandModule<ApplicationCommandContext>
 {
     [SubSlashCommand("channels", "Get guild channel count")]
