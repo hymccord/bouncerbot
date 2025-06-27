@@ -6,21 +6,21 @@ using NetCord.Services;
 using NetCord.Services.ApplicationCommands;
 
 namespace MonstroBot.Modules;
-public class ExampleModule : ApplicationCommandModule<ApplicationCommandContext>
-{
-    [SlashCommand("pong", "Pong!")]
-    public static string Pong() => "Ping!";
+//public class ExampleModule : ApplicationCommandModule<ApplicationCommandContext>
+//{
+//    [SlashCommand("pong", "Pong!")]
+//    public static string Pong() => "Ping!";
 
-    [UserCommand("ID")]
-    public static string Id(User user) => user.Id.ToString();
+//    [UserCommand("ID")]
+//    public static string Id(User user) => user.Id.ToString();
 
-    [MessageCommand("Timestamp")]
-    public static string Timestamp(RestMessage message) => message.CreatedAt.ToString();
-}
+//    [MessageCommand("Timestamp")]
+//    public static string Timestamp(RestMessage message) => message.CreatedAt.ToString();
+//}
 
 
 [SlashCommand("guild", "Guild command")]
-[GuildOnly<SlashCommandContext>]
+//[GuildOnly<SlashCommandContext>]
 public class GuildCommandsModule : ApplicationCommandModule<SlashCommandContext>
 {
     [SubSlashCommand("channels", "Get guild channel count")]

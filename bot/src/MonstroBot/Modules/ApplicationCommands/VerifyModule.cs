@@ -1,21 +1,41 @@
+using System.Threading.Tasks;
+
+using Microsoft.Build.Framework;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+
 using MonstroBot.Attributes;
+using MonstroBot.Db;
 
 using NetCord;
 using NetCord.Rest;
+using NetCord.Services;
 using NetCord.Services.ApplicationCommands;
 
 namespace MonstroBot.Modules.ApplicationCommands;
 
 [SlashCommand("verify", "Manage MouseHunt ID verification")]
-[GuildOnly<SlashCommandContext>]
-public class VerifyModule : ApplicationCommandModule<SlashCommandContext>
+[GuildOnly<ApplicationCommandContext>]
+public class VerifyModule(ILogger<VerifyModule> logger) : ApplicationCommandModule<ApplicationCommandContext>
 {
     [SubSlashCommand("me", "Verify you own a MouseHunt ID")]
-    public InteractionMessageProperties VerifyMe(
-        [SlashCommandParameter(MinValue = 1)] uint mouseHuntId
+    [RequireVerificationStatus<ApplicationCommandContext>(VerificationStatus.Unverified)]
+    public async Task VerifyMe(
+        [SlashCommandParameter(Description = "MouseHunt Profile ID", MinValue = 1)] uint mouseHuntId
     )
     {
-        throw new NotImplementedException();
+        await RespondAsync(InteractionCallback.DeferredMessage(MessageFlags.Ephemeral));
+
+        await ModifyResponseAsync(x =>
+        {
+            x.Content = "Click below to start the verification process!";
+            x.AddComponents(
+                new ActionRowProperties()
+                    .AddButtons(new ButtonProperties($"verifyme", "Start!", ButtonStyle.Success))
+                );
+        });
+
+        logger.LogDebug("The interaction token is {InteractionToken}", Context.Interaction.Token);
 
         //return new MessageProperties
         //{
@@ -27,13 +47,18 @@ public class VerifyModule : ApplicationCommandModule<SlashCommandContext>
         //await context.RespondAsync($"You have been verified with MouseHunt ID: {mouseHuntId}");
     }
 
-    [SubSlashCommand("remove", "Remove your MouseHunt ID verification")]
-    [ManageMessageOnly<SlashCommandContext>]
-    public InteractionMessageProperties RemoveVerification()
+    [SubSlashCommand("remove", "Remove a MouseHunt ID verification")]
+    [ManageMessageOnly<ApplicationCommandContext>]
+    public async Task<InteractionMessageProperties> RemoveVerification(
+        [SlashCommandParameter(Description = "Discord User")] User user
+        )
     {
-        return new InteractionMessageProperties()
+
+        await RespondAsync(InteractionCallback.Message(new InteractionMessageProperties()
             .WithFlags(MessageFlags.Ephemeral)
-            .WithContent("A secret Hello!");
+            .WithContent("A secret Hello!")
+        ));
+        
         // Here you would typically remove the user's verification from the database.
 
         return "Your MouseHunt ID verification has been removed.";
