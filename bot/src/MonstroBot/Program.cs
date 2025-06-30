@@ -7,27 +7,27 @@ using Microsoft.Extensions.Hosting;
 using MonstroBot;
 using MonstroBot.Db;
 using MonstroBot.Modules.Verify;
+using MonstroBot.Rest;
 
 using NetCord;
 using NetCord.Hosting.Gateway;
 using NetCord.Hosting.Services;
 using NetCord.Hosting.Services.ApplicationCommands;
 using NetCord.Hosting.Services.ComponentInteractions;
-using NetCord.Services.ApplicationCommands;
 using NetCord.Services.ComponentInteractions;
 
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 
 builder.Configuration.AddUserSecrets<Program>(optional: true);
 
-builder.Services.AddDbContextFactory<MonstroBotDbContext>(options =>
-{
-    options.UseSqlite(builder.Configuration.GetConnectionString("MonstroBot"));
-});
-
 builder.Services
+    .AddDbContextFactory<MonstroBotDbContext>(options =>
+    {
+        options.UseSqlite(builder.Configuration.GetConnectionString("MonstroBot"));
+    })
     .AddTransient<IVerificationPhraseGenerator, VerificationPhraseGenerator>()
     .AddTransient<VerificationService>()
+    .AddMouseHuntClient()
     ;
 
 // NetCord services
@@ -36,8 +36,6 @@ builder.Services
     {
         options.ResultHandler = new EphemeralApplicationCommandResultHandler();
     })
-    //.AddApplicationCommands<SlashCommandInteraction, SlashCommandContext, AutocompleteInteractionContext>()
-    //.AddComponentInteractions()
     .AddComponentInteractions<ButtonInteraction, ButtonInteractionContext>()
     .AddComponentInteractions<StringMenuInteraction, StringMenuInteractionContext>()
     .AddComponentInteractions<UserMenuInteraction, UserMenuInteractionContext>()
