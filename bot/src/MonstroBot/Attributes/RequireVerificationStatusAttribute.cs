@@ -1,9 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 using MonstroBot.Db;
 using MonstroBot.Db.Models;
+using MonstroBot.Modules.Verify;
 
 using NetCord.Services;
 
@@ -33,7 +34,7 @@ internal class RequireVerificationStatusAttribute<TContext> : PreconditionAttrib
         var userId = context.User.Id;
         var guildId = context.Guild.Id;
 
-        using var dbContext = serviceProvider!.GetRequiredService<MonstroBotDbContext>();
+        var dbContext = serviceProvider!.GetRequiredService<MonstroBotDbContext>();
 
         VerifiedUser? user = await dbContext.VerifiedUsers
             .FirstOrDefaultAsync(vu => vu.DiscordId == userId && vu.GuildId == guildId);

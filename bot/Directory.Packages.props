@@ -5,6 +5,7 @@
     <EnableTransitivePinning>true</EnableTransitivePinning>
   </PropertyGroup>
   <ItemGroup>
+    <PackageVersion Include="CrypticWizard.RandomWordGenerator" Version="0.9.5" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.6" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.6" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.6" />

@@ -4,7 +4,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
+using MonstroBot;
 using MonstroBot.Db;
+using MonstroBot.Modules.Verify;
 
 using NetCord;
 using NetCord.Hosting.Gateway;
@@ -24,7 +26,16 @@ builder.Services.AddDbContextFactory<MonstroBotDbContext>(options =>
 });
 
 builder.Services
-    .AddApplicationCommands()
+    .AddTransient<IVerificationPhraseGenerator, VerificationPhraseGenerator>()
+    .AddTransient<VerificationService>()
+    ;
+
+// NetCord services
+builder.Services
+    .AddApplicationCommands(options =>
+    {
+        options.ResultHandler = new EphemeralApplicationCommandResultHandler();
+    })
     //.AddApplicationCommands<SlashCommandInteraction, SlashCommandContext, AutocompleteInteractionContext>()
     //.AddComponentInteractions()
     .AddComponentInteractions<ButtonInteraction, ButtonInteractionContext>()
