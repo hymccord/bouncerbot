@@ -1,21 +1,32 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Design;
 
 using MonstroBot.Db.Models;
 
 namespace MonstroBot.Db;
 public class MonstroBotDbContext(DbContextOptions<MonstroBotDbContext> options) : DbContext(options)
 {
+    public DbSet<AchievementMessage> AchievementMessages { get; set; } = null!;
+    public DbSet<AchievementRole> AchievementRoles { get; set; } = null!;
+    public DbSet<LogSetting> LogSettings { get; set; } = null!;
     public DbSet<VerifiedUser> VerifiedUsers { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<AchievementMessage>(am =>
+        {
+            am.HasKey(am => am.GuildId);
+        });
+
+        modelBuilder.Entity<AchievementRole>(ar =>
+        {
+            ar.HasKey(am => am.GuildId);
+        });
+
+        modelBuilder.Entity<LogSetting>(ls =>
+        {
+            ls.HasKey(l => l.GuildId);
+        });
+
         modelBuilder.Entity<VerifiedUser>(vu =>
         {
             vu.HasKey(v => new { v.MouseHuntId, v.GuildId, v.DiscordId });
