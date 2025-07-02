@@ -36,6 +36,10 @@ builder.Services
     {
         options.ResultHandler = new EphemeralApplicationCommandResultHandler();
     })
+    .AddComponentInteractions(options =>
+    {
+        options.ResultHandler = new EphemeralComponentInteractionResultHandler();
+    })
     .AddComponentInteractions<ButtonInteraction, ButtonInteractionContext>()
     .AddComponentInteractions<StringMenuInteraction, StringMenuInteractionContext>()
     .AddComponentInteractions<UserMenuInteraction, UserMenuInteractionContext>()
