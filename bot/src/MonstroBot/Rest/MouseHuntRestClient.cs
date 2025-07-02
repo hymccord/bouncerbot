@@ -72,11 +72,12 @@ public partial class MouseHuntRestClient
 
     public Task<T> SendRequestAsync<T>(HttpMethod method, HttpContent? content, string route, CancellationToken cancellationToken = default)
     {
-        return SendRequestAsync<T>(route, CreateMessage, cancellationToken);
+        var url = $"api/{route}";
+        return SendRequestAsync<T>(url, CreateMessage, cancellationToken);
 
         HttpRequestMessage CreateMessage()
         {
-            HttpRequestMessage requestMessage = new(method, route.ToString())
+            HttpRequestMessage requestMessage = new(method, url)
             {
                 Content = content,
             };
@@ -85,7 +86,7 @@ public partial class MouseHuntRestClient
         }
     }
 
-    private async Task<T> SendRequestAsync<T>(string route, Func<HttpRequestMessage> createMessage, CancellationToken cancellationToken = default)
+    private async Task<T> SendRequestAsync<T>(string url, Func<HttpRequestMessage> createMessage, CancellationToken cancellationToken = default)
     {
         HttpResponseMessage response;
         try
@@ -106,11 +107,11 @@ public partial class MouseHuntRestClient
 
         if (content.Headers.ContentType is { MediaType: "application/json" })
         {
-            throw new Exception($"Request to {route} failed with status code {response.StatusCode}: {await content.ReadAsStringAsync(cancellationToken)}");
+            throw new Exception($"Request to {url} failed with status code {response.StatusCode}: {await content.ReadAsStringAsync(cancellationToken)}");
         }
         else
         {
-            throw new Exception($"Request to {route} failed with status code {response.StatusCode}: {response.ReasonPhrase}");
+            throw new Exception($"Request to {url} failed with status code {response.StatusCode}: {response.ReasonPhrase}");
         }
 
     }

@@ -7,8 +7,13 @@ partial class MouseHuntRestClient
 {
     public async Task<User> GetMeAsync(CancellationToken cancellationToken = default)
     {
-        var response = await SendRequestAsync(HttpMethod.Post, "api/get/user/me", cancellationToken);
+        var response = await SendRequestAsync<User>(HttpMethod.Post, "get/user/me", cancellationToken);
 
-        return response.RootElement.Deserialize<User>(_jsonSerializerOptions) ?? throw new JsonException();
+        return response;
+    }
+
+    public async Task<UserSnuIdInfo> GetUserSnuId(uint mhId, CancellationToken cancellationToken = default)
+    {
+        return await SendRequestAsync<UserSnuIdInfo>(HttpMethod.Post, $"get/usersnuid/{mhId}", cancellationToken);
     }
 }

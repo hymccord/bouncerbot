@@ -12,6 +12,6 @@ partial class MouseHuntRestClient
             new KeyValuePair<string, string>("password", password),
         ]);
 
-        return await SendRequestAsync<LoginDetails>(HttpMethod.Post, content, "api/login", cancellationToken);
+        return await SendRequestAsync<LoginDetails>(HttpMethod.Post, content, "login", cancellationToken);
     }
 }
