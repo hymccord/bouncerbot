@@ -21,11 +21,12 @@ internal class EphemeralApplicationCommandResultHandler : IApplicationCommandRes
     }
 }
 
-internal class EphemeralComponentInteractionResultHandler : IComponentInteractionResultHandler<ComponentInteractionContext>
+internal class EphemeralComponentInteractionResultHandler<TContext> : IComponentInteractionResultHandler<TContext>
+    where TContext : IComponentInteractionContext
 {
-    private static readonly ComponentInteractionResultHandler<ComponentInteractionContext> _defautHandler = new ComponentInteractionResultHandler<ComponentInteractionContext>(MessageFlags.Ephemeral);
+    private static readonly ComponentInteractionResultHandler<TContext> _defautHandler = new ComponentInteractionResultHandler<TContext>(MessageFlags.Ephemeral);
 
-    public ValueTask HandleResultAsync(IExecutionResult result, ComponentInteractionContext context, GatewayClient? client, ILogger logger, IServiceProvider services)
+    public ValueTask HandleResultAsync(IExecutionResult result, TContext context, GatewayClient? client, ILogger logger, IServiceProvider services)
     {
         logger.LogInformation("Handling result of an component interaction");
 

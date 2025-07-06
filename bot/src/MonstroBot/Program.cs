@@ -36,17 +36,34 @@ builder.Services
     {
         options.ResultHandler = new EphemeralApplicationCommandResultHandler();
     })
-    .AddComponentInteractions(options =>
+    .AddComponentInteractions<ButtonInteraction, ButtonInteractionContext>(options =>
     {
-        options.ResultHandler = new EphemeralComponentInteractionResultHandler();
+        options.ResultHandler = new EphemeralComponentInteractionResultHandler<ButtonInteractionContext>();
     })
-    .AddComponentInteractions<ButtonInteraction, ButtonInteractionContext>()
-    .AddComponentInteractions<StringMenuInteraction, StringMenuInteractionContext>()
-    .AddComponentInteractions<UserMenuInteraction, UserMenuInteractionContext>()
-    .AddComponentInteractions<RoleMenuInteraction, RoleMenuInteractionContext>()
-    .AddComponentInteractions<MentionableMenuInteraction, MentionableMenuInteractionContext>()
-    .AddComponentInteractions<ChannelMenuInteraction, ChannelMenuInteractionContext>()
-    .AddComponentInteractions<ModalInteraction, ModalInteractionContext>()
+    .AddComponentInteractions<StringMenuInteraction, StringMenuInteractionContext>(options =>
+    {
+        options.ResultHandler = new EphemeralComponentInteractionResultHandler<StringMenuInteractionContext>();
+    })
+    .AddComponentInteractions<UserMenuInteraction, UserMenuInteractionContext>(options =>
+    {
+        options.ResultHandler = new EphemeralComponentInteractionResultHandler<UserMenuInteractionContext>();
+    })
+    .AddComponentInteractions<RoleMenuInteraction, RoleMenuInteractionContext>(options =>
+    {
+        options.ResultHandler = new EphemeralComponentInteractionResultHandler<RoleMenuInteractionContext>();
+    })
+    .AddComponentInteractions<MentionableMenuInteraction, MentionableMenuInteractionContext>(options =>
+    {
+        options.ResultHandler = new EphemeralComponentInteractionResultHandler<MentionableMenuInteractionContext>();
+    })
+    .AddComponentInteractions<ChannelMenuInteraction, ChannelMenuInteractionContext>(options =>
+    {
+        options.ResultHandler = new EphemeralComponentInteractionResultHandler<ChannelMenuInteractionContext>();
+    })
+    .AddComponentInteractions<ModalInteraction, ModalInteractionContext>(options =>
+    {
+        options.ResultHandler = new EphemeralComponentInteractionResultHandler<ModalInteractionContext>();
+    })
     .AddDiscordGateway()
     ;
 
