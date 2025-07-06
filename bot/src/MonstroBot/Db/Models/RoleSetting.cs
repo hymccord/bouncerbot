@@ -1,5 +1,5 @@
 namespace MonstroBot.Db.Models;
-public class AchievementRole
+public class RoleSetting
 {
     public ulong GuildId { get; set; }
 
@@ -8,10 +8,14 @@ public class AchievementRole
     public ulong? CheckmarkId { get; set; }
     public ulong? EggMasterId { get; set; }
 
+    public ulong? VerifiedId { get; set; }
+    public ulong? TradeBannedId { get; set; }
+    public ulong? MapBannedId { get; set; }
+
     public ulong? ArcaneMasterId { get; set; }
     public ulong? DraconicMasterId { get; set; }
     public ulong? ForgottenMasterId { get; set; }
-    public ulong? HyderoMasterId { get; set; }
+    public ulong? HydroMasterId { get; set; }
     public ulong? LawMasterId { get; set; }
     public ulong? PhysicalMasterId { get; set; }
     public ulong? RiftMasterId { get; set; }
