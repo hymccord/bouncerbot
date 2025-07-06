@@ -11,7 +11,7 @@ public class AchievementMessage
     public string? ArcaneMaster { get; set; }
     public string? DraconicMaster { get; set; }
     public string? ForgottenMaster { get; set; }
-    public string? HyderoMaster { get; set; }
+    public string? HydroMaster { get; set; }
     public string? LawMaster { get; set; }
     public string? PhysicalMaster { get; set; }
     public string? RiftMaster { get; set; }

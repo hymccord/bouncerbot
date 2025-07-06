@@ -1,4 +1,4 @@
-﻿using Humanizer;
+using Humanizer;
 
 using MonstroBot.Attributes;
 using MonstroBot.Db;

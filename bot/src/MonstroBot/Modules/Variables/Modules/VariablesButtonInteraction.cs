@@ -4,6 +4,7 @@ using Humanizer;
 
 using MonstroBot.Attributes;
 using MonstroBot.Db;
+using MonstroBot.Db.Models;
 
 using NetCord;
 using NetCord.Rest;
@@ -53,7 +54,7 @@ public class VariablesButtonInteraction(MonstroBotDbContext dbContext) : Compone
         var defaultValue = dbContext.RoleSettings.Find(Context.Guild!.Id) switch
         {
             { StarId: var id } when roleSetting == Role.Star => id,
-            { StarId: var id } when roleSetting == Role.Crown => id,
+            { CrownId: var id } when roleSetting == Role.Crown => id,
             { CheckmarkId: var id } when roleSetting == Role.Checkmark => id,
             { EggMasterId: var id } when roleSetting == Role.EggMaster => id,
             { ArcaneMasterId: var id } when roleSetting == Role.ArcaneMaster => id,
@@ -83,9 +84,34 @@ public class VariablesButtonInteraction(MonstroBotDbContext dbContext) : Compone
             Flags = MessageFlags.Ephemeral
         }));
     }
-}
 
-public class VariablesModalInteraction : ComponentInteractionModule<ModalInteractionContext>
-{
+    [ComponentInteraction("variables messages")]
+    public async Task CreateMessageMenuAsync(Role role)
+    {
+        //await RespondAsync(InteractionCallback.DeferredModifyMessage);
+        var defaultValue = dbContext.AchievementMessages.Find(Context.Guild!.Id) switch
+        {
+            { Star: var message } when role == Role.Star => message,
+            { Crown: var message } when role == Role.Crown => message,
+            { Checkmark: var message } when role == Role.Checkmark => message,
+            { EggMaster: var message } when role == Role.EggMaster => message,
+            { ArcaneMaster: var message } when role == Role.ArcaneMaster => message,
+            { DraconicMaster: var message } when role == Role.DraconicMaster => message,
+            { ForgottenMaster: var message } when role == Role.ForgottenMaster => message,
+            { HydroMaster: var message } when role == Role.HydroMaster => message,
+            { LawMaster: var message } when role == Role.LawMaster => message,
+            { PhysicalMaster: var message } when role == Role.PhysicalMaster => message,
+            { RiftMaster: var message } when role == Role.RiftMaster => message,
+            { ShadowMaster: var message } when role == Role.ShadowMaster => message,
+            { TacticalMaster: var message } when role == Role.TacticalMaster => message,
+            _ => string.Empty
+        };
 
+        await RespondAsync(InteractionCallback.Modal(new ModalProperties($"variables messages modal:{(int)role}", "", [
+            new TextInputProperties($"message", TextInputStyle.Paragraph, $"{role.Humanize()} message") {
+                Value = defaultValue,
+                Placeholder = "Use {mention} to mention the user."
+            }
+        ])));
+    }
 }

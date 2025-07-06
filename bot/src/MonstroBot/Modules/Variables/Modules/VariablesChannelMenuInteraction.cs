@@ -1,4 +1,4 @@
-﻿using Humanizer;
+using Humanizer;
 
 using MonstroBot.Attributes;
 using MonstroBot.Db;
@@ -13,7 +13,7 @@ namespace MonstroBot.Modules.Variables.Modules;
 public class VariablesChannelMenuInteraction(MonstroBotDbContext dbContext) : ComponentInteractionModule<ChannelMenuInteractionContext>
 {
     [ComponentInteraction("variables channels menu")]
-    public async Task CreateChannelMenuAsync(LogChannel channel)
+    public async Task SetLogChannelAsync(LogChannel channel)
     {
         await RespondAsync(InteractionCallback.DeferredModifyMessage);
 
