@@ -53,9 +53,10 @@ public class VariablesChannelMenuInteraction(MonstroBotDbContext dbContext) : Co
         await dbContext.SaveChangesAsync();
         await ModifyResponseAsync(m =>
         {
-            m.Content = $"Set {channel.Humanize()} channel to <#{selectedChannelId}>.";
+            m.Content = $"Set {channel.Humanize(LetterCasing.Title)} channel to <#{selectedChannelId}>.";
             m.Flags = MessageFlags.Ephemeral;
             m.Components = [];
+            m.Embeds = [];
         });
         await Task.Delay(3000);
         await DeleteResponseAsync();

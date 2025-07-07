@@ -34,7 +34,7 @@ public class VariablesButtonInteraction(MonstroBotDbContext dbContext) : Compone
         {
             Embeds = [
                 new EmbedProperties() {
-                    Title = $"Editing the {channel.Humanize()} channel setting",
+                    Title = $"Editing the {channel.Humanize(LetterCasing.Title)} channel setting",
                 }],
             Components = [
                 new ChannelMenuProperties($"variables channels menu:{(int)channel}")
@@ -73,7 +73,7 @@ public class VariablesButtonInteraction(MonstroBotDbContext dbContext) : Compone
         {
             Embeds = [
                 new EmbedProperties() {
-                    Title = $"Editing the {roleSetting.Humanize()} role setting",
+                    Title = $"Editing the {roleSetting.Humanize(LetterCasing.Title)} role setting",
                 }],
             Components = [
                 new RoleMenuProperties($"variables roles menu:{(int)roleSetting}")

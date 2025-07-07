@@ -92,9 +92,10 @@ public class VariablesRoleMenuInteraction(MonstroBotDbContext dbContext) : Compo
         await dbContext.SaveChangesAsync();
         await ModifyResponseAsync(m =>
         {
-            m.Content = $"Set {role.Humanize()} role to <@&{selectedRole}>.";
+            m.Content = $"Set {role.Humanize(LetterCasing.Title)} role to <@&{selectedRole}>.";
             m.Flags = MessageFlags.Ephemeral;
             m.Components = [];
+            m.Embeds = [];
             m.AllowedMentions = AllowedMentionsProperties.None;
         });
         await Task.Delay(3000);
