@@ -7,9 +7,9 @@ using Microsoft.Extensions.Hosting;
 using MonstroBot;
 using MonstroBot.Db;
 using MonstroBot.Modules.Verify;
-using MonstroBot.Rest;
-
+using MonstroBot.Services;
 using NetCord;
+using NetCord.Gateway;
 using NetCord.Hosting.Gateway;
 using NetCord.Hosting.Services;
 using NetCord.Hosting.Services.ApplicationCommands;
@@ -25,6 +25,8 @@ builder.Services
     {
         options.UseSqlite(builder.Configuration.GetConnectionString("MonstroBot"));
     })
+    .AddTransient<IGuildLoggingService, GuildLoggingService>()
+    .AddTransient<IGuildUserRoleMonitorService, GuildUserRoleMonitor>()
     .AddTransient<IVerificationPhraseGenerator, VerificationPhraseGenerator>()
     .AddTransient<VerificationService>()
     .AddMouseHuntClient()
@@ -64,7 +66,17 @@ builder.Services
     {
         options.ResultHandler = new EphemeralComponentInteractionResultHandler<ModalInteractionContext>();
     })
-    .AddDiscordGateway()
+    .AddDiscordGateway((options, services) =>
+    {
+        options.Presence = new PresenceProperties(UserStatusType.Online)
+        {
+            Activities = [new ("MouseHunters!", UserActivityType.Watching)]
+        };
+        options.Intents = GatewayIntents.Guilds
+            | GatewayIntents.GuildUsers
+            | GatewayIntents.GuildPresences;
+    })
+    .AddGatewayHandlers(typeof(Program).Assembly)
     ;
 
 IHost host = builder
