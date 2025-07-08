@@ -30,7 +30,8 @@ public class GuildUserRoleMonitor(ILogger<GuildUserRoleMonitor> logger, IGuildLo
         {
             await guildLoggingService.LogAsync(guildUser.GuildId, LogType.General, new MessageProperties
             {
-                Content = $"Role <@&{roleSettings.TradeBannedId}> added to <@{guildUser.Id}>."
+                Content = $"Role <@&{roleSettings.TradeBannedId}> added to <@{guildUser.Id}>.",
+                AllowedMentions = AllowedMentionsProperties.None
             });
         }
 
@@ -38,7 +39,8 @@ public class GuildUserRoleMonitor(ILogger<GuildUserRoleMonitor> logger, IGuildLo
         {
             await guildLoggingService.LogAsync(guildUser.GuildId, LogType.General, new MessageProperties
             {
-                Content = $"Role <@&{roleSettings.MapBannedId}> added to <@{guildUser.Id}>."
+                Content = $"Role <@&{roleSettings.MapBannedId}> added to <@{guildUser.Id}>.",
+                AllowedMentions = AllowedMentionsProperties.None
             });
         }
     }
@@ -60,7 +62,8 @@ public class GuildUserRoleMonitor(ILogger<GuildUserRoleMonitor> logger, IGuildLo
         {
             await guildLoggingService.LogAsync(guildUser.GuildId, LogType.General, new MessageProperties
             {
-                Content = $"Role <@&{roleSettings.TradeBannedId}> removed from <@{guildUser.Id}>."
+                Content = $"Role <@&{roleSettings.TradeBannedId}> removed from <@{guildUser.Id}>.",
+                AllowedMentions = AllowedMentionsProperties.None
             });
         }
 
@@ -68,7 +71,8 @@ public class GuildUserRoleMonitor(ILogger<GuildUserRoleMonitor> logger, IGuildLo
         {
             await guildLoggingService.LogAsync(guildUser.GuildId, LogType.General, new MessageProperties
             {
-                Content = $"Role <@&{roleSettings.MapBannedId}> removed from <@{guildUser.Id}>."
+                Content = $"Role <@&{roleSettings.MapBannedId}> removed from <@{guildUser.Id}>.",
+                AllowedMentions = AllowedMentionsProperties.None
             });
         }
     }

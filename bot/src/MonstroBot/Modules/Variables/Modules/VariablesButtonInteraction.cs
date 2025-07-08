@@ -1,10 +1,7 @@
-using System.Threading.Channels;
-
 using Humanizer;
 
 using MonstroBot.Attributes;
 using MonstroBot.Db;
-using MonstroBot.Db.Models;
 
 using NetCord;
 using NetCord.Rest;
@@ -34,7 +31,7 @@ public class VariablesButtonInteraction(MonstroBotDbContext dbContext) : Compone
         {
             Embeds = [
                 new EmbedProperties() {
-                    Title = $"Editing the {channel.Humanize(LetterCasing.Title)} channel setting",
+                    Title = $"Editing the {channel.Humanize()} channel setting",
                 }],
             Components = [
                 new ChannelMenuProperties($"variables channels menu:{(int)channel}")
@@ -73,7 +70,7 @@ public class VariablesButtonInteraction(MonstroBotDbContext dbContext) : Compone
         {
             Embeds = [
                 new EmbedProperties() {
-                    Title = $"Editing the {roleSetting.Humanize(LetterCasing.Title)} role setting",
+                    Title = $"Editing the {roleSetting.Humanize()} role setting",
                 }],
             Components = [
                 new RoleMenuProperties($"variables roles menu:{(int)roleSetting}")

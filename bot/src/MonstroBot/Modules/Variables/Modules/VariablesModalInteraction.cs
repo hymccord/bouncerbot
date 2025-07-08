@@ -85,6 +85,7 @@ public class VariablesModalInteraction(MonstroBotDbContext dbContext) : Componen
         {
             Content = $"Set {role.Humanize()} message.",
             Flags = MessageFlags.Ephemeral,
+            AllowedMentions = AllowedMentionsProperties.None
         });
         await Task.Delay(3000);
         await DeleteFollowupAsync(m.Id);
