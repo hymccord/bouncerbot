@@ -6,7 +6,9 @@ using NetCord.Services.ComponentInteractions;
 
 namespace MonstroBot.Modules.Verify.Modules;
 
-public class VerifyButtonInteractions(ILogger<VerifyButtonInteractions> logger, VerificationService verificationService) : ComponentInteractionModule<ButtonInteractionContext>
+public class VerifyButtonInteractions(ILogger<VerifyButtonInteractions> logger,
+    VerificationService verificationService
+) : ComponentInteractionModule<ButtonInteractionContext>
 {
     [ComponentInteraction("verify me start")]
     public async Task VerifyMe(uint mouseHuntId, string phrase)

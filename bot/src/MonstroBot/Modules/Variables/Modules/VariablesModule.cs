@@ -72,6 +72,10 @@ public class VariablesModule : ApplicationCommandModule<ApplicationCommandContex
                    new ButtonProperties($"variables roles:{(int)Role.TacticalMaster}", Role.TacticalMaster.Humanize(), ButtonStyle.Secondary),
                    new ButtonProperties($"variables roles:{(int)Role.MultiMaster}", Role.MultiMaster.Humanize(), ButtonStyle.Secondary),
                ]),
+               new ActionRowProperties().WithButtons([
+                   new ButtonProperties($"variables roles:{(int)Role.TradeBanned}", Role.TradeBanned.Humanize(), ButtonStyle.Secondary),
+                   new ButtonProperties($"variables roles:{(int)Role.MapBanned}", Role.MapBanned.Humanize(), ButtonStyle.Secondary),
+                ])
             ],
             Flags = MessageFlags.Ephemeral
         }));

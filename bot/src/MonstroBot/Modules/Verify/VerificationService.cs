@@ -2,9 +2,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 using MonstroBot.Db;
+using MonstroBot.Services;
+
+using NetCord.Rest;
 
 namespace MonstroBot.Modules.Verify;
-public class VerificationService(ILogger<VerificationService> logger, MonstroBotDbContext dbContext)
+public class VerificationService(ILogger<VerificationService> logger, MonstroBotDbContext dbContext, IGuildLoggingService guildLoggingService)
 {
     public async Task AddVerifiedUserAsync(uint mouseHuntId, ulong guildId, ulong discordId)
     {
@@ -20,6 +23,12 @@ public class VerificationService(ILogger<VerificationService> logger, MonstroBot
             });
 
             await dbContext.SaveChangesAsync();
+
+            await guildLoggingService.LogAsync(guildId, LogType.Verification, new()
+            {
+                Content = $"<@{discordId}> is hunter {mouseHuntId} <https://p.mshnt.ca/{mouseHuntId}>",
+                AllowedMentions = AllowedMentionsProperties.None,
+            });
         }
         else
         {
