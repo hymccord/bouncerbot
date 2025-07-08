@@ -6,7 +6,7 @@ using NetCord;
 using NetCord.Rest;
 using NetCord.Services.ApplicationCommands;
 
-namespace MonstroBot.Modules.Verify.ApplicationCommands;
+namespace MonstroBot.Modules.Verify.Modules;
 
 [SlashCommand("verify", "Manage MouseHunt ID verification")]
 [GuildOnly<ApplicationCommandContext>]

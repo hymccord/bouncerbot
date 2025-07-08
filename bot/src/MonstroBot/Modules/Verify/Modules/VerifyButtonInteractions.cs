@@ -4,7 +4,7 @@ using NetCord;
 using NetCord.Rest;
 using NetCord.Services.ComponentInteractions;
 
-namespace MonstroBot.Modules.Verify.ButtonInteractions;
+namespace MonstroBot.Modules.Verify.Modules;
 
 public class VerifyButtonInteractions(ILogger<VerifyButtonInteractions> logger, VerificationService verificationService) : ComponentInteractionModule<ButtonInteractionContext>
 {
