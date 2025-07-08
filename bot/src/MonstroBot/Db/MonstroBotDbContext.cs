@@ -8,6 +8,7 @@ public class MonstroBotDbContext(DbContextOptions<MonstroBotDbContext> options) 
     public DbSet<AchievementMessage> AchievementMessages { get; set; } = null!;
     public DbSet<LogSetting> LogSettings { get; set; } = null!;
     public DbSet<RoleSetting> RoleSettings { get; set; } = null!;
+    public DbSet<Snuid> SnuidCache { get; set; } = null!;
     public DbSet<VerifiedUser> VerifiedUsers { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -25,6 +26,12 @@ public class MonstroBotDbContext(DbContextOptions<MonstroBotDbContext> options) 
         modelBuilder.Entity<RoleSetting>(ar =>
         {
             ar.HasKey(am => am.GuildId);
+        });
+
+        modelBuilder.Entity<Snuid>(snuid =>
+        {
+            snuid.HasKey(s => s.MouseHuntId);
+            snuid.Property(s => s.MouseHuntId).ValueGeneratedNever();
         });
 
         modelBuilder.Entity<VerifiedUser>(vu =>

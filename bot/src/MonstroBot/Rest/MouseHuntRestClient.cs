@@ -1,16 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http.Json;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
+using MonstroBot.Db;
 using MonstroBot.Rest.Models;
 
 namespace MonstroBot.Rest;
@@ -23,6 +18,7 @@ public partial class MouseHuntRestClient
 
     private readonly IOptions<MouseHuntRestClientOptions> _options;
     private readonly RestRequestHandler _requestHandler;
+    private readonly IDbContextFactory<MonstroBotDbContext> _dbContextFactory;
 
     private List<KeyValuePair<string, string>> _defaultFormData = [
         new ("sn", "Hitgrab"),
@@ -31,10 +27,12 @@ public partial class MouseHuntRestClient
 
     public MouseHuntRestClient(
         ILogger<MouseHuntRestClient> logger,
-        IOptions<MouseHuntRestClientOptions> options)
+        IOptions<MouseHuntRestClientOptions> options,
+        IDbContextFactory<MonstroBotDbContext> dbContextFactory)
     {
         _requestHandler = new RestRequestHandler();
         _options = options;
+        _dbContextFactory = dbContextFactory;
     }
 
     internal async Task StartAsync(CancellationToken cancellationToken)
@@ -73,7 +71,7 @@ public partial class MouseHuntRestClient
     public Task<T> SendRequestAsync<T>(HttpMethod method, HttpContent? content, string route, CancellationToken cancellationToken = default)
     {
         var url = $"api/{route}";
-        return SendRequestAsync<T>(url, CreateMessage, cancellationToken);
+        return SendRequestAsync<T>(CreateMessage, cancellationToken);
 
         HttpRequestMessage CreateMessage()
         {
@@ -86,7 +84,54 @@ public partial class MouseHuntRestClient
         }
     }
 
-    private async Task<T> SendRequestAsync<T>(string url, Func<HttpRequestMessage> createMessage, CancellationToken cancellationToken = default)
+    private async Task<T> SendDesktopRequestAsync<T>(HttpMethod method, IList<KeyValuePair<string, string>> formData, string route, CancellationToken cancellationToken = default)
+    {
+        for (int tries = 0; tries < 2; tries++)
+        {
+            var response = await _requestHandler.SendAsync(CreateMessage(), cancellationToken);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var data = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken).ConfigureAwait(false);
+
+                var hgResponse = data.Deserialize<HgResponse>(_jsonSerializerOptions);
+                var popupMessage = hgResponse.MessageData["popup"].Messages.FirstOrDefault()?.MessageData.Body;
+                if (popupMessage == "Your session has expired.")
+                {
+                    await RefreshSessionAsync();
+                    continue;
+                }
+
+                return data.Deserialize<T>(_jsonSerializerOptions);
+            }
+
+        }
+
+        throw new Exception($"Request failed");
+
+        HttpRequestMessage CreateMessage()
+        {
+            HttpRequestMessage requestMessage = new(method, route)
+            {
+                Content = new FormUrlEncodedContent([
+                    .._defaultFormData,
+                    ..formData
+                ])
+            };
+
+            return requestMessage;
+        }
+
+        async Task RefreshSessionAsync()
+        {
+            await _requestHandler.SendAsync(new HttpRequestMessage(HttpMethod.Post, "camp.php")
+            {
+                Content = new FormUrlEncodedContent(_defaultFormData)
+            }, cancellationToken);
+        }
+    }
+
+    private async Task<T> SendRequestAsync<T>(Func<HttpRequestMessage> createMessage, CancellationToken cancellationToken = default)
     {
         HttpResponseMessage response;
         try
@@ -107,11 +152,11 @@ public partial class MouseHuntRestClient
 
         if (content.Headers.ContentType is { MediaType: "application/json" })
         {
-            throw new Exception($"Request to {url} failed with status code {response.StatusCode}: {await content.ReadAsStringAsync(cancellationToken)}");
+            throw new Exception($"Request to {response.RequestMessage.RequestUri} failed with status code {response.StatusCode}: {await content.ReadAsStringAsync(cancellationToken)}");
         }
         else
         {
-            throw new Exception($"Request to {url} failed with status code {response.StatusCode}: {response.ReasonPhrase}");
+            throw new Exception($"Request to {response.RequestMessage.RequestUri} failed with status code {response.StatusCode}: {response.ReasonPhrase}");
         }
 
     }
