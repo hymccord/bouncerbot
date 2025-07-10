@@ -10,12 +10,18 @@ using NetCord.Services.ApplicationCommands;
 
 namespace BouncerBot.Modules.Variables.Modules;
 
-[SlashCommand("variables", "Manage variables for the app.")]
+[SlashCommand("config", "Manage bot configuration")]
+[RequireUserPermissions<ApplicationCommandContext>(Permissions.ManageGuild)]
 [GuildOnly<ApplicationCommandContext>]
 public class VariablesModule : ApplicationCommandModule<ApplicationCommandContext>
 {
-    [SubSlashCommand("channels", "Set logging channels")]
-    [RequireUserPermissions<ApplicationCommandContext>(Permissions.Administrator)]
+    [SubSlashCommand("aio", "Configure everything interactively!")]
+    public async Task AioAsync()
+    {
+
+    }
+
+    [SubSlashCommand("log", "Set ")]
     public async Task SetChannelVariables()
     {
         //await RespondAsync(InteractionCallback.DeferredMessage(MessageFlags.Ephemeral));
@@ -40,7 +46,6 @@ public class VariablesModule : ApplicationCommandModule<ApplicationCommandContex
     }
 
     [SubSlashCommand("roles", "Set server roles")]
-    [RequireUserPermissions<ApplicationCommandContext>(Permissions.Administrator)]
     public async Task SetUserVariables()
     {
 
@@ -82,7 +87,6 @@ public class VariablesModule : ApplicationCommandModule<ApplicationCommandContex
     }
 
     [SubSlashCommand("messages", "Set achievement messages")]
-    [RequireUserPermissions<ApplicationCommandContext>(Permissions.Administrator)]
     public async Task SetMessageVariables()
     {
         await RespondAsync(InteractionCallback.Message(new InteractionMessageProperties()
