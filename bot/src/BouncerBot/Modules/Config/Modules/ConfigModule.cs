@@ -13,7 +13,7 @@ namespace BouncerBot.Modules.Variables.Modules;
 [SlashCommand("config", "Manage bot configuration")]
 [RequireUserPermissions<ApplicationCommandContext>(Permissions.ManageGuild)]
 [GuildOnly<ApplicationCommandContext>]
-public class VariablesModule : ApplicationCommandModule<ApplicationCommandContext>
+public class ConfigModule : ApplicationCommandModule<ApplicationCommandContext>
 {
     [SubSlashCommand("aio", "Configure everything interactively!")]
     public async Task AioAsync()

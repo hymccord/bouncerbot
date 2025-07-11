@@ -8,7 +8,7 @@ using BouncerBot.Db;
 
 namespace BouncerBot.Modules.Variables.Modules;
 
-public class VariablesModalInteraction(BouncerBotDbContext dbContext) : ComponentInteractionModule<ModalInteractionContext>
+public class ConfigModalInteraction(BouncerBotDbContext dbContext) : ComponentInteractionModule<ModalInteractionContext>
 {
     [ComponentInteraction("variables messages modal")]
     public async Task SetMessageAsync(Role role)

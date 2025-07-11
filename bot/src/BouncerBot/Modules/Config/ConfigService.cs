@@ -1,9 +1,9 @@
 using BouncerBot.Db;
 using BouncerBot.Db.Models;
 
-namespace BouncerBot.Services;
+namespace BouncerBot.Modules.Config;
 
-public class VariablesService(BouncerBotDbContext dbContext)
+public class ConfigService(BouncerBotDbContext dbContext)
 {
     public async Task<ulong?> GetChannelSettingAsync(ulong guildId, LogChannel channel)
     {

@@ -10,7 +10,7 @@ using NetCord.Services.ComponentInteractions;
 namespace BouncerBot.Modules.Variables.Modules;
 
 [GuildOnly<RoleMenuInteractionContext>]
-public class VariablesRoleMenuInteraction(BouncerBotDbContext dbContext) : ComponentInteractionModule<RoleMenuInteractionContext>
+public class ConfigRoleMenuInteraction(BouncerBotDbContext dbContext) : ComponentInteractionModule<RoleMenuInteractionContext>
 {
     [ComponentInteraction("variables roles menu")]
     public async Task CreateRoleMenuAsync(Role role)

@@ -10,7 +10,7 @@ using NetCord.Services.ComponentInteractions;
 namespace BouncerBot.Modules.Variables.Modules;
 
 [GuildOnly<ChannelMenuInteractionContext>]
-public class VariablesChannelMenuInteraction(BouncerBotDbContext dbContext) : ComponentInteractionModule<ChannelMenuInteractionContext>
+public class ConfigChannelMenuInteraction(BouncerBotDbContext dbContext) : ComponentInteractionModule<ChannelMenuInteractionContext>
 {
     [ComponentInteraction("variables channels menu")]
     public async Task SetLogChannelAsync(LogChannel channel)
