@@ -14,6 +14,32 @@ partial class MouseHuntRestClient
         return response;
     }
 
+    public async Task<UserItemCategoryCompletion> GetUserLocationStatsAsync(uint mhId, CancellationToken cancellationToken = default)
+    {
+        var snuid = await GetUserSnuId(mhId, cancellationToken);
+
+        var formData = new List<KeyValuePair<string, string>>()
+        {
+            new ("page_class", "HunterProfile"),
+            new ("page_arguments[legacyMode]", ""),
+            new ("page_arguments[tab]", "mice"),
+            new ("page_arguments[sub_tab]", "location"),
+            new ("page_arguments[snuid]", snuid.SnUserId),
+        };
+
+        var document = await SendDesktopRequestAsync<JsonElement>(HttpMethod.Post, formData, "managers/ajax/pages/page.php", cancellationToken);
+
+        var result = document
+            .GetProperty("page")
+            .GetProperty("tabs")
+            .GetProperty("mice")
+            .GetProperty("subtabs")[1]
+            .GetProperty("mouse_list")
+            .Deserialize<UserItemCategoryCompletion>(_jsonSerializerOptions) ?? new UserItemCategoryCompletion();
+
+        return result;
+    }
+
     public async Task<UserMouseStatistics> GetUserMouseCatches(uint mhId, CancellationToken cancellationToken = default)
     {
         var snuid = await GetUserSnuId(mhId, cancellationToken);
@@ -21,7 +47,7 @@ partial class MouseHuntRestClient
         return await SendRequestAsync<UserMouseStatistics>(HttpMethod.Post, $"get/user/{snuid.SnUserId}/mice", cancellationToken);
     }
 
-    public async Task<UserProfileItems> GetUserProfileItems(uint mhId, CancellationToken cancellationToken = default)
+    public async Task<UserItemCategoryCompletion> GetUserProfileItems(uint mhId, CancellationToken cancellationToken = default)
     {
         var snuid = await GetUserSnuId(mhId, cancellationToken);
 
@@ -42,7 +68,7 @@ partial class MouseHuntRestClient
             .GetProperty("items")
             .GetProperty("subtabs")[0]
             .GetProperty("items")
-            .Deserialize<UserProfileItems>(_jsonSerializerOptions) ?? new UserProfileItems();
+            .Deserialize<UserItemCategoryCompletion>(_jsonSerializerOptions) ?? new UserItemCategoryCompletion();
 
         return result;
     }

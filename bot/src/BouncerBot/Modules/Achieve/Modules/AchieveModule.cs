@@ -9,7 +9,7 @@ using NetCord.Services;
 using NetCord.Services.ApplicationCommands;
 using NetCord.Services.Commands;
 
-namespace BouncerBot.Modules.Achieve;
+namespace BouncerBot.Modules.Achieve.Modules;
 
 [GuildOnly<ApplicationCommandContext>]
 [SlashCommand("achieve", "Commands related to achievements")]

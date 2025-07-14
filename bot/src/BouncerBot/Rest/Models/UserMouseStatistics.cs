@@ -11,12 +11,12 @@ public class MouseCatchRecord
     public int NumCatches { get; set; }
 }
 
-public class UserProfileItems
+public class UserItemCategoryCompletion
 {
-    public UserProfileItemCategory[] Categories { get; set; } = [];
+    public UserItemCategory[] Categories { get; set; } = [];
 }
 
-public class UserProfileItemCategory
+public class UserItemCategory
 {
     public string Name { get; set; } = null!;
     public bool IsComplete { get; set; }
