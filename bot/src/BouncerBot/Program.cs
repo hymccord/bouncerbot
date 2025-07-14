@@ -15,6 +15,7 @@ using NetCord.Hosting.Services;
 using NetCord.Hosting.Services.ApplicationCommands;
 using NetCord.Hosting.Services.ComponentInteractions;
 using NetCord.Services.ComponentInteractions;
+using BouncerBot.Modules.Config;
 
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 
@@ -28,6 +29,7 @@ builder.Services
     .AddTransient<IGuildLoggingService, GuildLoggingService>()
     .AddTransient<IGuildUserRoleMonitorService, GuildUserRoleMonitor>()
     .AddTransient<IVerificationPhraseGenerator, VerificationPhraseGenerator>()
+    .AddTransient<ConfigService>()
     .AddTransient<VerificationService>()
     .AddMouseHuntClient()
     ;

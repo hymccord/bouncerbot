@@ -1,7 +1,7 @@
-using Humanizer;
-
 using BouncerBot.Attributes;
-using BouncerBot.Db;
+using BouncerBot.Modules.Config;
+
+using Humanizer;
 
 using NetCord;
 using NetCord.Rest;
@@ -13,112 +13,114 @@ namespace BouncerBot.Modules.Variables.Modules;
 [SlashCommand("config", "Manage bot configuration")]
 [RequireUserPermissions<ApplicationCommandContext>(Permissions.ManageGuild)]
 [GuildOnly<ApplicationCommandContext>]
-public class ConfigModule : ApplicationCommandModule<ApplicationCommandContext>
+public class ConfigModule(ConfigService configService) : ApplicationCommandModule<ApplicationCommandContext>
 {
-    [SubSlashCommand("aio", "Configure everything interactively!")]
-    public async Task AioAsync()
-    {
+    //[SubSlashCommand("aio", "Configure everything interactively!")]
+    //public async Task AioAsync()
+    //{
 
+    //}
+
+    [SubSlashCommand("log", "Set channel where specified events go. Leave empty to clear channel.")]
+    public async Task SetLogChannelAsync(
+        [SlashCommandParameter(Description = "Log type", Name = "type")] LogChannel logChannel,
+        [SlashCommandParameter(Description = "Output channel")] Channel? channel = default)
+    {
+        await configService.SetLogChannelSettingAsync(Context.Guild!.Id, logChannel, channel?.Id);
+
+        await RespondAsync(InteractionCallback.Message($"Set {logChannel.Humanize()} channel to {(channel is null ? "none" : $"<#{channel.Id}>")}"));
     }
 
-    [SubSlashCommand("log", "Set ")]
-    public async Task SetChannelVariables()
+    [SubSlashCommand("role", "Set role for various bot operations")]
+    public async Task SetRoleAsync(
+        [SlashCommandParameter(Description = "Role", Name = "role")] Role role,
+        NetCord.Role selectedRole)
     {
-        //await RespondAsync(InteractionCallback.DeferredMessage(MessageFlags.Ephemeral));
+        await configService.SetRoleSettingAsync(Context.Guild!.Id, role, selectedRole.Id);
 
-        await RespondAsync(InteractionCallback.Message(new InteractionMessageProperties()
+        await RespondAsync(InteractionCallback.Message(new()
         {
-            Embeds = [
-                new EmbedProperties() {
-                    Title = "Select a channel setting to change"
-                }
-            ],
-            Components = [
-               new ActionRowProperties().WithButtons([
-                   new ButtonProperties($"variables channels:{(int)LogChannel.General}", "General", ButtonStyle.Secondary),
-                   new ButtonProperties($"variables channels:{(int)LogChannel.Achievement}", "Achievement", ButtonStyle.Secondary),
-                   new ButtonProperties($"variables channels:{(int)LogChannel.EggMaster}", "Egg Master", ButtonStyle.Secondary),
-                   new ButtonProperties($"variables channels:{(int)LogChannel.Verification}", "Verification", ButtonStyle.Secondary)
-               ]),
-            ],
-            Flags = MessageFlags.Ephemeral
+            Content = $"Set {role.Humanize()} role to <@&{selectedRole.Id}>",
+            AllowedMentions = AllowedMentionsProperties.None
         }));
     }
 
-    [SubSlashCommand("roles", "Set server roles")]
-    public async Task SetUserVariables()
+    [SubSlashCommand("message", "Set message for specified achievement type. Use {mention} to mention user.")]
+    public async Task SetMessageAsync(
+        [SlashCommandParameter(Description = "Achievement type", Name = "achievement")] AchievementRole achievementRole,
+        [SlashCommandParameter(Description = "Message to send.")] string message)
     {
+        await configService.SetMessageSettingAsync(Context.Guild!.Id, achievementRole, message);
 
-        await RespondAsync(InteractionCallback.Message(new InteractionMessageProperties()
+        await RespondAsync(InteractionCallback.Message(new()
         {
+            Content = $"Set {achievementRole.Humanize()} message to:",
             Embeds = [
-                new EmbedProperties() {
-                    Title = "Select a role setting to change"
+                new EmbedProperties()
+                {
+                    Description = message,
                 }
-            ],
-            Components = [
-               new ActionRowProperties().WithButtons([
-                   new ButtonProperties($"variables roles:{(int)Role.Star}", new EmojiProperties("⭐"), ButtonStyle.Secondary),
-                   new ButtonProperties($"variables roles:{(int)Role.Crown}", new EmojiProperties("👑"), ButtonStyle.Secondary),
-                   new ButtonProperties($"variables roles:{(int)Role.Checkmark}", new EmojiProperties("✅"), ButtonStyle.Secondary),
-                   new ButtonProperties($"variables roles:{(int)Role.EggMaster}", new EmojiProperties("🥚"), ButtonStyle.Secondary),
-               ]),
-               new ActionRowProperties().WithButtons([
-                   new ButtonProperties($"variables roles:{(int)Role.ArcaneMaster}", Role.ArcaneMaster.Humanize(), ButtonStyle.Secondary),
-                   new ButtonProperties($"variables roles:{(int)Role.DraconicMaster}", Role.DraconicMaster.Humanize(), ButtonStyle.Secondary),
-                   new ButtonProperties($"variables roles:{(int)Role.ForgottenMaster}", Role.ForgottenMaster.Humanize(), ButtonStyle.Secondary),
-                   new ButtonProperties($"variables roles:{(int)Role.HydroMaster}", Role.HydroMaster.Humanize(), ButtonStyle.Secondary),
-                   new ButtonProperties($"variables roles:{(int)Role.LawMaster}", Role.LawMaster.Humanize(), ButtonStyle.Secondary),
-               ]),
-               new ActionRowProperties().WithButtons([
-                   new ButtonProperties($"variables roles:{(int)Role.PhysicalMaster}", Role.PhysicalMaster.Humanize(), ButtonStyle.Secondary),
-                   new ButtonProperties($"variables roles:{(int)Role.RiftMaster}", Role.RiftMaster.Humanize(), ButtonStyle.Secondary),
-                   new ButtonProperties($"variables roles:{(int)Role.ShadowMaster}", Role.ShadowMaster.Humanize(), ButtonStyle.Secondary),
-                   new ButtonProperties($"variables roles:{(int)Role.TacticalMaster}", Role.TacticalMaster.Humanize(), ButtonStyle.Secondary),
-                   new ButtonProperties($"variables roles:{(int)Role.MultiMaster}", Role.MultiMaster.Humanize(), ButtonStyle.Secondary),
-               ]),
-               new ActionRowProperties().WithButtons([
-                   new ButtonProperties($"variables roles:{(int)Role.TradeBanned}", Role.TradeBanned.Humanize(), ButtonStyle.Secondary),
-                   new ButtonProperties($"variables roles:{(int)Role.MapBanned}", Role.MapBanned.Humanize(), ButtonStyle.Secondary),
-                ])
-            ],
-            Flags = MessageFlags.Ephemeral
+            ]
         }));
     }
 
-    [SubSlashCommand("messages", "Set achievement messages")]
-    public async Task SetMessageVariables()
+    [SubSlashCommand("view", "View current configuration")]
+    public async Task ViewConfigAsync()
     {
+        var config = await configService.GetGuildConfigAsync(Context.Guild!.Id);
+
+        var embed = new EmbedProperties()
+        {
+            Title = "Current Configuration",
+            Description = $"""
+            Log Channels:
+            - General: {(config.LogSettings?.LogId is null ? "None" : $"<#{config.LogSettings.LogId}>")}
+            - Achievement: {(config.LogSettings?.FlexId is null ? "None" : $"<#{config.LogSettings.FlexId}>")}
+            - Egg Master: {(config.LogSettings?.EggMasterId is null ? "None" : $"<#{config.LogSettings.EggMasterId}>")}
+            - Verification: {(config.LogSettings?.VerificationId is null ? "None" : $"<#{config.LogSettings.VerificationId}>")}
+
+            Roles:
+            - :star:: {(config.RoleSettings?.StarId is null ? "" : $"<@&{config.RoleSettings?.StarId}>")}
+            - :crown:: {(config.RoleSettings?.CrownId is null ? "" : $"<@&{config.RoleSettings?.CrownId}>")}
+            - :white_check_mark:: {(config.RoleSettings?.CheckmarkId is null ? "" : $"<@&{config.RoleSettings?.CheckmarkId}>")}
+            - :egg:: {(config.RoleSettings?.EggMasterId is null ? "" : $"<@&{config.RoleSettings?.EggMasterId}>")}
+            - :cookie:: {(config.RoleSettings?.AchieverId is null ? "" : $"<@&{config.RoleSettings?.AchieverId}>")}
+
+            - Arcane Master: {(config.RoleSettings?.ArcaneMasterId is null ? "" : $"<@&{config.RoleSettings?.ArcaneMasterId}>")}
+            - Draconic Master: {(config.RoleSettings?.DraconicMasterId is null ? "" : $"<@&{config.RoleSettings?.DraconicMasterId}>")}
+            - Forgotten Master: {(config.RoleSettings?.ForgottenMasterId is null ? "" : $"<@&{config.RoleSettings?.ForgottenMasterId}>")}
+            - Hydro Master: {(config.RoleSettings?.HydroMasterId is null ? "" : $"<@&{config.RoleSettings?.HydroMasterId}>")}
+            - Law Master: {(config.RoleSettings?.LawMasterId is null ? "" : $"<@&{config.RoleSettings?.LawMasterId}>")}
+            - Physical Master: {(config.RoleSettings?.PhysicalMasterId is null ? "" : $"<@&{config.RoleSettings?.PhysicalMasterId}>")}
+            - Rift Master: {(config.RoleSettings?.RiftMasterId is null ? "" : $"<@&{config.RoleSettings?.RiftMasterId}>")}
+            - Shadow Master: {(config.RoleSettings?.ShadowMasterId is null ? "" : $"<@&{config.RoleSettings?.ShadowMasterId}>")}
+            - Tactical Master: {(config.RoleSettings?.TacticalMasterId is null ? "" : $"<@&{config.RoleSettings?.TacticalMasterId}>")}
+            - Multi Master: {(config.RoleSettings?.MultiMasterId is null ? "" : $"<@&{config.RoleSettings?.MultiMasterId}>")}
+
+
+            Messages:
+            - :star:: {config.AchievementMessages?.Star ?? ""}
+            - :crown: {config.AchievementMessages?.Crown ?? ""}
+            - :white_check_mark: {config.AchievementMessages?.Checkmark ?? ""}
+            - :egg:: {config.AchievementMessages?.EggMaster ?? ""}
+                    
+            - Arcane Master: {config.AchievementMessages?.ArcaneMaster ?? ""}
+            - Draconic Master: {config.AchievementMessages?.DraconicMaster ?? ""}
+            - Forgotten Master: {config.AchievementMessages?.ForgottenMaster ?? ""}
+            - Hydro Master: {config.AchievementMessages?.HydroMaster ?? ""}
+            - Law Master: {config.AchievementMessages?.LawMaster ?? ""}
+            - Physical Master: {config.AchievementMessages?.PhysicalMaster ?? ""}
+            - Rift Master: {config.AchievementMessages?.RiftMaster ?? ""}
+            - Shadow Master: {config.AchievementMessages?.ShadowMaster ?? ""}
+            - Tactical Master: {config.AchievementMessages?.TacticalMaster ?? ""}
+            - Multi Master: {config.AchievementMessages?.MultiMaster ?? ""}
+            """,
+        };
+
         await RespondAsync(InteractionCallback.Message(new InteractionMessageProperties()
         {
-            Embeds = [
-                new EmbedProperties() {
-                    Title = "Select a message setting to change"
-                }
-            ],
-            Components = [
-               new ActionRowProperties().WithButtons([
-                   new ButtonProperties($"variables messages:{(int)Role.Star}", new EmojiProperties("⭐"), ButtonStyle.Secondary),
-                   new ButtonProperties($"variables messages:{(int)Role.Crown}", new EmojiProperties("👑"), ButtonStyle.Secondary),
-                   new ButtonProperties($"variables messages:{(int)Role.Checkmark}", new EmojiProperties("✅"), ButtonStyle.Secondary),
-                   new ButtonProperties($"variables messages:{(int)Role.EggMaster}", new EmojiProperties("🥚"), ButtonStyle.Secondary),
-               ]),
-               new ActionRowProperties().WithButtons([
-                   new ButtonProperties($"variables messages:{(int)Role.ArcaneMaster}", Role.ArcaneMaster.Humanize(), ButtonStyle.Secondary),
-                   new ButtonProperties($"variables messages:{(int)Role.DraconicMaster}", Role.DraconicMaster.Humanize(), ButtonStyle.Secondary),
-                   new ButtonProperties($"variables messages:{(int)Role.ForgottenMaster}", Role.ForgottenMaster.Humanize(), ButtonStyle.Secondary),
-                   new ButtonProperties($"variables messages:{(int)Role.HydroMaster}", Role.HydroMaster.Humanize(), ButtonStyle.Secondary),
-                   new ButtonProperties($"variables messages:{(int)Role.LawMaster}", Role.LawMaster.Humanize(), ButtonStyle.Secondary),
-               ]),
-               new ActionRowProperties().WithButtons([
-                   new ButtonProperties($"variables messages:{(int)Role.PhysicalMaster}", Role.PhysicalMaster.Humanize(), ButtonStyle.Secondary),
-                   new ButtonProperties($"variables messages:{(int)Role.RiftMaster}", Role.RiftMaster.Humanize(), ButtonStyle.Secondary),
-                   new ButtonProperties($"variables messages:{(int)Role.ShadowMaster}", Role.ShadowMaster.Humanize(), ButtonStyle.Secondary),
-                   new ButtonProperties($"variables messages:{(int)Role.TacticalMaster}", Role.TacticalMaster.Humanize(), ButtonStyle.Secondary),
-                   new ButtonProperties($"variables messages:{(int)Role.MultiMaster}", Role.MultiMaster.Humanize(), ButtonStyle.Secondary),
-               ]),
-            ],
-            Flags = MessageFlags.Ephemeral
+            Embeds = [embed],
+            AllowedMentions = AllowedMentionsProperties.None
         }));
     }
 }

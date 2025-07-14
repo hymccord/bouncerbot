@@ -7,6 +7,7 @@ public class RoleSetting
     public ulong? CrownId { get; set; }
     public ulong? CheckmarkId { get; set; }
     public ulong? EggMasterId { get; set; }
+    public ulong? AchieverId { get; set; }
 
     public ulong? VerifiedId { get; set; }
     public ulong? TradeBannedId { get; set; }
