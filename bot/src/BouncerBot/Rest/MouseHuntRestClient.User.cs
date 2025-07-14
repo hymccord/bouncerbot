@@ -14,6 +14,25 @@ partial class MouseHuntRestClient
         return response;
     }
 
+    public async Task<bool> IsEggMaster(uint mhId, CancellationToken cancellationToken = default)
+    {
+        var snuid = await GetUserSnuId(mhId, cancellationToken);
+
+        var formData = new List<KeyValuePair<string, string>>()
+        {
+            new ("sn_user_ids[]", snuid.SnUserId),
+            new ("fields[]", "is_egg_master"),
+        };
+
+        var document = await SendDesktopRequestAsync<JsonElement>(HttpMethod.Post, formData, "managers/ajax/users/userData.php", cancellationToken);
+
+        var json = document.GetRawText();
+        var result = document
+            .GetProperty(snuid.SnUserId);
+
+        throw new NotImplementedException();
+    }
+
     public async Task<UserItemCategoryCompletion> GetUserLocationStatsAsync(uint mhId, CancellationToken cancellationToken = default)
     {
         var snuid = await GetUserSnuId(mhId, cancellationToken);
