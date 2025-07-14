@@ -45,9 +45,39 @@ public class VerifyButtonInteractions(ILogger<VerifyButtonInteractions> logger,
     [ComponentInteraction("verify me cancel")]
     public async Task CancelVerification()
     {
-        await RespondAsync(InteractionCallback.DeferredModifyMessage);
+        await DeferModifyAndDeleteResponseAsync();
+    }
 
-        await DeleteResponseAsync();
+    [ComponentInteraction("verify user confirm")]
+    public async Task VerifyUser(uint mouseHuntId, ulong discordId)
+    {
+        await RespondAsync(InteractionCallback.DeferredModifyMessage);
+        if (!await verificationService.IsDiscordUserVerifiedAsync(Context.Guild!.Id, discordId))
+        {
+            await verificationService.AddVerifiedUserAsync(mouseHuntId, Context.Guild!.Id, discordId);
+            await ModifyResponseAsync(x =>
+            {
+                x.Content = $"Verified <@{discordId}> to be hunter {mouseHuntId}.";
+                x.Flags = MessageFlags.Ephemeral;
+                x.Components = [];
+            });
+        }
+        else
+        {
+            logger.LogInformation("User {UserId} is already verified in guild {GuildId}", discordId, Context.Guild!.Id);
+            await ModifyResponseAsync(x =>
+            {
+                x.Content = $"<@{discordId}> is already verified.";
+                x.Flags = MessageFlags.Ephemeral;
+                x.Components = [];
+            });
+        }
+    }
+
+    [ComponentInteraction("verify user cancel")]
+    public async Task CancelVerifyUser()
+    {
+        await DeferModifyAndDeleteResponseAsync();
     }
 
     [ComponentInteraction("verify remove confirm")]
@@ -68,8 +98,12 @@ public class VerifyButtonInteractions(ILogger<VerifyButtonInteractions> logger,
     [ComponentInteraction("verify remove cancel")]
     public async Task CancelRemoveVerification()
     {
-        await RespondAsync(InteractionCallback.DeferredModifyMessage);
+        await DeferModifyAndDeleteResponseAsync();
+    }
 
+    private async Task DeferModifyAndDeleteResponseAsync()
+    {
+        await RespondAsync(InteractionCallback.DeferredModifyMessage);
         await DeleteResponseAsync();
     }
 }

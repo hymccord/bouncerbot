@@ -62,10 +62,34 @@ public class VerifyModule(ILogger<VerifyModule> logger,
         });
     }
 
+    [SubSlashCommand("user", "Manually verify a MouseHunt ID and Discord user")]
+    [ManageRolesOnly<ApplicationCommandContext>]
+    public async Task VerifyUserAsync(
+        [SlashCommandParameter(Name = "mousehunt_id", Description = "User's MouseHunt ID")] uint mhid,
+        User user)
+    {
+        await RespondAsync(InteractionCallback.Message(new InteractionMessageProperties()
+        {
+            Content = $"""
+                Are you sure you want to verify <@{user.Id}> as hunter {mhid}?
+                <https://p.mshnt.ca/{mhid}>
+                """,
+            
+            Components =
+            [
+                new ActionRowProperties()
+                    .AddButtons(new ButtonProperties($"verify user confirm:{mhid}:{user.Id}", "Confirm", ButtonStyle.Success))
+                    .AddButtons(new ButtonProperties("verify user cancel", "Cancel", ButtonStyle.Danger))
+            ],
+            AllowedMentions = AllowedMentionsProperties.None,
+            Flags = MessageFlags.Ephemeral
+        }));
+    }
+
     [SubSlashCommand("remove", "Remove a MouseHunt ID verification")]
-    [ManageMessageOnly<ApplicationCommandContext>]
+    [ManageRolesOnly<ApplicationCommandContext>]
     public async Task RemoveVerification(
-        [SlashCommandParameter(Description = "Discord User")] User user
+        [SlashCommandParameter(Description = "A verified Discord user")]User user
         )
     {
         await RespondAsync(InteractionCallback.DeferredMessage(MessageFlags.Ephemeral));
