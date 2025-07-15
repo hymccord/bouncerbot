@@ -80,22 +80,26 @@ public class ConfigModule(ConfigService configService) : ApplicationCommandModul
             - Verification: {(config.LogSettings?.VerificationId is null ? "None" : $"<#{config.LogSettings.VerificationId}>")}
 
             Roles:
-            - :star:: {(config.RoleSettings?.StarId is null ? "" : $"<@&{config.RoleSettings?.StarId}>")}
-            - :crown:: {(config.RoleSettings?.CrownId is null ? "" : $"<@&{config.RoleSettings?.CrownId}>")}
-            - :white_check_mark:: {(config.RoleSettings?.CheckmarkId is null ? "" : $"<@&{config.RoleSettings?.CheckmarkId}>")}
-            - :egg:: {(config.RoleSettings?.EggMasterId is null ? "" : $"<@&{config.RoleSettings?.EggMasterId}>")}
-            - :cookie:: {(config.RoleSettings?.AchieverId is null ? "" : $"<@&{config.RoleSettings?.AchieverId}>")}
+            - Verified: {(config.RoleSettings?.VerifiedId is null ? "None" : $"<@&{config.RoleSettings?.VerifiedId}>")}
+            - Trade Banned: {(config.RoleSettings?.TradeBannedId is null ? "None" : $"<@&{config.RoleSettings?.TradeBannedId}>")}
+            - Map Banned {(config.RoleSettings?.MapBannedId is null ? "None" : $"<@&{config.RoleSettings?.MapBannedId}>")}
 
-            - Arcane Master: {(config.RoleSettings?.ArcaneMasterId is null ? "" : $"<@&{config.RoleSettings?.ArcaneMasterId}>")}
-            - Draconic Master: {(config.RoleSettings?.DraconicMasterId is null ? "" : $"<@&{config.RoleSettings?.DraconicMasterId}>")}
-            - Forgotten Master: {(config.RoleSettings?.ForgottenMasterId is null ? "" : $"<@&{config.RoleSettings?.ForgottenMasterId}>")}
-            - Hydro Master: {(config.RoleSettings?.HydroMasterId is null ? "" : $"<@&{config.RoleSettings?.HydroMasterId}>")}
-            - Law Master: {(config.RoleSettings?.LawMasterId is null ? "" : $"<@&{config.RoleSettings?.LawMasterId}>")}
-            - Physical Master: {(config.RoleSettings?.PhysicalMasterId is null ? "" : $"<@&{config.RoleSettings?.PhysicalMasterId}>")}
-            - Rift Master: {(config.RoleSettings?.RiftMasterId is null ? "" : $"<@&{config.RoleSettings?.RiftMasterId}>")}
-            - Shadow Master: {(config.RoleSettings?.ShadowMasterId is null ? "" : $"<@&{config.RoleSettings?.ShadowMasterId}>")}
-            - Tactical Master: {(config.RoleSettings?.TacticalMasterId is null ? "" : $"<@&{config.RoleSettings?.TacticalMasterId}>")}
-            - Multi Master: {(config.RoleSettings?.MultiMasterId is null ? "" : $"<@&{config.RoleSettings?.MultiMasterId}>")}
+            - :star:: {(config.RoleSettings?.StarId is null ? "None" : $"<@&{config.RoleSettings?.StarId}>")}
+            - :crown:: {(config.RoleSettings?.CrownId is null ? "None" : $"<@&{config.RoleSettings?.CrownId}>")}
+            - :white_check_mark:: {(config.RoleSettings?.CheckmarkId is null ? "None" : $"<@&{config.RoleSettings?.CheckmarkId}>")}
+            - :egg:: {(config.RoleSettings?.EggMasterId is null ? "None" : $"<@&{config.RoleSettings?.EggMasterId}>")}
+            - :cookie:: {(config.RoleSettings?.AchieverId is null ? "None" : $"<@&{config.RoleSettings?.AchieverId}>")}
+
+            - Arcane Master: {(config.RoleSettings?.ArcaneMasterId is null ? "None" : $"<@&{config.RoleSettings?.ArcaneMasterId}>")}
+            - Draconic Master: {(config.RoleSettings?.DraconicMasterId is null ? "None" : $"<@&{config.RoleSettings?.DraconicMasterId}>")}
+            - Forgotten Master: {(config.RoleSettings?.ForgottenMasterId is null ? "None" : $"<@&{config.RoleSettings?.ForgottenMasterId}>")}
+            - Hydro Master: {(config.RoleSettings?.HydroMasterId is null ? "None" : $"<@&{config.RoleSettings?.HydroMasterId}>")}
+            - Law Master: {(config.RoleSettings?.LawMasterId is null ? "None" : $"<@&{config.RoleSettings?.LawMasterId}>")}
+            - Physical Master: {(config.RoleSettings?.PhysicalMasterId is null ? "None" : $"<@&{config.RoleSettings?.PhysicalMasterId}>")}
+            - Rift Master: {(config.RoleSettings?.RiftMasterId is null ? "None" : $"<@&{config.RoleSettings?.RiftMasterId}>")}
+            - Shadow Master: {(config.RoleSettings?.ShadowMasterId is null ? "None" : $"<@&{config.RoleSettings?.ShadowMasterId}>")}
+            - Tactical Master: {(config.RoleSettings?.TacticalMasterId is null ? "None" : $"<@&{config.RoleSettings?.TacticalMasterId}>")}
+            - Multi Master: {(config.RoleSettings?.MultiMasterId is null ? "None" : $"<@&{config.RoleSettings?.MultiMasterId}>")}
 
 
             Messages:
