@@ -45,7 +45,7 @@ internal class GuildLoggingService(ILogger<GuildLoggingService> logger, IDbConte
             LogType.Achievement => logSetting.FlexId,
             LogType.EggMaster => logSetting.EggMasterId,
             _ => logSetting.LogId
-        } ?? 0;
+        } ?? logSetting.LogId ?? 0;
 
         if (guild.Channels.TryGetValue(logChannelId, out IGuildChannel? guildChannel) && guildChannel is TextChannel logChannel)
         {
