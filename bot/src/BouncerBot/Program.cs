@@ -1,21 +1,22 @@
 
+using BouncerBot;
+using BouncerBot.Db;
+using BouncerBot.Modules.Achieve;
+using BouncerBot.Modules.Config;
+using BouncerBot.Modules.Verify;
+using BouncerBot.Services;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-using BouncerBot;
-using BouncerBot.Db;
-using BouncerBot.Modules.Verify;
-using BouncerBot.Services;
 using NetCord;
 using NetCord.Gateway;
 using NetCord.Hosting.Gateway;
 using NetCord.Hosting.Services;
 using NetCord.Hosting.Services.ApplicationCommands;
-using NetCord.Hosting.Services.ComponentInteractions;
 using NetCord.Services.ComponentInteractions;
-using BouncerBot.Modules.Config;
 
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 
@@ -29,6 +30,7 @@ builder.Services
     .AddTransient<IGuildLoggingService, GuildLoggingService>()
     .AddTransient<IGuildUserRoleMonitorService, GuildUserRoleMonitor>()
     .AddTransient<IVerificationPhraseGenerator, VerificationPhraseGenerator>()
+    .AddTransient<AchievementService>()
     .AddTransient<ConfigService>()
     .AddTransient<VerificationService>()
     .AddMouseHuntClient()
@@ -40,34 +42,14 @@ builder.Services
     {
         options.ResultHandler = new EphemeralApplicationCommandResultHandler();
     })
-    .AddComponentInteractions<ButtonInteraction, ButtonInteractionContext>(options =>
-    {
-        options.ResultHandler = new EphemeralComponentInteractionResultHandler<ButtonInteractionContext>();
-    })
-    .AddComponentInteractions<StringMenuInteraction, StringMenuInteractionContext>(options =>
-    {
-        options.ResultHandler = new EphemeralComponentInteractionResultHandler<StringMenuInteractionContext>();
-    })
-    .AddComponentInteractions<UserMenuInteraction, UserMenuInteractionContext>(options =>
-    {
-        options.ResultHandler = new EphemeralComponentInteractionResultHandler<UserMenuInteractionContext>();
-    })
-    .AddComponentInteractions<RoleMenuInteraction, RoleMenuInteractionContext>(options =>
-    {
-        options.ResultHandler = new EphemeralComponentInteractionResultHandler<RoleMenuInteractionContext>();
-    })
-    .AddComponentInteractions<MentionableMenuInteraction, MentionableMenuInteractionContext>(options =>
-    {
-        options.ResultHandler = new EphemeralComponentInteractionResultHandler<MentionableMenuInteractionContext>();
-    })
-    .AddComponentInteractions<ChannelMenuInteraction, ChannelMenuInteractionContext>(options =>
-    {
-        options.ResultHandler = new EphemeralComponentInteractionResultHandler<ChannelMenuInteractionContext>();
-    })
-    .AddComponentInteractions<ModalInteraction, ModalInteractionContext>(options =>
-    {
-        options.ResultHandler = new EphemeralComponentInteractionResultHandler<ModalInteractionContext>();
-    })
+    // Custom helper extension to easily add ephemeral result handlers for component interactions
+    .AddComponentInteractionWithEphemeralResultHandler<ButtonInteraction, ButtonInteractionContext>()
+    .AddComponentInteractionWithEphemeralResultHandler<StringMenuInteraction, StringMenuInteractionContext>()
+    .AddComponentInteractionWithEphemeralResultHandler<UserMenuInteraction, UserMenuInteractionContext>()
+    .AddComponentInteractionWithEphemeralResultHandler<RoleMenuInteraction, RoleMenuInteractionContext>()
+    .AddComponentInteractionWithEphemeralResultHandler<MentionableMenuInteraction, MentionableMenuInteractionContext>()
+    .AddComponentInteractionWithEphemeralResultHandler<ChannelMenuInteraction, ChannelMenuInteractionContext>()
+    .AddComponentInteractionWithEphemeralResultHandler<ModalInteraction, ModalInteractionContext>()
     .AddDiscordGateway((options, services) =>
     {
         options.Presence = new PresenceProperties(UserStatusType.Online)
