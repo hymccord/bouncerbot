@@ -54,6 +54,12 @@ public class VerificationService(ILogger<VerificationService> logger, BouncerBot
         {
             dbContext.VerifiedUsers.Remove(existingUser);
             await dbContext.SaveChangesAsync();
+
+            await guildLoggingService.LogAsync(guildId, LogType.Verification, new()
+            {
+                Content = $"<@{discordId}> is no longer hunter {existingUser.MouseHuntId}",
+                AllowedMentions = AllowedMentionsProperties.None,
+            });
         }
         else
         {
@@ -63,7 +69,7 @@ public class VerificationService(ILogger<VerificationService> logger, BouncerBot
         var roleConfig = await dbContext.RoleSettings.FindAsync(guildId);
         if (roleConfig?.VerifiedId is ulong roleId)
         {
-            _ = restClient.RemoveGuildUserRoleAsync(guildId, discordId, roleId);
+            await restClient.RemoveGuildUserRoleAsync(guildId, discordId, roleId);
         }
     }
 }

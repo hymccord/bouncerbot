@@ -1,3 +1,6 @@
+using BouncerBot.Rest;
+using BouncerBot.Services;
+
 using Microsoft.Extensions.Logging;
 
 using NetCord;
@@ -7,7 +10,9 @@ using NetCord.Services.ComponentInteractions;
 namespace BouncerBot.Modules.Verify.Modules;
 
 public class VerifyButtonInteractions(ILogger<VerifyButtonInteractions> logger,
-    VerificationService verificationService
+    VerificationService verificationService,
+    MouseHuntRestClient mouseHuntRestClient,
+    IGuildLoggingService guildLoggingService
 ) : ComponentInteractionModule<ButtonInteractionContext>
 {
     [ComponentInteraction("verify me start")]
@@ -24,13 +29,42 @@ public class VerifyButtonInteractions(ILogger<VerifyButtonInteractions> logger,
 
         logger.LogDebug("Verifying user {MouseHuntId} with phrase: {Phrase}", mouseHuntId, phrase);
 
-        if (!await verificationService.IsDiscordUserVerifiedAsync(Context.Guild!.Id, Context.User.Id))
+        var snuid = await mouseHuntRestClient.GetUserSnuIdAsync(mouseHuntId);
+        var latestMessage = (await mouseHuntRestClient.GetCorkboardAsync(mouseHuntId)).CorkboardMessages.FirstOrDefault();
+
+        var snuidMatch = snuid.SnUserId == latestMessage?.SnUserId;
+        var phraseMatch = latestMessage?.Body == phrase;
+        if (snuidMatch && phraseMatch)
         {
             await verificationService.AddVerifiedUserAsync(mouseHuntId, Context.Guild!.Id, Context.User.Id);
         }
         else
         {
-            logger.LogInformation("User {UserId} is already verified in guild {GuildId}", Context.User.Id, Context.Guild!.Id);
+            if (phraseMatch && !snuidMatch)
+            {
+                await guildLoggingService.LogAsync(Context.Guild!.Id, LogType.General, new()
+                {
+                    Content = $"""
+                    <@{Context.User.Id}> attempted to use `/verify me` on a profile that isn't theirs.
+                    Profile SnuId: {snuid.SnUserId}, Corkboard Author SnuId: {latestMessage?.SnUserId}",
+                    """,
+                    AllowedMentions = AllowedMentionsProperties.None,
+                });
+            }
+
+            await ModifyResponseAsync(x =>
+            {
+                x.Content = $"""
+                Verification failed! Please ensure that you have the correct phrase on your corkboard.
+                The latest message on your corkboard is:
+                ```
+                {latestMessage?.Body ?? "No messages found."}
+                ```
+                """;
+                x.Flags = MessageFlags.Ephemeral;
+            });
+
+            return;
         }
 
         await ModifyResponseAsync(x =>
