@@ -1,35 +1,81 @@
-using Humanizer;
-
 using BouncerBot.Attributes;
+using BouncerBot.Db;
 using BouncerBot.Modules.Verify;
+
+using Microsoft.EntityFrameworkCore;
 
 using NetCord;
 using NetCord.Rest;
-using NetCord.Services;
 using NetCord.Services.ApplicationCommands;
-using NetCord.Services.Commands;
 
 namespace BouncerBot.Modules.Achieve.Modules;
 
 [GuildOnly<ApplicationCommandContext>]
-[SlashCommand("achieve", "Commands related to achievements")]
-public class AchieveModule : ApplicationCommandModule<ApplicationCommandContext>
+public class AchieveModule(AchievementRoleOrchestrator achievementRoleOrchestrator, BouncerBotDbContext dbContext) : ApplicationCommandModule<ApplicationCommandContext>
 {
+    private static readonly string[] s_rejectionPhrases = [
+        "Hah, trying to pull a fast one on me!? Scram!",
+        "Not on the list, not in the club! Try again, pal.",
+        "You think you can cheese your way in here? Think again!",
+        "Sorry, no entry for hunters without the right credentials!",
+        "You’re not VIP material yet. Come back when you’ve earned it!",
+        "Nice try, but this club’s for achievers only!",
+        "You’re squeaking up the wrong door, buddy!",
+        "No badge, no boogie. Rules are rules!",
+        "I don’t see your name on the guest list. Scram!",
+        "You’re not quite the big cheese we’re looking for. Move along!",
+        "This club’s for the elite. Better luck next time, rookie!",
+        "You’re trying to sneak in? Not on my watch!",
+        "Come back when you’ve got the right moves, champ!",
+        "Denied! This club’s for qualified hunters only!",
+        "You’re not dressed for success. No entry!",
+        "Hah! You think you can outsmart me? Think again!",
+    ];
+
     [SlashCommand("achieve", "Commands related to achievements")]
     [RequireVerificationStatus<ApplicationCommandContext>(VerificationStatus.Verified)]
-    public async Task AchieveAsync([CommandParameter(Name = "achievement")]Role role)
+    public async Task AchieveAsync([SlashCommandParameter(Name = "achievement")]AchievementRole role)
     {
-        await RespondAsync(InteractionCallback.Message(new()
-        {
-            Content = $"hello ${role.Humanize()}",
-            Flags = MessageFlags.Ephemeral,
-        }));
-    }
+        await RespondAsync(InteractionCallback.DeferredMessage(MessageFlags.Ephemeral));
 
-    [SubSlashCommand("verify", "Verify another hunter")]
-    [RequireUserPermissions<ApplicationCommandContext>(Permissions.ManageRoles)]
-    public async Task VerifyAsync([CommandParameter(Name = "hunter")]User user, [CommandParameter(Name = "achievement")]Role role)
-    {
-        
+        var mhid = (await dbContext.VerifiedUsers
+            .FirstOrDefaultAsync(vu => vu.DiscordId == Context.User.Id && vu.GuildId == Context.Guild!.Id))?.MouseHuntId;
+
+        // Sanity check, precondition should handle this
+        if (mhid is null)
+        {
+            await ModifyResponseAsync(m =>
+            {
+                m.Content = "This is a verified only club! Once you're on the list, I might let you in!";
+                m.Flags = MessageFlags.Ephemeral;
+            });
+
+            return;
+        }
+
+        try
+        {
+            if (!await achievementRoleOrchestrator.ProcessAchievementAsync(mhid.Value, Context.User.Id, Context.Guild!.Id, role))
+            {
+                string randomRejectionPhrase = s_rejectionPhrases[Random.Shared.Next(s_rejectionPhrases.Length)];
+
+                await ModifyResponseAsync(m => {
+                    m.Content = randomRejectionPhrase;
+                    m.Flags = MessageFlags.Ephemeral;
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            await ModifyResponseAsync(m =>
+            {
+                m.Content = $"""
+                    An error occurred while processing your achievement. Please try again later.
+
+                    Error: `{ex.Message}`
+                    """;
+                m.Flags = MessageFlags.Ephemeral;
+            });
+        }
     }
 }

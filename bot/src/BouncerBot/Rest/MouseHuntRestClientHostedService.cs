@@ -6,7 +6,7 @@ internal class MouseHuntRestClientHostedService(MouseHuntRestClient client) : IH
 {
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        //await client.StartAsync(cancellationToken);
+        await client.StartAsync(cancellationToken);
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)

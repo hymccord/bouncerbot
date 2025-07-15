@@ -19,5 +19,5 @@ public class UserItemCategoryCompletion
 public class UserItemCategory
 {
     public string Name { get; set; } = null!;
-    public bool IsComplete { get; set; }
+    public bool? IsComplete { get; set; }
 }

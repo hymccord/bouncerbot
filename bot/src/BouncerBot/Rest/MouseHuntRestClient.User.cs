@@ -4,6 +4,8 @@ using System.Text.Json;
 using BouncerBot.Db.Models;
 using BouncerBot.Rest.Models;
 
+using Microsoft.EntityFrameworkCore;
+
 namespace BouncerBot.Rest;
 partial class MouseHuntRestClient
 {
@@ -16,7 +18,7 @@ partial class MouseHuntRestClient
 
     public async Task<bool> IsEggMaster(uint mhId, CancellationToken cancellationToken = default)
     {
-        var snuid = await GetUserSnuId(mhId, cancellationToken);
+        var snuid = await GetUserSnuIdAsync(mhId, cancellationToken);
 
         var formData = new List<KeyValuePair<string, string>>()
         {
@@ -35,7 +37,7 @@ partial class MouseHuntRestClient
 
     public async Task<UserItemCategoryCompletion> GetUserLocationStatsAsync(uint mhId, CancellationToken cancellationToken = default)
     {
-        var snuid = await GetUserSnuId(mhId, cancellationToken);
+        var snuid = await GetUserSnuIdAsync(mhId, cancellationToken);
 
         var formData = new List<KeyValuePair<string, string>>()
         {
@@ -59,16 +61,16 @@ partial class MouseHuntRestClient
         return result;
     }
 
-    public async Task<UserMouseStatistics> GetUserMouseCatches(uint mhId, CancellationToken cancellationToken = default)
+    public async Task<UserMouseStatistics> GetUserMiceAsync(uint mhId, CancellationToken cancellationToken = default)
     {
-        var snuid = await GetUserSnuId(mhId, cancellationToken);
+        var snuid = await GetUserSnuIdAsync(mhId, cancellationToken);
 
         return await SendRequestAsync<UserMouseStatistics>(HttpMethod.Post, $"get/user/{snuid.SnUserId}/mice", cancellationToken);
     }
 
     public async Task<UserItemCategoryCompletion> GetUserProfileItems(uint mhId, CancellationToken cancellationToken = default)
     {
-        var snuid = await GetUserSnuId(mhId, cancellationToken);
+        var snuid = await GetUserSnuIdAsync(mhId, cancellationToken);
 
         var formData = new List<KeyValuePair<string, string>>()
         {
@@ -92,12 +94,12 @@ partial class MouseHuntRestClient
         return result;
     }
 
-    public async Task<UserSnuIdInfo> GetUserSnuId(uint mhId, CancellationToken cancellationToken = default)
+    public async Task<UserSnuIdInfo> GetUserSnuIdAsync(uint mhId, CancellationToken cancellationToken = default)
     {
         // Check cache first
         using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
-        var cached = await context.SnuidCache.FindAsync(mhId, cancellationToken);
-        
+        var cached = await context.SnuidCache.SingleOrDefaultAsync(s => s.MouseHuntId == mhId, cancellationToken);
+
         if (cached is not null)
         {
             return new UserSnuIdInfo { SnUserId = cached.SnuId };

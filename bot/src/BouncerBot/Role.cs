@@ -66,7 +66,7 @@ public enum AchievementRole
     MultiMaster,
 }
 
-public enum MouseMastery
+public enum PowerTypeMastery
 {
     Arcane,
     Draconic,
