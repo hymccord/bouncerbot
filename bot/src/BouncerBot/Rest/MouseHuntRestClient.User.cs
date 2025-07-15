@@ -28,11 +28,13 @@ partial class MouseHuntRestClient
 
         var document = await SendDesktopRequestAsync<JsonElement>(HttpMethod.Post, formData, "managers/ajax/users/userData.php", cancellationToken);
 
-        var json = document.GetRawText();
         var result = document
-            .GetProperty(snuid.SnUserId);
+            .GetProperty("user_data")
+            .GetProperty(snuid.SnUserId)
+            .GetProperty("is_egg_master")
+            .GetBoolean();
 
-        throw new NotImplementedException();
+        return result;
     }
 
     public async Task<UserItemCategoryCompletion> GetUserLocationStatsAsync(uint mhId, CancellationToken cancellationToken = default)
