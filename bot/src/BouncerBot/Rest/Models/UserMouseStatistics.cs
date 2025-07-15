@@ -7,8 +7,8 @@ public class UserMouseStatistics
 
 public class MouseCatchRecord
 {
-    public int MouseId { get; set; }
-    public int NumCatches { get; set; }
+    public uint MouseId { get; set; }
+    public uint NumCatches { get; set; }
 }
 
 public class UserItemCategoryCompletion

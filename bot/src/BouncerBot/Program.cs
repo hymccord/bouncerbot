@@ -39,6 +39,13 @@ builder.Services
     .AddMouseHuntClient()
     ;
 
+builder.Services
+    .AddHttpClient<MouseRipService>((sp, httpClient) =>
+    {
+        httpClient.BaseAddress = new Uri("https://api.mouse.rip/");
+        httpClient.DefaultRequestHeaders.Add("User-Agent", "BouncerBot/1.0 (Discord: Xellis)");
+    });
+
 // NetCord services
 builder.Services
     .AddApplicationCommands(options =>

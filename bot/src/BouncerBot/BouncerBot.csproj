@@ -14,6 +14,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Extensions.Http" />
     <PackageReference Include="NetCord.Hosting.Services" />
     <PackageReference Include="Scriban" />
   </ItemGroup>

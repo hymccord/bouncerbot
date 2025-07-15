@@ -66,8 +66,9 @@ public enum AchievementRole
     MultiMaster,
 }
 
-public enum PowerTypeMastery
+public enum PowerType
 {
+    None, // Special case for event mice
     Arcane,
     Draconic,
     Forgotten,

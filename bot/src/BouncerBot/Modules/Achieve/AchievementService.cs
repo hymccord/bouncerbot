@@ -1,7 +1,8 @@
 using BouncerBot.Rest;
+using BouncerBot.Services;
 
 namespace BouncerBot.Modules.Achieve;
-public class AchievementService(MouseHuntRestClient mouseHuntClient)
+public class AchievementService(MouseHuntRestClient mouseHuntClient, MouseRipService mouseRipService)
 {
     public async Task<bool> HasAchievementAsync(uint mhId, AchievementRole achievement, CancellationToken cancellationToken = default)
     {
@@ -11,16 +12,16 @@ public class AchievementService(MouseHuntRestClient mouseHuntClient)
             AchievementRole.EggMaster => await HasEggMasterAsync(mhId, cancellationToken),
             AchievementRole.Crown => await HasCrownAsync(mhId, cancellationToken),
             AchievementRole.Star => await HasStarAsync(mhId, cancellationToken),
-            AchievementRole.ArcaneMaster => await HasPowerTypeMastery(mhId, PowerTypeMastery.Arcane, cancellationToken),
-            AchievementRole.DraconicMaster => await HasPowerTypeMastery(mhId, PowerTypeMastery.Draconic, cancellationToken),
-            AchievementRole.ForgottenMaster => await HasPowerTypeMastery(mhId, PowerTypeMastery.Forgotten, cancellationToken),
-            AchievementRole.HydroMaster => await HasPowerTypeMastery(mhId, PowerTypeMastery.Hydro, cancellationToken),
-            AchievementRole.LawMaster => await HasPowerTypeMastery(mhId, PowerTypeMastery.Law, cancellationToken),
-            AchievementRole.PhysicalMaster => await HasPowerTypeMastery(mhId, PowerTypeMastery.Physical, cancellationToken),
-            AchievementRole.RiftMaster => await HasPowerTypeMastery(mhId, PowerTypeMastery.Rift, cancellationToken),
-            AchievementRole.ShadowMaster => await HasPowerTypeMastery(mhId, PowerTypeMastery.Shadow, cancellationToken),
-            AchievementRole.TacticalMaster => await HasPowerTypeMastery(mhId, PowerTypeMastery.Tactical, cancellationToken),
-            AchievementRole.MultiMaster => await HasPowerTypeMastery(mhId, PowerTypeMastery.Multi, cancellationToken),
+            AchievementRole.ArcaneMaster => await HasPowerTypeMastery(mhId, PowerType.Arcane, cancellationToken),
+            AchievementRole.DraconicMaster => await HasPowerTypeMastery(mhId, PowerType.Draconic, cancellationToken),
+            AchievementRole.ForgottenMaster => await HasPowerTypeMastery(mhId, PowerType.Forgotten, cancellationToken),
+            AchievementRole.HydroMaster => await HasPowerTypeMastery(mhId, PowerType.Hydro, cancellationToken),
+            AchievementRole.LawMaster => await HasPowerTypeMastery(mhId, PowerType.Law, cancellationToken),
+            AchievementRole.PhysicalMaster => await HasPowerTypeMastery(mhId, PowerType.Physical, cancellationToken),
+            AchievementRole.RiftMaster => await HasPowerTypeMastery(mhId, PowerType.Rift, cancellationToken),
+            AchievementRole.ShadowMaster => await HasPowerTypeMastery(mhId, PowerType.Shadow, cancellationToken),
+            AchievementRole.TacticalMaster => await HasPowerTypeMastery(mhId, PowerType.Tactical, cancellationToken),
+            AchievementRole.MultiMaster => await HasPowerTypeMastery(mhId, PowerType.Multi, cancellationToken),
             _ => throw new ArgumentOutOfRangeException(nameof(achievement), achievement, null)
         };
     }
@@ -58,8 +59,65 @@ public class AchievementService(MouseHuntRestClient mouseHuntClient)
         return data.Categories.All(c => c.IsComplete ?? false);
     }
 
-    private async Task<bool> HasPowerTypeMastery(uint mhId, PowerTypeMastery powerType, CancellationToken cancellationToken = default)
+    // Every mouse of given powertype has 100 catches
+    private async Task<bool> HasPowerTypeMastery(uint mhId, PowerType powerType, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException($"Power type mastery for {powerType} is not implemented yet.");
+        var miceClassifications = await GetMiceClassifications();
+        var userMice = await mouseHuntClient.GetUserMiceAsync(mhId, cancellationToken);
+
+        return userMice.Mice
+            .Where(m => miceClassifications[m.MouseId] == powerType)
+            .All(m => m.NumCatches >= 100);
+    }
+
+    private async Task<Dictionary<uint, PowerType>> GetMiceClassifications()
+    {
+        var data = await mouseRipService.GetAllMiceAsync() ?? throw new InvalidOperationException("Failed to retrieve mice from api.mouse.rip.");
+
+        var mice = new Dictionary<uint, PowerType>();
+        foreach (var mouse in data)
+        {
+            // Ignore Leppy, Mobster and Event Mice
+            if (mouse.Id == 113 || mouse.Id == 128 || mouse.Group == "Event Mice")
+            {
+                mice[mouse.Id] = PowerType.None;
+                continue;
+            }
+
+            if (mouse.Effectivenesses is null)
+            {
+                continue;
+            }
+
+            mouse.Effectivenesses.Remove(MouseRipEffectivenesses.Power);
+
+            var maxEff = mouse.Effectivenesses.Values.Max();
+            var keysWithHighestValue = mouse.Effectivenesses.Keys
+                .Where(k => mouse.Effectivenesses[k] == maxEff)
+                .ToHashSet();
+
+            if (keysWithHighestValue.Count > 1)
+            {
+                mice[mouse.Id] = PowerType.Multi;
+            }
+            else
+            {
+                mice[mouse.Id] = keysWithHighestValue.Single() switch
+                {
+                    MouseRipEffectivenesses.Arcane => PowerType.Arcane,
+                    MouseRipEffectivenesses.Draconic => PowerType.Draconic,
+                    MouseRipEffectivenesses.Forgotten => PowerType.Forgotten,
+                    MouseRipEffectivenesses.Hydro => PowerType.Hydro,
+                    MouseRipEffectivenesses.Law => PowerType.Law,
+                    MouseRipEffectivenesses.Physical => PowerType.Physical,
+                    MouseRipEffectivenesses.Rift => PowerType.Rift,
+                    MouseRipEffectivenesses.Shadow => PowerType.Shadow,
+                    MouseRipEffectivenesses.Tactical => PowerType.Tactical,
+                    _ => throw new ArgumentOutOfRangeException($"Unknown effectiveness: {keysWithHighestValue.Single()} for mouse {mouse.Id} ({mouse.Name})"),
+                };
+            }
+        }
+
+        return mice;
     }
 }

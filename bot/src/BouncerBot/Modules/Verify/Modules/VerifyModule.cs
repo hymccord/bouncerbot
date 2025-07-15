@@ -1,6 +1,7 @@
-using Microsoft.Extensions.Logging;
-
 using BouncerBot.Attributes;
+using BouncerBot.Modules.Achieve;
+
+using Microsoft.Extensions.Logging;
 
 using NetCord;
 using NetCord.Rest;
@@ -12,6 +13,7 @@ namespace BouncerBot.Modules.Verify.Modules;
 [GuildOnly<ApplicationCommandContext>]
 public class VerifyModule(ILogger<VerifyModule> logger,
     VerificationService verificationService,
+    AchievementService achievementService,
     IVerificationPhraseGenerator verificationPhraseGenerator) : ApplicationCommandModule<ApplicationCommandContext>
 {
     [SubSlashCommand("me", "Verify you own a MouseHunt ID")]
@@ -113,5 +115,20 @@ public class VerifyModule(ILogger<VerifyModule> logger,
                 );
             });
         }
+    }
+
+    [SubSlashCommand("achievement", "Manage achievement roles")]
+    [ManageRolesOnly<ApplicationCommandContext>]
+    public async Task VerifyAchievementAsync(uint mousehuntId, AchievementRole achievement)
+    {
+        bool hasAchievement = await achievementService.HasAchievementAsync(mousehuntId, achievement);
+
+        await RespondAsync(InteractionCallback.Message(new InteractionMessageProperties()
+        {
+            Content = $"""
+                {achievement}: {(hasAchievement ? "Yes" : "No")}
+            """,
+            Flags = MessageFlags.Ephemeral
+        }));
     }
 }
