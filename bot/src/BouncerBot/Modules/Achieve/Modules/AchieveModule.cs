@@ -35,7 +35,7 @@ public class AchieveModule(AchievementRoleOrchestrator achievementRoleOrchestrat
         "Hah! You think you can outsmart me? Not today!",
     ];
 
-    [SlashCommand("verify", "Get an achievement role!")]
+    [SubSlashCommand("verify", "Get an achievement role!")]
     [RequireVerificationStatus<ApplicationCommandContext>(VerificationStatus.Verified)]
     public async Task VerifyAsync([SlashCommandParameter(Name = "achievement")] AchievementRole role)
     {
@@ -83,7 +83,7 @@ public class AchieveModule(AchievementRoleOrchestrator achievementRoleOrchestrat
         }
     }
 
-    [SlashCommand("reset", "Removes achievement role from all users (and grants Achiever)")]
+    [SubSlashCommand("reset", "Removes achievement role from all users (and grants Achiever)")]
     [ManageRolesOnly<ApplicationCommandContext>]
     public async Task ResetAchievementsAsync(AchievementRole achievement)
     {
