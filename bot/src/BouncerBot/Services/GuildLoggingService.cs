@@ -1,6 +1,8 @@
+using BouncerBot.Db;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using BouncerBot.Db;
+
 using NetCord;
 using NetCord.Gateway;
 using NetCord.Rest;

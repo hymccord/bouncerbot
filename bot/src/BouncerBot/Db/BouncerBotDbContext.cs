@@ -1,6 +1,6 @@
-using Microsoft.EntityFrameworkCore;
-
 using BouncerBot.Db.Models;
+
+using Microsoft.EntityFrameworkCore;
 
 namespace BouncerBot.Db;
 public class BouncerBotDbContext(DbContextOptions<BouncerBotDbContext> options) : DbContext(options)

@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace BouncerBot.Db.Models;
 public class LogSetting
 {

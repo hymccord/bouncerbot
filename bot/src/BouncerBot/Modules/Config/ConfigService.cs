@@ -1,5 +1,3 @@
-using System.Collections.ObjectModel;
-
 using BouncerBot.Db;
 using BouncerBot.Db.Models;
 

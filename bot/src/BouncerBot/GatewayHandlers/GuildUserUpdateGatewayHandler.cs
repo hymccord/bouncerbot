@@ -1,6 +1,8 @@
+using BouncerBot.Services;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using BouncerBot.Services;
+
 using NetCord;
 using NetCord.Gateway;
 using NetCord.Hosting.Gateway;

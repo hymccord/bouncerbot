@@ -29,7 +29,8 @@ public class AchievementMessageService(BouncerBotDbContext dbContext, IGuildLogg
         } ?? throw new InvalidOperationException($"The message for this achievement has not been configured yet. An admin needs to use `/config message`.");
 
         var template = Template.Parse(achievementMessage.Replace("{mention}", "{{mention}}"));
-        var result = template.Render(new {
+        var result = template.Render(new
+        {
             Mention = $"<@{userId}>"
         });
 

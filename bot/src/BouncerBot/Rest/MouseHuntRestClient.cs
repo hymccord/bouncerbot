@@ -1,12 +1,12 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 
+using BouncerBot.Db;
+using BouncerBot.Rest.Models;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-
-using BouncerBot.Db;
-using BouncerBot.Rest.Models;
 
 namespace BouncerBot.Rest;
 public partial class MouseHuntRestClient

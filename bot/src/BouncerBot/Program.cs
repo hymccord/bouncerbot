@@ -64,7 +64,7 @@ builder.Services
     {
         options.Presence = new PresenceProperties(UserStatusType.Online)
         {
-            Activities = [new ("MouseHunters!", UserActivityType.Watching)]
+            Activities = [new("MouseHunters!", UserActivityType.Watching)]
         };
         options.Intents = GatewayIntents.Guilds
             | GatewayIntents.GuildUsers

@@ -1,10 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Emit;
-using System.Text;
-using System.Threading.Tasks;
-
 using CrypticWizard.RandomWordGenerator;
 
 namespace BouncerBot.Modules.Verify;
@@ -20,7 +13,7 @@ public interface IVerificationPhraseGenerator
 
 public class VerificationPhraseGenerator : IVerificationPhraseGenerator
 {
-    private static readonly WordGenerator s_wordGenerator = new ();
+    private static readonly WordGenerator s_wordGenerator = new();
 
     public string GeneratePhrase(int numAdjectives = 2, int numNouns = 2)
     {

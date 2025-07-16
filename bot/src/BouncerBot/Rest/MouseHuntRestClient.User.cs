@@ -1,4 +1,3 @@
-using System.Reflection;
 using System.Text.Json;
 
 using BouncerBot.Db.Models;
@@ -109,11 +108,11 @@ partial class MouseHuntRestClient
 
         // Fetch from API
         var result = await SendRequestAsync<UserSnuIdInfo>(HttpMethod.Post, $"get/usersnuid/{mhId}", cancellationToken);
-        
+
         // Cache the result
         context.SnuidCache.Add(new Snuid { MouseHuntId = mhId, SnuId = result.SnUserId });
         await context.SaveChangesAsync(cancellationToken);
-        
+
         return result;
     }
 }

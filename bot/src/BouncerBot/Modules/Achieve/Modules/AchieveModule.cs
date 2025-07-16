@@ -37,7 +37,7 @@ public class AchieveModule(AchievementRoleOrchestrator achievementRoleOrchestrat
 
     [SlashCommand("verify", "Get an achievement role!")]
     [RequireVerificationStatus<ApplicationCommandContext>(VerificationStatus.Verified)]
-    public async Task VerifyAsync([SlashCommandParameter(Name = "achievement")]AchievementRole role)
+    public async Task VerifyAsync([SlashCommandParameter(Name = "achievement")] AchievementRole role)
     {
         await RespondAsync(InteractionCallback.DeferredMessage(MessageFlags.Ephemeral));
 
@@ -62,7 +62,8 @@ public class AchieveModule(AchievementRoleOrchestrator achievementRoleOrchestrat
             {
                 string randomRejectionPhrase = s_rejectionPhrases[Random.Shared.Next(s_rejectionPhrases.Length)];
 
-                await ModifyResponseAsync(m => {
+                await ModifyResponseAsync(m =>
+                {
                     m.Content = randomRejectionPhrase;
                     m.Flags = MessageFlags.Ephemeral;
                 });

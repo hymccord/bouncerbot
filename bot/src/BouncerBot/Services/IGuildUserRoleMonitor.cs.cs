@@ -1,5 +1,7 @@
-using Microsoft.Extensions.Logging;
 using BouncerBot.Db;
+
+using Microsoft.Extensions.Logging;
+
 using NetCord;
 using NetCord.Rest;
 
