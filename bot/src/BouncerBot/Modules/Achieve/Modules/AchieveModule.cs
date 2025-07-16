@@ -2,6 +2,8 @@ using BouncerBot.Attributes;
 using BouncerBot.Db;
 using BouncerBot.Modules.Verify;
 
+using Humanizer;
+
 using Microsoft.EntityFrameworkCore;
 
 using NetCord;
@@ -10,6 +12,7 @@ using NetCord.Services.ApplicationCommands;
 
 namespace BouncerBot.Modules.Achieve.Modules;
 
+[SlashCommand("achieve", "Commands related to role achievements.")]
 [GuildOnly<ApplicationCommandContext>]
 public class AchieveModule(AchievementRoleOrchestrator achievementRoleOrchestrator, BouncerBotDbContext dbContext) : ApplicationCommandModule<ApplicationCommandContext>
 {
@@ -29,20 +32,20 @@ public class AchieveModule(AchievementRoleOrchestrator achievementRoleOrchestrat
         "Come back when you’ve got the right moves, champ!",
         "Denied! This club’s for qualified hunters only!",
         "You’re not dressed for success. No entry!",
-        "Hah! You think you can outsmart me? Think again!",
+        "Hah! You think you can outsmart me? Not today!",
     ];
 
-    [SlashCommand("achieve", "Commands related to achievements")]
+    [SlashCommand("verify", "Get an achievement role!")]
     [RequireVerificationStatus<ApplicationCommandContext>(VerificationStatus.Verified)]
-    public async Task AchieveAsync([SlashCommandParameter(Name = "achievement")]AchievementRole role)
+    public async Task VerifyAsync([SlashCommandParameter(Name = "achievement")]AchievementRole role)
     {
         await RespondAsync(InteractionCallback.DeferredMessage(MessageFlags.Ephemeral));
 
-        var mhid = (await dbContext.VerifiedUsers
+        var mhId = (await dbContext.VerifiedUsers
             .FirstOrDefaultAsync(vu => vu.DiscordId == Context.User.Id && vu.GuildId == Context.Guild!.Id))?.MouseHuntId;
 
         // Sanity check, precondition should handle this
-        if (mhid is null)
+        if (mhId is null)
         {
             await ModifyResponseAsync(m =>
             {
@@ -55,7 +58,7 @@ public class AchieveModule(AchievementRoleOrchestrator achievementRoleOrchestrat
 
         try
         {
-            if (!await achievementRoleOrchestrator.ProcessAchievementAsync(mhid.Value, Context.User.Id, Context.Guild!.Id, role))
+            if (!await achievementRoleOrchestrator.ProcessAchievementAsync(mhId.Value, Context.User.Id, Context.Guild!.Id, role))
             {
                 string randomRejectionPhrase = s_rejectionPhrases[Random.Shared.Next(s_rejectionPhrases.Length)];
 
@@ -77,5 +80,25 @@ public class AchieveModule(AchievementRoleOrchestrator achievementRoleOrchestrat
                 m.Flags = MessageFlags.Ephemeral;
             });
         }
+    }
+
+    [SlashCommand("reset", "Removes achievement role from all users (and grants Achiever)")]
+    [ManageRolesOnly<ApplicationCommandContext>]
+    public async Task ResetAchievementsAsync(AchievementRole achievement)
+    {
+        await RespondAsync(InteractionCallback.Message(new InteractionMessageProperties()
+        {
+            Content = $"""
+                Are you sure you want to reset all the roles for {achievement.Humanize()}?
+
+                This will remove the role from all users and grant the Achiever role.
+
+                """,
+            Components = [
+                new ActionRowProperties()
+                    .AddButtons(new ButtonProperties($"achieve reset confirm:{(int)achievement}", "Confirm", ButtonStyle.Danger))
+                    .AddButtons(new ButtonProperties("achieve reset cancel", "Cancel", ButtonStyle.Secondary))
+            ],
+        }));
     }
 }

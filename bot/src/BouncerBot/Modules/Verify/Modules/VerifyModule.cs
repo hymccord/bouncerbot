@@ -117,7 +117,7 @@ public class VerifyModule(ILogger<VerifyModule> logger,
         }
     }
 
-    [SubSlashCommand("achievement", "Manage achievement roles")]
+    [SubSlashCommand("achievement", "Check if a MouseHunter qualifies for an achievement role")]
     [ManageRolesOnly<ApplicationCommandContext>]
     public async Task VerifyAchievementAsync(uint mousehuntId, AchievementRole achievement)
     {
