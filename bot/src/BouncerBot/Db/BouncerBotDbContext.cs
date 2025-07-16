@@ -9,6 +9,7 @@ public class BouncerBotDbContext(DbContextOptions<BouncerBotDbContext> options) 
     public DbSet<LogSetting> LogSettings { get; set; } = null!;
     public DbSet<RoleSetting> RoleSettings { get; set; } = null!;
     public DbSet<Snuid> SnuidCache { get; set; } = null!;
+    public DbSet<VerifySetting> VerifySettings { get; set; } = null!;
     public DbSet<VerifiedUser> VerifiedUsers { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -21,6 +22,11 @@ public class BouncerBotDbContext(DbContextOptions<BouncerBotDbContext> options) 
         modelBuilder.Entity<LogSetting>(ls =>
         {
             ls.HasKey(l => l.GuildId);
+        });
+
+        modelBuilder.Entity<VerifySetting>(rs =>
+        {
+            rs.HasKey(r => r.GuildId);
         });
 
         modelBuilder.Entity<RoleSetting>(ar =>

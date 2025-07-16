@@ -1,3 +1,5 @@
+using System.Text;
+
 using BouncerBot.Attributes;
 using BouncerBot.Modules.Config;
 
@@ -15,11 +17,6 @@ namespace BouncerBot.Modules.Variables.Modules;
 [GuildOnly<ApplicationCommandContext>]
 public class ConfigModule(ConfigService configService) : ApplicationCommandModule<ApplicationCommandContext>
 {
-    //[SubSlashCommand("aio", "Configure everything interactively!")]
-    //public async Task AioAsync()
-    //{
-
-    //}
 
     [SubSlashCommand("log", "Set channel where specified events go. Leave empty to clear channel.")]
     public async Task SetLogChannelAsync(
@@ -64,61 +61,98 @@ public class ConfigModule(ConfigService configService) : ApplicationCommandModul
         }));
     }
 
-    [SubSlashCommand("view", "View current configuration")]
-    public async Task ViewConfigAsync()
+    [SubSlashCommand("verify-rank", "Set minumum rank required for successful self-verification.")]
+    public async Task SetVerifyRank(Rank minRank)
+    {
+        await configService.SetVerifyRankAsync(Context.Guild!.Id, minRank);
+
+        await RespondAsync(InteractionCallback.Message(new()
+        {
+            Content = $"Set verification rank to {minRank.Humanize()}",
+            AllowedMentions = AllowedMentionsProperties.None
+        }));
+    }
+
+    [SubSlashCommand("list", "List settings")]
+    public async Task ViewConfigAsync(SettingType? setting = SettingType.All)
     {
         var config = await configService.GetGuildConfigAsync(Context.Guild!.Id);
+
+        var sb = new StringBuilder("Current Configuration:\n\n");
+
+        if (setting?.HasFlag(SettingType.Log) ?? true)
+        {
+            sb.AppendLine($"""
+                Log Channels:
+                - General: {(config.LogSettings?.LogId is null ? "None" : $"<#{config.LogSettings.LogId}>")}
+                - Achievement: {(config.LogSettings?.FlexId is null ? "None" : $"<#{config.LogSettings.FlexId}>")}
+                - Egg Master: {(config.LogSettings?.EggMasterId is null ? "None" : $"<#{config.LogSettings.EggMasterId}>")}
+                - Verification: {(config.LogSettings?.VerificationId is null ? "None" : $"<#{config.LogSettings.VerificationId}>")}
+
+                """);
+        }
+
+        if (setting?.HasFlag(SettingType.Role) ?? true)
+        {
+            sb.AppendLine($"""
+                Roles:
+                - Verified: {(config.RoleSettings?.VerifiedId is null ? "None" : $"<@&{config.RoleSettings?.VerifiedId}>")}
+                - Trade Banned: {(config.RoleSettings?.TradeBannedId is null ? "None" : $"<@&{config.RoleSettings?.TradeBannedId}>")}
+                - Map Banned {(config.RoleSettings?.MapBannedId is null ? "None" : $"<@&{config.RoleSettings?.MapBannedId}>")}
+
+                - :star:: {(config.RoleSettings?.StarId is null ? "None" : $"<@&{config.RoleSettings?.StarId}>")}
+                - :crown:: {(config.RoleSettings?.CrownId is null ? "None" : $"<@&{config.RoleSettings?.CrownId}>")}
+                - :white_check_mark:: {(config.RoleSettings?.CheckmarkId is null ? "None" : $"<@&{config.RoleSettings?.CheckmarkId}>")}
+                - :egg:: {(config.RoleSettings?.EggMasterId is null ? "None" : $"<@&{config.RoleSettings?.EggMasterId}>")}
+                - :cookie:: {(config.RoleSettings?.AchieverId is null ? "None" : $"<@&{config.RoleSettings?.AchieverId}>")}
+
+                - Arcane Master: {(config.RoleSettings?.ArcaneMasterId is null ? "None" : $"<@&{config.RoleSettings?.ArcaneMasterId}>")}
+                - Draconic Master: {(config.RoleSettings?.DraconicMasterId is null ? "None" : $"<@&{config.RoleSettings?.DraconicMasterId}>")}
+                - Forgotten Master: {(config.RoleSettings?.ForgottenMasterId is null ? "None" : $"<@&{config.RoleSettings?.ForgottenMasterId}>")}
+                - Hydro Master: {(config.RoleSettings?.HydroMasterId is null ? "None" : $"<@&{config.RoleSettings?.HydroMasterId}>")}
+                - Law Master: {(config.RoleSettings?.LawMasterId is null ? "None" : $"<@&{config.RoleSettings?.LawMasterId}>")}
+                - Physical Master: {(config.RoleSettings?.PhysicalMasterId is null ? "None" : $"<@&{config.RoleSettings?.PhysicalMasterId}>")}
+                - Rift Master: {(config.RoleSettings?.RiftMasterId is null ? "None" : $"<@&{config.RoleSettings?.RiftMasterId}>")}
+                - Shadow Master: {(config.RoleSettings?.ShadowMasterId is null ? "None" : $"<@&{config.RoleSettings?.ShadowMasterId}>")}
+                - Tactical Master: {(config.RoleSettings?.TacticalMasterId is null ? "None" : $"<@&{config.RoleSettings?.TacticalMasterId}>")}
+                - Multi Master: {(config.RoleSettings?.MultiMasterId is null ? "None" : $"<@&{config.RoleSettings?.MultiMasterId}>")}
+                """);
+        }
+
+        if (setting?.HasFlag(SettingType.Message) ?? true)
+        {
+            sb.AppendLine($"""
+                Messages:
+                - :star:: {config.AchievementMessages?.Star ?? ""}
+                - :crown: {config.AchievementMessages?.Crown ?? ""}
+                - :white_check_mark: {config.AchievementMessages?.Checkmark ?? ""}
+                - :egg:: {config.AchievementMessages?.EggMaster ?? ""}
+                        
+                - Arcane Master: {config.AchievementMessages?.ArcaneMaster ?? ""}
+                - Draconic Master: {config.AchievementMessages?.DraconicMaster ?? ""}
+                - Forgotten Master: {config.AchievementMessages?.ForgottenMaster ?? ""}
+                - Hydro Master: {config.AchievementMessages?.HydroMaster ?? ""}
+                - Law Master: {config.AchievementMessages?.LawMaster ?? ""}
+                - Physical Master: {config.AchievementMessages?.PhysicalMaster ?? ""}
+                - Rift Master: {config.AchievementMessages?.RiftMaster ?? ""}
+                - Shadow Master: {config.AchievementMessages?.ShadowMaster ?? ""}
+                - Tactical Master: {config.AchievementMessages?.TacticalMaster ?? ""}
+                - Multi Master: {config.AchievementMessages?.MultiMaster ?? ""}
+                """);
+        }
+
+        if (setting?.HasFlag(SettingType.VerifyRank) ?? true)
+        {
+            sb.AppendLine($"""
+                Verification:
+                - Minimum Rank: {config.VerifySettings?.MinimumRank.Humanize() ?? Rank.Novice.Humanize()}
+                """);
+        }
 
         var embed = new EmbedProperties()
         {
             Title = "Current Configuration",
-            Description = $"""
-            Log Channels:
-            - General: {(config.LogSettings?.LogId is null ? "None" : $"<#{config.LogSettings.LogId}>")}
-            - Achievement: {(config.LogSettings?.FlexId is null ? "None" : $"<#{config.LogSettings.FlexId}>")}
-            - Egg Master: {(config.LogSettings?.EggMasterId is null ? "None" : $"<#{config.LogSettings.EggMasterId}>")}
-            - Verification: {(config.LogSettings?.VerificationId is null ? "None" : $"<#{config.LogSettings.VerificationId}>")}
-
-            Roles:
-            - Verified: {(config.RoleSettings?.VerifiedId is null ? "None" : $"<@&{config.RoleSettings?.VerifiedId}>")}
-            - Trade Banned: {(config.RoleSettings?.TradeBannedId is null ? "None" : $"<@&{config.RoleSettings?.TradeBannedId}>")}
-            - Map Banned {(config.RoleSettings?.MapBannedId is null ? "None" : $"<@&{config.RoleSettings?.MapBannedId}>")}
-
-            - :star:: {(config.RoleSettings?.StarId is null ? "None" : $"<@&{config.RoleSettings?.StarId}>")}
-            - :crown:: {(config.RoleSettings?.CrownId is null ? "None" : $"<@&{config.RoleSettings?.CrownId}>")}
-            - :white_check_mark:: {(config.RoleSettings?.CheckmarkId is null ? "None" : $"<@&{config.RoleSettings?.CheckmarkId}>")}
-            - :egg:: {(config.RoleSettings?.EggMasterId is null ? "None" : $"<@&{config.RoleSettings?.EggMasterId}>")}
-            - :cookie:: {(config.RoleSettings?.AchieverId is null ? "None" : $"<@&{config.RoleSettings?.AchieverId}>")}
-
-            - Arcane Master: {(config.RoleSettings?.ArcaneMasterId is null ? "None" : $"<@&{config.RoleSettings?.ArcaneMasterId}>")}
-            - Draconic Master: {(config.RoleSettings?.DraconicMasterId is null ? "None" : $"<@&{config.RoleSettings?.DraconicMasterId}>")}
-            - Forgotten Master: {(config.RoleSettings?.ForgottenMasterId is null ? "None" : $"<@&{config.RoleSettings?.ForgottenMasterId}>")}
-            - Hydro Master: {(config.RoleSettings?.HydroMasterId is null ? "None" : $"<@&{config.RoleSettings?.HydroMasterId}>")}
-            - Law Master: {(config.RoleSettings?.LawMasterId is null ? "None" : $"<@&{config.RoleSettings?.LawMasterId}>")}
-            - Physical Master: {(config.RoleSettings?.PhysicalMasterId is null ? "None" : $"<@&{config.RoleSettings?.PhysicalMasterId}>")}
-            - Rift Master: {(config.RoleSettings?.RiftMasterId is null ? "None" : $"<@&{config.RoleSettings?.RiftMasterId}>")}
-            - Shadow Master: {(config.RoleSettings?.ShadowMasterId is null ? "None" : $"<@&{config.RoleSettings?.ShadowMasterId}>")}
-            - Tactical Master: {(config.RoleSettings?.TacticalMasterId is null ? "None" : $"<@&{config.RoleSettings?.TacticalMasterId}>")}
-            - Multi Master: {(config.RoleSettings?.MultiMasterId is null ? "None" : $"<@&{config.RoleSettings?.MultiMasterId}>")}
-
-
-            Messages:
-            - :star:: {config.AchievementMessages?.Star ?? ""}
-            - :crown: {config.AchievementMessages?.Crown ?? ""}
-            - :white_check_mark: {config.AchievementMessages?.Checkmark ?? ""}
-            - :egg:: {config.AchievementMessages?.EggMaster ?? ""}
-                    
-            - Arcane Master: {config.AchievementMessages?.ArcaneMaster ?? ""}
-            - Draconic Master: {config.AchievementMessages?.DraconicMaster ?? ""}
-            - Forgotten Master: {config.AchievementMessages?.ForgottenMaster ?? ""}
-            - Hydro Master: {config.AchievementMessages?.HydroMaster ?? ""}
-            - Law Master: {config.AchievementMessages?.LawMaster ?? ""}
-            - Physical Master: {config.AchievementMessages?.PhysicalMaster ?? ""}
-            - Rift Master: {config.AchievementMessages?.RiftMaster ?? ""}
-            - Shadow Master: {config.AchievementMessages?.ShadowMaster ?? ""}
-            - Tactical Master: {config.AchievementMessages?.TacticalMaster ?? ""}
-            - Multi Master: {config.AchievementMessages?.MultiMaster ?? ""}
-            """,
+            Description = sb.ToString(),
         };
 
         await RespondAsync(InteractionCallback.Message(new InteractionMessageProperties()
@@ -126,6 +160,17 @@ public class ConfigModule(ConfigService configService) : ApplicationCommandModul
             Embeds = [embed],
             AllowedMentions = AllowedMentionsProperties.None
         }));
+    }
+
+    [Flags]
+    public enum SettingType
+    {
+        Log         = 0b1 << 1,
+        Role        = 0b1 << 2,
+        Message     = 0b1 << 3,
+        [SlashCommandChoice(Name = "Verify Rank")]
+        VerifyRank  = 0b1 << 4,
+        All = Log | Role | Message | VerifyRank
     }
 }
 

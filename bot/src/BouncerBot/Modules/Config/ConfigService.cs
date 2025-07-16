@@ -1,3 +1,4 @@
+
 using BouncerBot.Db;
 using BouncerBot.Db.Models;
 
@@ -224,12 +225,25 @@ public class ConfigService(BouncerBotDbContext dbContext)
         await dbContext.SaveChangesAsync();
     }
 
-    public async Task<(LogSetting? LogSettings, RoleSetting? RoleSettings, AchievementMessage? AchievementMessages)> GetGuildConfigAsync(ulong guildId)
+    public async Task SetVerifyRankAsync(ulong id, Rank minRank)
+    {
+        var setting = await dbContext.VerifySettings.FindAsync(id);
+        if (setting is null)
+        {
+            setting = new VerifySetting { GuildId = id };
+            dbContext.VerifySettings.Add(setting);
+        }
+        setting.MinimumRank = minRank;
+        await dbContext.SaveChangesAsync();
+    }
+
+    public async Task<(LogSetting? LogSettings, RoleSetting? RoleSettings, AchievementMessage? AchievementMessages, VerifySetting? VerifySettings)> GetGuildConfigAsync(ulong guildId)
     {
         var logSetting = await dbContext.LogSettings.FindAsync(guildId);
         var roleSetting = await dbContext.RoleSettings.FindAsync(guildId);
         var messageSetting = await dbContext.AchievementMessages.FindAsync(guildId);
+        var verifySetting = await dbContext.VerifySettings.FindAsync(guildId);
 
-        return (logSetting, roleSetting, messageSetting);
+        return (logSetting, roleSetting, messageSetting, verifySetting);
     }
 }
