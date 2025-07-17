@@ -1,3 +1,5 @@
+using System.Threading;
+
 using BouncerBot.Attributes;
 using BouncerBot.Modules.Achieve;
 
@@ -23,6 +25,18 @@ public class VerifyModule(ILogger<VerifyModule> logger,
     )
     {
         await RespondAsync(InteractionCallback.DeferredMessage(MessageFlags.Ephemeral));
+
+        var canVerifyResult = await verificationService.CanUserVerifyAsync(mouseHuntId, Context.Guild!.Id, Context.User.Id);
+        if (!canVerifyResult.CanVerify)
+        {
+            await ModifyResponseAsync(m =>
+            {
+                m.Content = canVerifyResult.Message;
+                m.Flags = MessageFlags.Ephemeral;
+            });
+
+            return;
+        }
 
         // This check is a sanity check, the precondition should ensure this is not called if the user is already verified.
         if (await verificationService.IsDiscordUserVerifiedAsync(Context.Guild!.Id, Context.User.Id))

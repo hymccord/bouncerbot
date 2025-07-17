@@ -95,6 +95,13 @@ partial class MouseHuntRestClient
         return result;
     }
 
+    public async Task<UserTitle> GetUserTitleAsync(uint mhId, CancellationToken cancellationToken = default)
+    {
+        var snuid = await GetUserSnuIdAsync(mhId, cancellationToken);
+
+        return await SendRequestAsync<UserTitle>(HttpMethod.Post, $"get/user/{snuid.SnUserId}/title_id", cancellationToken);
+    }
+
     public async Task<UserSnuIdInfo> GetUserSnuIdAsync(uint mhId, CancellationToken cancellationToken = default)
     {
         // Check cache first

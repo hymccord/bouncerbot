@@ -35,6 +35,7 @@ builder.Services
     .AddTransient<AchievementRoleOrchestrator>()
     .AddTransient<AchievementService>()
     .AddTransient<ConfigService>()
+    .AddTransient<VerificationOrchestrator>()
     .AddTransient<VerificationService>()
     .AddMouseHuntClient()
     ;

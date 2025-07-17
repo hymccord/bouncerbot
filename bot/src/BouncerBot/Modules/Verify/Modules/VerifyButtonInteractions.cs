@@ -1,6 +1,3 @@
-using BouncerBot.Rest;
-using BouncerBot.Services;
-
 using Microsoft.Extensions.Logging;
 
 using NetCord;
@@ -10,10 +7,7 @@ using NetCord.Services.ComponentInteractions;
 namespace BouncerBot.Modules.Verify.Modules;
 
 public class VerifyButtonInteractions(ILogger<VerifyButtonInteractions> logger,
-    VerificationService verificationService,
-    MouseHuntRestClient mouseHuntRestClient,
-    IGuildLoggingService guildLoggingService
-) : ComponentInteractionModule<ButtonInteractionContext>
+    VerificationOrchestrator verificationOrchestrator) : ComponentInteractionModule<ButtonInteractionContext>
 {
     [ComponentInteraction("verify me start")]
     public async Task VerifyMe(uint mouseHuntId, string phrase)
@@ -27,53 +21,22 @@ public class VerifyButtonInteractions(ILogger<VerifyButtonInteractions> logger,
             x.Components = [];
         });
 
-        logger.LogDebug("Verifying user {MouseHuntId} with phrase: {Phrase}", mouseHuntId, phrase);
-
-        var snuid = await mouseHuntRestClient.GetUserSnuIdAsync(mouseHuntId);
-        var latestMessage = (await mouseHuntRestClient.GetCorkboardAsync(mouseHuntId)).CorkboardMessages.FirstOrDefault();
-
-        var snuidMatch = snuid.SnUserId == latestMessage?.SnUserId;
-        var phraseMatch = latestMessage?.Body == phrase;
-        if (snuidMatch && phraseMatch)
+        var verificationParameters = new VerificationParameters
         {
-            await verificationService.AddVerifiedUserAsync(mouseHuntId, Context.Guild!.Id, Context.User.Id);
-        }
-        else
-        {
-            if (phraseMatch && !snuidMatch)
-            {
-                await guildLoggingService.LogAsync(Context.Guild!.Id, LogType.General, new()
-                {
-                    Content = $"""
-                    <@{Context.User.Id}> attempted to use `/verify me` on a profile that isn't theirs.
-                    Profile SnuId: {snuid.SnUserId}, Corkboard Author SnuId: {latestMessage?.SnUserId}",
-                    """,
-                    AllowedMentions = AllowedMentionsProperties.None,
-                });
-            }
+            MouseHuntId = mouseHuntId,
+            DiscordUserId = Context.User.Id,
+            GuildId = Context.Guild!.Id,
+            Phrase = phrase,
+        };
 
-            await ModifyResponseAsync(x =>
-            {
-                x.Content = $"""
-                Verification failed! Please ensure that you have the correct phrase on your corkboard.
-                The latest message on your corkboard is:
-                ```
-                {latestMessage?.Body ?? "No messages found."}
-                ```
-                """;
-                x.Flags = MessageFlags.Ephemeral;
-            });
-
-            return;
-        }
+        var verificationResult = await verificationOrchestrator.ProcessVerificationAsync(VerificationType.Self, verificationParameters);
 
         await ModifyResponseAsync(x =>
         {
-            x.Content = $"""
-            Success! You may now remove the phrase from your corkboard.
-            """;
+            x.Content = verificationResult.Message;
             x.Flags = MessageFlags.Ephemeral;
         });
+
     }
 
     [ComponentInteraction("verify me cancel")]
@@ -86,26 +49,21 @@ public class VerifyButtonInteractions(ILogger<VerifyButtonInteractions> logger,
     public async Task VerifyUser(uint mouseHuntId, ulong discordId)
     {
         await RespondAsync(InteractionCallback.DeferredModifyMessage);
-        if (!await verificationService.IsDiscordUserVerifiedAsync(Context.Guild!.Id, discordId))
+
+        var result = await verificationOrchestrator.ProcessVerificationAsync(VerificationType.Add, new VerificationParameters
         {
-            await verificationService.AddVerifiedUserAsync(mouseHuntId, Context.Guild!.Id, discordId);
-            await ModifyResponseAsync(x =>
-            {
-                x.Content = $"Verified <@{discordId}> to be hunter {mouseHuntId}.";
-                x.Flags = MessageFlags.Ephemeral;
-                x.Components = [];
-            });
-        }
-        else
+            MouseHuntId = mouseHuntId,
+            DiscordUserId = discordId,
+            GuildId = Context.Guild!.Id,
+            Phrase = string.Empty, // No phrase needed for manual verification
+        });
+
+        await ModifyResponseAsync(x =>
         {
-            logger.LogInformation("User {UserId} is already verified in guild {GuildId}", discordId, Context.Guild!.Id);
-            await ModifyResponseAsync(x =>
-            {
-                x.Content = $"<@{discordId}> is already verified.";
-                x.Flags = MessageFlags.Ephemeral;
-                x.Components = [];
-            });
-        }
+            x.Content = result.Message;
+            x.Flags = MessageFlags.Ephemeral;
+            x.Components = [];
+        });
     }
 
     [ComponentInteraction("verify user cancel")]
@@ -119,11 +77,17 @@ public class VerifyButtonInteractions(ILogger<VerifyButtonInteractions> logger,
     {
         await RespondAsync(InteractionCallback.DeferredModifyMessage);
 
-        await verificationService.RemoveVerifiedUser(Context.Guild!.Id, discordId);
+        var result = await verificationOrchestrator.ProcessVerificationAsync(VerificationType.Remove, new VerificationParameters
+        {
+            MouseHuntId = 0, // Not needed for removal
+            DiscordUserId = discordId,
+            GuildId = Context.Guild!.Id,
+            Phrase = string.Empty, // No phrase needed for removal
+        });
 
         await ModifyResponseAsync(x =>
         {
-            x.Content = $"Removed verification for <@{discordId}>.";
+            x.Content = result.Message;
             x.Flags = MessageFlags.Ephemeral;
             x.Components = [];
         });

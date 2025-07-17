@@ -13,3 +13,8 @@ public class Title
 
     public uint DisplayOrder { get; set; }
 }
+
+public class UserTitle
+{
+    public uint TitleId { get; set; }
+}
