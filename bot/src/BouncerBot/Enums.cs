@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 using NetCord.Services.ApplicationCommands;
 
@@ -13,11 +13,15 @@ public enum Role
     [SlashCommandChoice(Name = "Trade Banned")]
     [Display(Name = "Trade Banned")]
     TradeBanned,
+    [SlashCommandChoice(Name = "⭐")]
     Star,
+    [SlashCommandChoice(Name = "👑")]
     Crown,
+    [SlashCommandChoice(Name = "✅")]
     Checkmark,
+    [SlashCommandChoice(Name = "Achiever 🍪")]
     Achiever,
-    [SlashCommandChoice(Name = "Egg Master")]
+    [SlashCommandChoice(Name = "🥚")]
     [Display(Name = "Egg Master")]
     EggMaster,
     [SlashCommandChoice(Name = "Arcane Master")]
@@ -54,10 +58,13 @@ public enum Role
 
 public enum AchievementRole
 {
+    [SlashCommandChoice(Name = "⭐")]
     Star,
+    [SlashCommandChoice(Name = "👑")]
     Crown,
+    [SlashCommandChoice(Name = "✅")]
     Checkmark,
-    [SlashCommandChoice(Name = "Egg Master")]
+    [SlashCommandChoice(Name = "🥚")]
     [Display(Name = "Egg Master")]
     EggMaster,
     [SlashCommandChoice(Name = "Arcane Master")]
