@@ -14,7 +14,7 @@ namespace BouncerBot.Modules.Variables.Modules;
 
 [SlashCommand("config", "Manage bot configuration")]
 [RequireUserPermissions<ApplicationCommandContext>(Permissions.ManageGuild)]
-[GuildOnly<ApplicationCommandContext>]
+[RequireGuildContext<ApplicationCommandContext>]
 public class ConfigModule(ConfigService configService) : ApplicationCommandModule<ApplicationCommandContext>
 {
 

@@ -3,6 +3,8 @@ using System.Threading;
 using BouncerBot.Attributes;
 using BouncerBot.Modules.Achieve;
 
+using Humanizer;
+
 using Microsoft.Extensions.Logging;
 
 using NetCord;
@@ -12,7 +14,7 @@ using NetCord.Services.ApplicationCommands;
 namespace BouncerBot.Modules.Verify.Modules;
 
 [SlashCommand("verify", "Manage MouseHunt ID verification")]
-[GuildOnly<ApplicationCommandContext>]
+[RequireGuildContext<ApplicationCommandContext>]
 public class VerifyModule(ILogger<VerifyModule> logger,
     VerificationService verificationService,
     AchievementService achievementService,
@@ -78,8 +80,10 @@ public class VerifyModule(ILogger<VerifyModule> logger,
         });
     }
 
+    // Only owner for now: testing
     [SubSlashCommand("user", "Manually verify a MouseHunt ID and Discord user")]
-    [ManageRolesOnly<ApplicationCommandContext>]
+    [RequireOwner<ApplicationCommandContext>]
+    //[RequireManageRoles<ApplicationCommandContext>]
     public async Task VerifyUserAsync(
         [SlashCommandParameter(Name = "mousehunt_id", Description = "User's MouseHunt ID")] uint mhid,
         User user)
@@ -103,7 +107,7 @@ public class VerifyModule(ILogger<VerifyModule> logger,
     }
 
     [SubSlashCommand("remove", "Remove a MouseHunt ID verification")]
-    [ManageRolesOnly<ApplicationCommandContext>]
+    [RequireManageRoles<ApplicationCommandContext>]
     public async Task RemoveVerification(
         [SlashCommandParameter(Description = "A verified Discord user")] User user
         )
@@ -132,7 +136,7 @@ public class VerifyModule(ILogger<VerifyModule> logger,
     }
 
     [SubSlashCommand("achievement", "Check if a MouseHunter qualifies for an achievement role")]
-    [ManageRolesOnly<ApplicationCommandContext>]
+    [RequireManageRoles<ApplicationCommandContext>]
     public async Task VerifyAchievementAsync(uint mousehuntId, AchievementRole achievement)
     {
         bool hasAchievement = await achievementService.HasAchievementAsync(mousehuntId, achievement);

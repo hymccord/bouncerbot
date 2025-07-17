@@ -10,7 +10,7 @@ namespace BouncerBot.Modules.Help;
 public class HelpModule : ApplicationCommandModule<ApplicationCommandContext>
 {
     [SlashCommand("help", "Provides information about the bot and its commands.")]
-    [GuildOnly<ApplicationCommandContext>]
+    [RequireGuildContext<ApplicationCommandContext>]
     public async Task HelpAsync()
     {
         if (Context.User is GuildInteractionUser user)

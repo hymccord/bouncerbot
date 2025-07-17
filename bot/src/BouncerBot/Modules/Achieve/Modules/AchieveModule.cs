@@ -13,7 +13,7 @@ using NetCord.Services.ApplicationCommands;
 namespace BouncerBot.Modules.Achieve.Modules;
 
 [SlashCommand("achieve", "Commands related to role achievements.")]
-[GuildOnly<ApplicationCommandContext>]
+[RequireGuildContext<ApplicationCommandContext>]
 public class AchieveModule(AchievementRoleOrchestrator achievementRoleOrchestrator, BouncerBotDbContext dbContext) : ApplicationCommandModule<ApplicationCommandContext>
 {
     private static readonly string[] s_rejectionPhrases = [
@@ -84,7 +84,7 @@ public class AchieveModule(AchievementRoleOrchestrator achievementRoleOrchestrat
     }
 
     [SubSlashCommand("reset", "Removes achievement role from all users (and grants Achiever)")]
-    [ManageRolesOnly<ApplicationCommandContext>]
+    [RequireManageRoles<ApplicationCommandContext>]
     public async Task ResetAchievementsAsync(AchievementRole achievement)
     {
         await RespondAsync(InteractionCallback.Message(new InteractionMessageProperties()
