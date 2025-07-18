@@ -35,11 +35,22 @@ public class VerificationOrchestrator(
 
             if (result.WasAdded)
             {
-                await guildLoggingService.LogAsync(parameters.GuildId, LogType.Verification, new()
+                var message = await guildLoggingService.LogAsync(parameters.GuildId, LogType.Verification, new()
                 {
                     Content = $"<@{parameters.DiscordUserId}> self-verified as hunter {result.MouseHuntId} <https://p.mshnt.ca/{result.MouseHuntId}>",
                     AllowedMentions = AllowedMentionsProperties.None,
                 }, cancellationToken);
+
+                if (message is not null)
+                {
+                    await verificationService.SetVerificationMessageAsync(new()
+                    {
+                        GuildId = parameters.GuildId,
+                        DiscordUserId = parameters.DiscordUserId,
+                        ChannelId = message.ChannelId,
+                        MessageId = message.Id,
+                    });
+                }
             }
 
             return new VerificationResult
@@ -82,11 +93,22 @@ public class VerificationOrchestrator(
 
             if (result.WasAdded)
             {
-                await guildLoggingService.LogAsync(parameters.GuildId, LogType.Verification, new()
+                var message = await guildLoggingService.LogAsync(parameters.GuildId, LogType.Verification, new()
                 {
                     Content = $"<@{parameters.DiscordUserId}> was manually verified as hunter {result.MouseHuntId} <https://p.mshnt.ca/{result.MouseHuntId}>",
                     AllowedMentions = AllowedMentionsProperties.None,
                 }, cancellationToken);
+
+                if (message is not null)
+                {
+                    await verificationService.SetVerificationMessageAsync(new()
+                    {
+                        GuildId = parameters.GuildId,
+                        DiscordUserId = parameters.DiscordUserId,
+                        ChannelId = message.ChannelId,
+                        MessageId = message.Id,
+                    });
+                }
             }
 
             return new VerificationResult
@@ -110,15 +132,6 @@ public class VerificationOrchestrator(
         if (await verificationService.IsDiscordUserVerifiedAsync(parameters.GuildId, parameters.DiscordUserId, cancellationToken))
         {
             var result = await verificationService.RemoveVerifiedUser(parameters.GuildId, parameters.DiscordUserId, cancellationToken);
-
-            if (result.WasRemoved && result.MouseHuntId.HasValue)
-            {
-                await guildLoggingService.LogAsync(parameters.GuildId, LogType.Verification, new()
-                {
-                    Content = $"<@{parameters.DiscordUserId}> is no longer verified (was hunter {result.MouseHuntId})",
-                    AllowedMentions = AllowedMentionsProperties.None,
-                }, cancellationToken);
-            }
 
             return new VerificationResult
             {

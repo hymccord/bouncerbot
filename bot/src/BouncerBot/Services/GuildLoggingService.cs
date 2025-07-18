@@ -11,7 +11,7 @@ namespace BouncerBot.Services;
 
 public interface IGuildLoggingService
 {
-    Task LogAsync(ulong guildId, LogType logType, MessageProperties message, CancellationToken cancellationToken = default);
+    Task<RestMessage?> LogAsync(ulong guildId, LogType logType, MessageProperties message, CancellationToken cancellationToken = default);
 }
 
 public enum LogType
@@ -24,12 +24,12 @@ public enum LogType
 
 internal class GuildLoggingService(ILogger<GuildLoggingService> logger, IDbContextFactory<BouncerBotDbContext> dbContextFactory, GatewayClient gatewayClient) : IGuildLoggingService
 {
-    public async Task LogAsync(ulong guildId, LogType logType, MessageProperties message, CancellationToken cancellationToken = default)
+    public async Task<RestMessage?> LogAsync(ulong guildId, LogType logType, MessageProperties message, CancellationToken cancellationToken = default)
     {
         // no guild, no log
         if (!gatewayClient.Cache.Guilds.TryGetValue(guildId, out Guild? guild))
         {
-            return;
+            return null;
         }
 
         using var dbContext = await dbContextFactory.CreateDbContextAsync();
@@ -37,7 +37,7 @@ internal class GuildLoggingService(ILogger<GuildLoggingService> logger, IDbConte
 
         if (logSetting is null)
         {
-            return;
+            return null;
         }
 
         ulong logChannelId = logType switch
@@ -51,10 +51,9 @@ internal class GuildLoggingService(ILogger<GuildLoggingService> logger, IDbConte
 
         if (guild.Channels.TryGetValue(logChannelId, out IGuildChannel? guildChannel) && guildChannel is TextChannel logChannel)
         {
-            _ = Task.Run(async () =>
-            {
-                await logChannel.SendMessageAsync(message, cancellationToken: cancellationToken);
-            }, cancellationToken);
+            return await logChannel.SendMessageAsync(message, cancellationToken: cancellationToken);
         }
+
+        return null;
     }
 }

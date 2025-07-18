@@ -9,6 +9,7 @@ public class BouncerBotDbContext(DbContextOptions<BouncerBotDbContext> options) 
     public DbSet<LogSetting> LogSettings { get; set; } = null!;
     public DbSet<RoleSetting> RoleSettings { get; set; } = null!;
     public DbSet<Snuid> SnuidCache { get; set; } = null!;
+    public DbSet<VerifyMessage> VerifyMessages { get; set; } = null!;
     public DbSet<VerifySetting> VerifySettings { get; set; } = null!;
     public DbSet<VerifiedUser> VerifiedUsers { get; set; } = null!;
 
@@ -55,6 +56,15 @@ public class BouncerBotDbContext(DbContextOptions<BouncerBotDbContext> options) 
                 vu.GuildId,
                 vu.MouseHuntId
             }).IsUnique(true);
+
+            vu.HasOne(vu => vu.VerifyMessage)
+                .WithOne()
+                .HasForeignKey<VerifiedUser>(vu => vu.VerifyMessageId);
+        });
+
+        modelBuilder.Entity<VerifyMessage>(vm =>
+        {
+            vm.HasKey(v => v.Id);
         });
     }
 }

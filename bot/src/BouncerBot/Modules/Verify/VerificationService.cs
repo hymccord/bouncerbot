@@ -1,4 +1,5 @@
 using BouncerBot.Db;
+using BouncerBot.Db.Models;
 using BouncerBot.Rest;
 using BouncerBot.Rest.Models;
 
@@ -93,10 +94,21 @@ public class VerificationService(
     public async Task<VerificationRemoveResult> RemoveVerifiedUser(ulong guildId, ulong discordId, CancellationToken cancellationToken = default)
     {
         var existingUser = await dbContext.VerifiedUsers
+            .Include(vu => vu.VerifyMessage)
             .FirstOrDefaultAsync(vu => vu.DiscordId == discordId && vu.GuildId == guildId);
         if (existingUser is not null)
         {
             dbContext.VerifiedUsers.Remove(existingUser);
+            if (existingUser.VerifyMessage is VerifyMessage verifyMessage)
+            {
+                try
+                {
+                    await restClient.DeleteMessageAsync(verifyMessage.ChannelId, verifyMessage.MessageId, cancellationToken: cancellationToken);
+                }
+                catch
+                { }
+                dbContext.VerifyMessages.Remove(existingUser.VerifyMessage);
+            }
             await dbContext.SaveChangesAsync();
         }
 
@@ -112,6 +124,34 @@ public class VerificationService(
             MouseHuntId = existingUser?.MouseHuntId
         };
     }
+
+    public async Task SetVerificationMessageAsync(SetVerificationMessageParameters parameters)
+    {
+        var existingUser = await dbContext.VerifiedUsers
+            .FirstOrDefaultAsync(vu => vu.DiscordId == parameters.DiscordUserId && vu.GuildId == parameters.GuildId);
+
+        if (existingUser is null)
+        {
+            logger.LogWarning("Attempted to set verification message for user {UserId} in guild {GuildId}, but they are not verified.", parameters.DiscordUserId, parameters.GuildId);
+            return;
+        }
+
+        existingUser.VerifyMessage = new Db.Models.VerifyMessage
+        {
+            ChannelId = parameters.ChannelId,
+            MessageId = parameters.MessageId
+        };
+
+        await dbContext.SaveChangesAsync();
+    }
+}
+
+public readonly record struct SetVerificationMessageParameters
+{
+    public ulong GuildId { get; init; }
+    public ulong DiscordUserId { get; init; }
+    public ulong ChannelId { get; init; }
+    public ulong MessageId { get; init; }
 }
 
 public readonly record struct CanUserVerifyResult
