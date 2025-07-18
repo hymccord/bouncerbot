@@ -1,9 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 using NetCord.Services.ApplicationCommands;
 
 namespace BouncerBot;
 
+// An public-ish enum seen by Discord Administrators and Role Managers
 public enum Role
 {
     Verified,
@@ -19,11 +20,11 @@ public enum Role
     Crown,
     [SlashCommandChoice(Name = "✅")]
     Checkmark,
-    [SlashCommandChoice(Name = "Achiever 🍪")]
-    Achiever,
     [SlashCommandChoice(Name = "🥚")]
     [Display(Name = "Egg Master")]
     EggMaster,
+    [SlashCommandChoice(Name = "Achiever 🍪")]
+    Achiever,
     [SlashCommandChoice(Name = "Arcane Master")]
     [Display(Name = "Arcane Master")]
     ArcaneMaster,
@@ -56,6 +57,7 @@ public enum Role
     MultiMaster,
 }
 
+// Public facing enum for Discord command parameters
 public enum AchievementRole
 {
     [SlashCommandChoice(Name = "⭐")]
@@ -136,4 +138,51 @@ public enum Rank
     Elder,
     Sage,
     Fabled,
+}
+
+public static class EnumUtils
+{
+    public static Role ToRole(AchievementRole achievementRole)
+    {
+        return achievementRole switch
+        {
+            AchievementRole.Star => Role.Star,
+            AchievementRole.Crown => Role.Crown,
+            AchievementRole.Checkmark => Role.Checkmark,
+            AchievementRole.EggMaster => Role.EggMaster,
+            AchievementRole.ArcaneMaster => Role.ArcaneMaster,
+            AchievementRole.DraconicMaster => Role.DraconicMaster,
+            AchievementRole.ForgottenMaster => Role.ForgottenMaster,
+            AchievementRole.HydroMaster => Role.HydroMaster,
+            AchievementRole.LawMaster => Role.LawMaster,
+            AchievementRole.PhysicalMaster => Role.PhysicalMaster,
+            AchievementRole.RiftMaster => Role.RiftMaster,
+            AchievementRole.ShadowMaster => Role.ShadowMaster,
+            AchievementRole.TacticalMaster => Role.TacticalMaster,
+            AchievementRole.MultiMaster => Role.MultiMaster,
+            _ => throw new ArgumentOutOfRangeException(nameof(achievementRole), achievementRole, null),
+        };
+    }
+
+    public static AchievementRole ToAchievementRole(Role role)
+    {
+        return role switch
+        {
+            Role.Star => AchievementRole.Star,
+            Role.Crown => AchievementRole.Crown,
+            Role.Checkmark => AchievementRole.Checkmark,
+            Role.EggMaster => AchievementRole.EggMaster,
+            Role.ArcaneMaster => AchievementRole.ArcaneMaster,
+            Role.DraconicMaster => AchievementRole.DraconicMaster,
+            Role.ForgottenMaster => AchievementRole.ForgottenMaster,
+            Role.HydroMaster => AchievementRole.HydroMaster,
+            Role.LawMaster => AchievementRole.LawMaster,
+            Role.PhysicalMaster => AchievementRole.PhysicalMaster,
+            Role.RiftMaster => AchievementRole.RiftMaster,
+            Role.ShadowMaster => AchievementRole.ShadowMaster,
+            Role.TacticalMaster => AchievementRole.TacticalMaster,
+            Role.MultiMaster => AchievementRole.MultiMaster,
+            _ => throw new ArgumentOutOfRangeException(nameof(role), role, null),
+        };
+    }
 }

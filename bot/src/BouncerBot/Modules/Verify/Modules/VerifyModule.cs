@@ -67,19 +67,4 @@ public class VerifyModule(
             });
         }
     }
-
-    [SubSlashCommand("achievement", "Check if a MouseHunter qualifies for an achievement role")]
-    [RequireManageRoles<ApplicationCommandContext>]
-    public async Task VerifyAchievementAsync(uint mousehuntId, AchievementRole achievement)
-    {
-        bool hasAchievement = await achievementService.HasAchievementAsync(mousehuntId, achievement);
-
-        await RespondAsync(InteractionCallback.Message(new InteractionMessageProperties()
-        {
-            Content = $"""
-                {achievement}: {(hasAchievement ? "Yes" : "No")}
-            """,
-            Flags = MessageFlags.Ephemeral
-        }));
-    }
 }

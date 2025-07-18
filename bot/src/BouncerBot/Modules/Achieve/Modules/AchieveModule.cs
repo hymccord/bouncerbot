@@ -1,10 +1,6 @@
 using BouncerBot.Attributes;
-using BouncerBot.Db;
-using BouncerBot.Modules.Verify;
 
 using Humanizer;
-
-using Microsoft.EntityFrameworkCore;
 
 using NetCord;
 using NetCord.Rest;
@@ -14,92 +10,74 @@ namespace BouncerBot.Modules.Achieve.Modules;
 
 [SlashCommand("achieve", "Commands related to role achievements.")]
 [RequireGuildContext<ApplicationCommandContext>]
-public class AchieveModule(AchievementRoleOrchestrator achievementRoleOrchestrator, BouncerBotDbContext dbContext) : ApplicationCommandModule<ApplicationCommandContext>
+public class AchieveModule(
+    AchievementService achievementService,
+    AchievementRoleService achievementRoleService) : ApplicationCommandModule<ApplicationCommandContext>
 {
-    private static readonly string[] s_rejectionPhrases = [
-        "Hah, trying to pull a fast one on me!? Scram!",
-        "Not on the list, not in the club! Try again, pal.",
-        "You think you can cheese your way in here? Think again!",
-        "Sorry, no entry for hunters without the right credentials!",
-        "You’re not VIP material yet. Come back when you’ve earned it!",
-        "Nice try, but this club’s for achievers only!",
-        "You’re squeaking up the wrong door, buddy!",
-        "No badge, no boogie. Rules are rules!",
-        "I don’t see your name on the guest list. Scram!",
-        "You’re not quite the big cheese we’re looking for. Move along!",
-        "This club’s for the elite. Better luck next time, rookie!",
-        "You’re trying to sneak in? Not on my watch!",
-        "Come back when you’ve got the right moves, champ!",
-        "Denied! This club’s for qualified hunters only!",
-        "You’re not dressed for success. No entry!",
-        "Hah! You think you can outsmart me? Not today!",
-    ];
-
-    [SubSlashCommand("verify", "Get an achievement role!")]
-    [RequireVerificationStatus<ApplicationCommandContext>(VerificationStatus.Verified)]
-    public async Task VerifyAsync([SlashCommandParameter(Name = "achievement")] AchievementRole role)
+    [SubSlashCommand("verify", "Check if a Hunter ID qualifies for an achievement.")]
+    [RequireManageRoles<ApplicationCommandContext>]
+    public async Task VerifyAsync(uint hunterID, AchievementRole achievement)
     {
         await RespondAsync(InteractionCallback.DeferredMessage(MessageFlags.Ephemeral));
 
-        var mhId = (await dbContext.VerifiedUsers
-            .FirstOrDefaultAsync(vu => vu.DiscordId == Context.User.Id && vu.GuildId == Context.Guild!.Id))?.MouseHuntId;
+        bool hasAchievement = await achievementService.HasAchievementAsync(hunterID, achievement);
 
-        // Sanity check, precondition should handle this
-        if (mhId is null)
+        var content = $"""
+            Hunter ID: {hunterID}
+            Achievement: {achievement.Humanize()}
+
+            Status: {(hasAchievement ? "✅" : "❌")}
+            """;
+        await ModifyResponseAsync(m =>
         {
-            await ModifyResponseAsync(m =>
-            {
-                m.Content = "This is a verified only club! Once you're on the list, I might let you in!";
-                m.Flags = MessageFlags.Ephemeral;
-            });
+            m.Content = content;
+            m.Components = [
+                new ActionRowProperties()
+                    .AddButtons(new ButtonProperties($"achieve verify share:{content}", "Make Public", ButtonStyle.Primary))
+            ];
+        });
+    }
 
-            return;
-        }
+    [SubSlashCommand("reset", "Removes achievement role from all users (and grants Achiever)")]
+    [RequireManageRoles<ApplicationCommandContext>]
+    public async Task ResetAchievementAsync(AchievementRole achievement)
+    {
+        await RespondAsync(InteractionCallback.DeferredMessage());
 
         try
         {
-            if (!await achievementRoleOrchestrator.ProcessAchievementAsync(mhId.Value, Context.User.Id, Context.Guild!.Id, role))
-            {
-                string randomRejectionPhrase = s_rejectionPhrases[Random.Shared.Next(s_rejectionPhrases.Length)];
+            var numUsers = await achievementRoleService.CountUsersInRole(Context.Guild!.Id, EnumUtils.ToRole(achievement));
+            var numAchievers = await achievementRoleService.CountUsersInRole(Context.Guild.Id, Role.Achiever);
 
-                await ModifyResponseAsync(m =>
-                {
-                    m.Content = randomRejectionPhrase;
-                    m.Flags = MessageFlags.Ephemeral;
-                });
-            }
+            await ModifyResponseAsync(m =>
+            {
+                m.Content = $"""
+                    Are you sure you want to reset all the roles for {achievement.Humanize()}?
+
+                    This will remove the role from {numUsers} users and grant the Achiever role to {numUsers - numAchievers} of them.
+                    """;
+
+                m.Components = [
+                    new ActionRowProperties()
+                        .AddButtons(new ButtonProperties($"achieve reset confirm:{(int)achievement}", "Confirm", ButtonStyle.Danger))
+                        .AddButtons(new ButtonProperties("achieve reset cancel", "Cancel", ButtonStyle.Secondary))
+                ];
+            });
         }
         catch (Exception ex)
         {
             await ModifyResponseAsync(m =>
             {
                 m.Content = $"""
-                    An error occurred while processing your achievement. Please try again later.
+                    An error occurred while preparing the reset:
 
-                    Error: `{ex.Message}`
+                    ```
+                    {ex.Message}
+                    ```
                     """;
-                m.Flags = MessageFlags.Ephemeral;
+                
+                m.Components = [];
             });
         }
-    }
-
-    [SubSlashCommand("reset", "Removes achievement role from all users (and grants Achiever)")]
-    [RequireManageRoles<ApplicationCommandContext>]
-    public async Task ResetAchievementsAsync(AchievementRole achievement)
-    {
-        await RespondAsync(InteractionCallback.Message(new InteractionMessageProperties()
-        {
-            Content = $"""
-                Are you sure you want to reset all the roles for {achievement.Humanize()}?
-
-                This will remove the role from all users and grant the Achiever role.
-
-                """,
-            Components = [
-                new ActionRowProperties()
-                    .AddButtons(new ButtonProperties($"achieve reset confirm:{(int)achievement}", "Confirm", ButtonStyle.Danger))
-                    .AddButtons(new ButtonProperties("achieve reset cancel", "Cancel", ButtonStyle.Secondary))
-            ],
-        }));
     }
 }

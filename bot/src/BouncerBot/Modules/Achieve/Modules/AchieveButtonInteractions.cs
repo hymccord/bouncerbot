@@ -6,6 +6,17 @@ namespace BouncerBot.Modules.Achieve.Modules;
 
 public class AchieveButtonInteractions(AchievementRoleOrchestrator achievementRoleOrchestrator) : ComponentInteractionModule<ButtonInteractionContext>
 {
+    [ComponentInteraction("achieve verify share")]
+    public async Task ShareAchievementAsync(string content)
+    {
+        await RespondAsync(InteractionCallback.DeferredModifyMessage);
+        _ = Context.Channel.SendMessageAsync(content);
+        await ModifyResponseAsync(m =>
+        {
+            m.Components = [];
+        });
+    }
+
     [ComponentInteraction("achieve reset confirm")]
     public async Task ResetConfirmAsync(AchievementRole achievement)
     {

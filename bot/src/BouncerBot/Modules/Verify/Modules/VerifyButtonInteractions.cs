@@ -9,42 +9,6 @@ namespace BouncerBot.Modules.Verify.Modules;
 public class VerifyButtonInteractions(ILogger<VerifyButtonInteractions> logger,
     VerificationOrchestrator verificationOrchestrator) : ComponentInteractionModule<ButtonInteractionContext>
 {
-    [ComponentInteraction("verify me start")]
-    public async Task VerifyMe(uint mouseHuntId, string phrase)
-    {
-        await RespondAsync(InteractionCallback.DeferredModifyMessage);
-
-        await ModifyResponseAsync(x =>
-        {
-            x.Content = "Please wait while I read your profile...";
-            x.Flags = MessageFlags.Ephemeral;
-            x.Components = [];
-        });
-
-        var verificationParameters = new VerificationParameters
-        {
-            MouseHuntId = mouseHuntId,
-            DiscordUserId = Context.User.Id,
-            GuildId = Context.Guild!.Id,
-            Phrase = phrase,
-        };
-
-        var verificationResult = await verificationOrchestrator.ProcessVerificationAsync(VerificationType.Self, verificationParameters);
-
-        await ModifyResponseAsync(x =>
-        {
-            x.Content = verificationResult.Message;
-            x.Flags = MessageFlags.Ephemeral;
-        });
-
-    }
-
-    [ComponentInteraction("verify me cancel")]
-    public async Task CancelVerification()
-    {
-        await DeferModifyAndDeleteResponseAsync();
-    }
-
     [ComponentInteraction("verify user confirm")]
     public async Task VerifyUser(uint mouseHuntId, ulong discordId)
     {

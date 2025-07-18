@@ -2,6 +2,13 @@ using BouncerBot.Rest;
 using BouncerBot.Services;
 
 namespace BouncerBot.Modules.Achieve;
+
+/// <summary>
+/// Provides methods to determine if a user has achieved specific milestones in the MouseHunt game.
+/// </summary>
+/// <remarks>The <see cref="AchievementService"/> class interacts with the MouseHunt API to verify various
+/// achievements for a user, such as checkmarks, egg mastery, crowns, stars, and power type mastery. It utilizes the
+/// <see cref="MouseHuntRestClient"/> and <see cref="MouseRipService"/> to retrieve necessary data.</remarks>
 public class AchievementService(MouseHuntRestClient mouseHuntClient, MouseRipService mouseRipService)
 {
     public async Task<bool> HasAchievementAsync(uint mhId, AchievementRole achievement, CancellationToken cancellationToken = default)

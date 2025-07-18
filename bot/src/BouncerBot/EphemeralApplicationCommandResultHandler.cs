@@ -15,8 +15,6 @@ internal class EphemeralApplicationCommandResultHandler : IApplicationCommandRes
 
     public ValueTask HandleResultAsync(IExecutionResult result, ApplicationCommandContext context, GatewayClient? client, ILogger logger, IServiceProvider services)
     {
-        logger.LogInformation("Handling result of an application command");
-
         return _defaultHandler.HandleResultAsync(result, context, client, logger, services);
     }
 }
@@ -28,8 +26,6 @@ internal class EphemeralComponentInteractionResultHandler<TContext> : IComponent
 
     public ValueTask HandleResultAsync(IExecutionResult result, TContext context, GatewayClient? client, ILogger logger, IServiceProvider services)
     {
-        logger.LogInformation("Handling result of an component interaction");
-
         return _defautHandler.HandleResultAsync(result, context, client, logger, services);
     }
 }
