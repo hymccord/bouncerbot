@@ -2,22 +2,21 @@ using CrypticWizard.RandomWordGenerator;
 
 namespace BouncerBot.Modules.Verify;
 
-public interface IVerificationPhraseGenerator
+public interface IRandomPhraseGenerator
 {
     /// <summary>
     /// Generates a random phrase.
     /// </summary>
     /// <returns>A random phrase as a string.</returns>
-    string GeneratePhrase(int numAdjectives = 2, int numNouns = 2);
+    string Generate(int numAdjectives = 2, int numNouns = 2);
 }
 
-public class VerificationPhraseGenerator : IVerificationPhraseGenerator
+public class RandomPhraseGenerator : IRandomPhraseGenerator
 {
     private static readonly WordGenerator s_wordGenerator = new();
 
-    public string GeneratePhrase(int numAdjectives = 2, int numNouns = 2)
+    public string Generate(int numAdjectives = 2, int numNouns = 2)
     {
-        const string BasePhrase = "MouseHunt Discord Profile Verification: {0}";
 
         List<string> adjectives = s_wordGenerator.GetWords(WordGenerator.PartOfSpeech.adj, numAdjectives);
         List<string> nouns = s_wordGenerator.GetWords(WordGenerator.PartOfSpeech.noun, numNouns);
@@ -25,6 +24,6 @@ public class VerificationPhraseGenerator : IVerificationPhraseGenerator
 
         static string Capitalize(string word) => $"{char.ToUpper(word[0])}{word[1..]}";
 
-        return string.Format(BasePhrase, words);
+        return words;
     }
 }

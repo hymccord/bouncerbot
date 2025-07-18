@@ -29,7 +29,7 @@ builder.Services
     })
     .AddTransient<IGuildLoggingService, GuildLoggingService>()
     .AddTransient<IGuildUserRoleMonitorService, GuildUserRoleMonitor>()
-    .AddTransient<IVerificationPhraseGenerator, VerificationPhraseGenerator>()
+    .AddTransient<IRandomPhraseGenerator, RandomPhraseGenerator>()
     .AddTransient<AchievementMessageService>()
     .AddTransient<AchievementRoleService>()
     .AddTransient<AchievementRoleOrchestrator>()

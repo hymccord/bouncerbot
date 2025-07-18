@@ -41,8 +41,8 @@ internal class RequireVerificationStatusAttribute<TContext> : PreconditionAttrib
         return (user, _verificationStatus) switch
         {
             (null, VerificationStatus.Unverified) => PreconditionResult.Success,
-            (null, VerificationStatus.Verified) => PreconditionResult.Fail("You must be verified to use this command."),
-            (_, VerificationStatus.Unverified) => PreconditionResult.Fail("You are already verified."),
+            (null, VerificationStatus.Verified) => PreconditionResult.Fail("You must link your Discord to your Hunter ID to use this command."),
+            (_, VerificationStatus.Unverified) => PreconditionResult.Fail("You must unlink your Discord to your Hunter ID to use this command."),
             (_, VerificationStatus.Verified) => PreconditionResult.Success,
             _ => PreconditionResult.Fail("Unexpected verification status.")
         };

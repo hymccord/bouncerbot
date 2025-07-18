@@ -10,7 +10,11 @@ using Microsoft.Extensions.Logging;
 using NetCord.Rest;
 
 namespace BouncerBot.Modules.Verify;
-public class VerificationService(ILogger<VerificationService> logger, BouncerBotDbContext dbContext, RestClient restClient, MouseHuntRestClient mouseHuntRestClient)
+public class VerificationService(
+    ILogger<VerificationService> logger,
+    BouncerBotDbContext dbContext,
+    RestClient restClient,
+    MouseHuntRestClient mouseHuntRestClient)
 {
     private Title[]? _cachedTitles;
 

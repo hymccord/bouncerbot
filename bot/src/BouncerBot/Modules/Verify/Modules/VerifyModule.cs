@@ -1,11 +1,5 @@
-using System.Threading;
-
 using BouncerBot.Attributes;
 using BouncerBot.Modules.Achieve;
-
-using Humanizer;
-
-using Microsoft.Extensions.Logging;
 
 using NetCord;
 using NetCord.Rest;
@@ -15,90 +9,29 @@ namespace BouncerBot.Modules.Verify.Modules;
 
 [SlashCommand("verify", "Manage MouseHunt ID verification")]
 [RequireGuildContext<ApplicationCommandContext>]
-public class VerifyModule(ILogger<VerifyModule> logger,
+public class VerifyModule(
     VerificationService verificationService,
-    AchievementService achievementService,
-    IVerificationPhraseGenerator verificationPhraseGenerator) : ApplicationCommandModule<ApplicationCommandContext>
+    AchievementService achievementService) : ApplicationCommandModule<ApplicationCommandContext>
 {
-    [SubSlashCommand("me", "Verify you own a MouseHunt ID")]
-    [RequireVerificationStatus<ApplicationCommandContext>(VerificationStatus.Unverified)]
-    public async Task VerifyMe(
-        [SlashCommandParameter(Description = "MouseHunt Profile ID", Name = "id", MinValue = 1)] uint mouseHuntId
-    )
-    {
-        await RespondAsync(InteractionCallback.DeferredMessage(MessageFlags.Ephemeral));
-
-        var canVerifyResult = await verificationService.CanUserVerifyAsync(mouseHuntId, Context.Guild!.Id, Context.User.Id);
-        if (!canVerifyResult.CanVerify)
-        {
-            await ModifyResponseAsync(m =>
-            {
-                m.Content = canVerifyResult.Message;
-                m.Flags = MessageFlags.Ephemeral;
-            });
-
-            return;
-        }
-
-        // This check is a sanity check, the precondition should ensure this is not called if the user is already verified.
-        if (await verificationService.IsDiscordUserVerifiedAsync(Context.Guild!.Id, Context.User.Id))
-        {
-            await ModifyResponseAsync(x =>
-            {
-                x.Content = "You are already verified!";
-                x.Flags = MessageFlags.Ephemeral;
-            });
-
-            return;
-        }
-        var phrase = verificationPhraseGenerator.GeneratePhrase();
-        await ModifyResponseAsync(x =>
-        {
-            x.Content = $"""
-            This process will associate your current Discord account with your MouseHunt profile.
-
-            Only **ONE (1)** Discord account can be associated with **ONE (1)** MouseHunt account.
-
-            Be sure these are the accounts you want to associate.
-            Discord: <@{Context.User.Id}> <-> MHID: {mouseHuntId}
-
-            If you are sure this is correct, place the **entire** of the following phrase on your MouseHunt profile corkboard (everything in code block):
-            ```
-            {phrase}
-            ```
-
-            I will read your corkboard and verify it matches.
-
-            Click 'Start!' to proceed, otherwise 'Cancel'.
-            """;
-            x.AddComponents(
-                new ActionRowProperties()
-                    .AddButtons(new ButtonProperties($"verify me start:{mouseHuntId}:{phrase}", "Start!", ButtonStyle.Success))
-                    .AddButtons(new ButtonProperties("verify me cancel", "Cancel", ButtonStyle.Danger))
-                );
-            x.AllowedMentions = AllowedMentionsProperties.None;
-        });
-    }
-
     // Only owner for now: testing
     [SubSlashCommand("user", "Manually verify a MouseHunt ID and Discord user")]
     [RequireOwner<ApplicationCommandContext>]
     //[RequireManageRoles<ApplicationCommandContext>]
     public async Task VerifyUserAsync(
-        [SlashCommandParameter(Name = "mousehunt_id", Description = "User's MouseHunt ID")] uint mhid,
+        [SlashCommandParameter(Name = "mousehunt_id", Description = "User's MouseHunt ID")] uint hunterId,
         User user)
     {
         await RespondAsync(InteractionCallback.Message(new InteractionMessageProperties()
         {
             Content = $"""
-                Are you sure you want to verify <@{user.Id}> as hunter {mhid}?
-                <https://p.mshnt.ca/{mhid}>
+                Are you sure you want to link <@{user.Id}> as Hunter ID {hunterId}?
+                <https://p.mshnt.ca/{hunterId}>
                 """,
 
             Components =
             [
                 new ActionRowProperties()
-                    .AddButtons(new ButtonProperties($"verify user confirm:{mhid}:{user.Id}", "Confirm", ButtonStyle.Success))
+                    .AddButtons(new ButtonProperties($"verify user confirm:{hunterId}:{user.Id}", "Confirm", ButtonStyle.Success))
                     .AddButtons(new ButtonProperties("verify user cancel", "Cancel", ButtonStyle.Danger))
             ],
             AllowedMentions = AllowedMentionsProperties.None,
