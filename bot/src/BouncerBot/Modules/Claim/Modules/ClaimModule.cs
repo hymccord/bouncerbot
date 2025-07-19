@@ -37,7 +37,8 @@ public class ClaimModule(
 
     [SlashCommand("claim", "Claim an achievment role!")]
     [RequireVerificationStatus<ApplicationCommandContext>(VerificationStatus.Verified)]
-    public async Task ClaimAsync(AchievementRole achievement)
+    public async Task ClaimAsync(AchievementRole achievement,
+        [SlashCommandParameter(Description = "Publicly share your achievement?")]bool? share = true)
     {
         await RespondAsync(InteractionCallback.DeferredMessage(MessageFlags.Ephemeral));
 
@@ -58,7 +59,10 @@ public class ClaimModule(
 
         try
         {
-            if (!await achievementRoleOrchestrator.ProcessAchievementAsync(mhId.Value, Context.User.Id, Context.Guild!.Id, achievement))
+            var achieved = (share ?? true)
+                ? achievementRoleOrchestrator.ProcessAchievementAsync(mhId.Value, Context.User.Id, Context.Guild!.Id, achievement)
+                : achievementRoleOrchestrator.ProcessAchievementSilentlyAsync(mhId.Value, Context.User.Id, Context.Guild!.Id, achievement);
+            if (!await achieved)
             {
                 string randomRejectionPhrase = s_rejectionPhrases[Random.Shared.Next(s_rejectionPhrases.Length)];
 

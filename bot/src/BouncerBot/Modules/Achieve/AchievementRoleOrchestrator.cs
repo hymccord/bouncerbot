@@ -31,6 +31,18 @@ public class AchievementRoleOrchestrator(
         return false;
     }
 
+    public async Task<bool> ProcessAchievementSilentlyAsync(uint mhid, ulong userId, ulong guildId, AchievementRole achievement, CancellationToken cancellationToken = default)
+    {
+        if (await achievementService.HasAchievementAsync(mhid, achievement, cancellationToken))
+        {
+            var role = EnumUtils.ToRole(achievement);
+            await achievementRoleService.AddRoleAsync(userId, guildId, role, cancellationToken);
+            // No message sent for silent processing
+            return true;
+        }
+        return false;
+    }
+
     internal async Task ResetAchievementsAsync(ulong guildId, AchievementRole achievement, Func<int, int, Task> progress, CancellationToken cancellationToken = default)
     {
         var role = EnumUtils.ToRole(achievement);
