@@ -9,8 +9,7 @@ namespace BouncerBot.Modules.Link.Modules;
 [RequireGuildContext<ApplicationCommandContext>]
 public class LinkModule(
     IRandomPhraseGenerator randomPhraseGenerator,
-    VerificationService verificationService,
-    VerificationOrchestrator verificationOrchestrator): ApplicationCommandModule<ApplicationCommandContext>
+    IVerificationService verificationService): ApplicationCommandModule<ApplicationCommandContext>
 {
     [SlashCommand("link", "Link your Discord account to your MouseHunt account.")]
     [RequireVerificationStatus<ApplicationCommandContext>(VerificationStatus.Unverified)]

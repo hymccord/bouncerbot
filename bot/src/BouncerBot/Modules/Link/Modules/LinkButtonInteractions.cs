@@ -6,7 +6,7 @@ using NetCord.Services.ComponentInteractions;
 
 namespace BouncerBot.Modules.Link.Modules;
 public class LinkButtonInteractions(
-    VerificationOrchestrator verificationOrchestrator) : ComponentInteractionModule<ButtonInteractionContext>
+    IVerificationOrchestrator verificationOrchestrator) : ComponentInteractionModule<ButtonInteractionContext>
 {
     [ComponentInteraction("link start")]
     public async Task VerifyMe(uint mouseHuntId, string phrase)

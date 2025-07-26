@@ -1,4 +1,3 @@
-
 using BouncerBot.Rest;
 using BouncerBot.Services;
 
@@ -8,10 +7,16 @@ using NetCord;
 using NetCord.Rest;
 
 namespace BouncerBot.Modules.Verify;
+
+public interface IVerificationOrchestrator
+{
+    Task<VerificationResult> ProcessVerificationAsync(VerificationType type, VerificationParameters parameters, CancellationToken cancellationToken = default);
+}
+
 public class VerificationOrchestrator(
-    VerificationService verificationService,
-    MouseHuntRestClient mouseHuntRestClient,
-    IGuildLoggingService guildLoggingService)
+    IVerificationService verificationService,
+    IMouseHuntRestClient mouseHuntRestClient,
+    IGuildLoggingService guildLoggingService) : IVerificationOrchestrator
 {
     public async Task<VerificationResult> ProcessVerificationAsync(VerificationType type, VerificationParameters parameters, CancellationToken cancellationToken = default)
         => type switch

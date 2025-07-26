@@ -4,12 +4,22 @@ using NetCord.Gateway;
 
 namespace BouncerBot.Modules.Achieve;
 
+public interface IAchievementRoleService
+{
+    Task AddRoleAsync(ulong userId, ulong guildId, Role role, CancellationToken cancellationToken = default);
+    Task<int> CountUsersInRole(ulong guildId, Role role);
+    Task<ulong?> GetRoleIdAsync(ulong guildId, Role role);
+    Task RemoveRoleAsync(ulong userId, ulong guildId, Role role, CancellationToken cancellationToken = default);
+}
+
 /// <summary>
 /// Provides services for managing achievement roles within a guild.
 /// </summary>
 /// <remarks>This service allows adding and removing roles for users based on achievements, retrieving role IDs
 /// for specific achievements, and counting users with a specific role.</remarks>
-public class AchievementRoleService(GatewayClient gatewayClient, BouncerBotDbContext dbContext)
+public class AchievementRoleService(
+    GatewayClient gatewayClient,
+    BouncerBotDbContext dbContext) : IAchievementRoleService
 {
     public async Task AddRoleAsync(ulong userId, ulong guildId, Role role, CancellationToken cancellationToken = default)
     {
@@ -71,7 +81,7 @@ public class AchievementRoleService(GatewayClient gatewayClient, BouncerBotDbCon
     {
         var roleId = await GetRoleIdAsync(guildId, role)
             ?? throw new InvalidOperationException($"The role for this achievement has not been configured yet. An admin needs to use `/config role`.");
-        
+
         return gatewayClient.Cache.Guilds[guildId]?.Users.Values
             .Count(u => u.RoleIds.Contains(roleId)) ?? 0;
     }

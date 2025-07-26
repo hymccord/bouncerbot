@@ -1,8 +1,14 @@
-
 using NetCord;
 using NetCord.Gateway;
 
 namespace BouncerBot.Modules.Achieve;
+
+public interface IAchievementRoleOrchestrator
+{
+    Task<bool> ProcessAchievementAsync(uint mhid, ulong userId, ulong guildId, AchievementRole achievement, CancellationToken cancellationToken = default);
+    Task<bool> ProcessAchievementSilentlyAsync(uint mhid, ulong userId, ulong guildId, AchievementRole achievement, CancellationToken cancellationToken = default);
+    Task ResetAchievementAsync(ulong guildId, AchievementRole achievement, Func<int, int, Task> progress, CancellationToken cancellationToken = default);
+}
 
 /// <summary>
 /// Orchestrates the processing and management of achievement roles within a guild.
@@ -12,10 +18,10 @@ namespace BouncerBot.Modules.Achieve;
 /// asynchronously and can handle operations such as processing individual achievements and resetting achievements for a
 /// guild.</remarks>
 public class AchievementRoleOrchestrator(
-    AchievementService achievementService,
-    AchievementRoleService achievementRoleService,
-    AchievementMessageService achievementMessageService,
-    GatewayClient gatewayClient)
+    IAchievementService achievementService,
+    IAchievementRoleService achievementRoleService,
+    IAchievementMessageService achievementMessageService,
+    GatewayClient gatewayClient) : IAchievementRoleOrchestrator
 {
     public async Task<bool> ProcessAchievementAsync(uint mhid, ulong userId, ulong guildId, AchievementRole achievement, CancellationToken cancellationToken = default)
     {
@@ -43,7 +49,7 @@ public class AchievementRoleOrchestrator(
         return false;
     }
 
-    internal async Task ResetAchievementsAsync(ulong guildId, AchievementRole achievement, Func<int, int, Task> progress, CancellationToken cancellationToken = default)
+    public async Task ResetAchievementAsync(ulong guildId, AchievementRole achievement, Func<int, int, Task> progress, CancellationToken cancellationToken = default)
     {
         var role = EnumUtils.ToRole(achievement);
         var roleId = await achievementRoleService.GetRoleIdAsync(guildId, role)

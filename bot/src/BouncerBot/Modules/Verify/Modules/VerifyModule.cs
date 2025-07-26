@@ -1,5 +1,4 @@
 using BouncerBot.Attributes;
-using BouncerBot.Modules.Achieve;
 
 using NetCord;
 using NetCord.Rest;
@@ -10,8 +9,7 @@ namespace BouncerBot.Modules.Verify.Modules;
 [SlashCommand("verify", "Manage MouseHunt ID verification")]
 [RequireGuildContext<ApplicationCommandContext>]
 public class VerifyModule(
-    VerificationService verificationService,
-    AchievementService achievementService) : ApplicationCommandModule<ApplicationCommandContext>
+    IVerificationService verificationService) : ApplicationCommandModule<ApplicationCommandContext>
 {
     // Only owner for now: testing
     [SubSlashCommand("user", "Manually verify a MouseHunt ID and Discord user")]

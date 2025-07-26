@@ -13,7 +13,7 @@ namespace BouncerBot.Modules.Claim.Modules;
 
 [RequireGuildContext<ApplicationCommandContext>]
 public class ClaimModule(
-    AchievementRoleOrchestrator achievementRoleOrchestrator,
+    IAchievementRoleOrchestrator achievementRoleOrchestrator,
     BouncerBotDbContext dbContext) : ApplicationCommandModule<ApplicationCommandContext>
 {
     private static readonly string[] s_rejectionPhrases = [

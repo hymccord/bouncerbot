@@ -11,11 +11,21 @@ using Microsoft.Extensions.Logging;
 using NetCord.Rest;
 
 namespace BouncerBot.Modules.Verify;
+
+public interface IVerificationService
+{
+    Task<VerificationAddResult> AddVerifiedUserAsync(uint mouseHuntId, ulong guildId, ulong discordId, CancellationToken cancellationToken = default);
+    Task<CanUserVerifyResult> CanUserVerifyAsync(uint mouseHuntId, ulong guildId, ulong discordId, CancellationToken cancellationToken = default);
+    Task<bool> IsDiscordUserVerifiedAsync(ulong guildId, ulong discordId, CancellationToken cancellationToken = default);
+    Task<VerificationRemoveResult> RemoveVerifiedUser(ulong guildId, ulong discordId, CancellationToken cancellationToken = default);
+    Task SetVerificationMessageAsync(SetVerificationMessageParameters parameters);
+}
+
 public class VerificationService(
     ILogger<VerificationService> logger,
     BouncerBotDbContext dbContext,
     RestClient restClient,
-    MouseHuntRestClient mouseHuntRestClient)
+    IMouseHuntRestClient mouseHuntRestClient) : IVerificationService
 {
     private Title[]? _cachedTitles;
 
@@ -36,7 +46,7 @@ public class VerificationService(
             var hash = VerificationHistory.HashMouseHuntId(mouseHuntId);
             var existingHistory = await dbContext.VerificationHistory
                 .FirstOrDefaultAsync(vh => vh.GuildId == guildId && vh.DiscordId == discordId, cancellationToken);
-            
+
             if (existingHistory is null)
             {
                 await dbContext.VerificationHistory.AddAsync(new VerificationHistory
@@ -51,7 +61,7 @@ public class VerificationService(
                 // Sanity check hash matches
                 if (existingHistory.MouseHuntIdHash != hash)
                 {
-                    logger.LogWarning("User {UserId} in guild {GuildId} has a different MouseHunt ID hash ({OldHash} vs {NewHash})", 
+                    logger.LogWarning("User {UserId} in guild {GuildId} has a different MouseHunt ID hash ({OldHash} vs {NewHash})",
                         discordId, guildId, existingHistory.MouseHuntIdHash, hash);
 
                     throw new InvalidOperationException($"User {discordId} in guild {guildId} has a different MouseHunt ID hash ({existingHistory.MouseHuntIdHash} vs {hash})");
@@ -85,9 +95,9 @@ public class VerificationService(
     public async Task<CanUserVerifyResult> CanUserVerifyAsync(uint mouseHuntId, ulong guildId, ulong discordId, CancellationToken cancellationToken = default)
     {
         // Check verification restrictions in priority order
-        
+
         // TODO: Check if the MouseHunt ID is banned
-        
+
         var existingUserCheck = await CheckIfMouseHuntIdInUseAsync(mouseHuntId, guildId, cancellationToken);
         if (!existingUserCheck.CanVerify)
             return existingUserCheck;
@@ -111,7 +121,7 @@ public class VerificationService(
     {
         var existingUser = await dbContext.VerifiedUsers
             .FirstOrDefaultAsync(vu => vu.MouseHuntId == mouseHuntId && vu.GuildId == guildId, cancellationToken);
-        
+
         if (existingUser is not null)
         {
             return new CanUserVerifyResult

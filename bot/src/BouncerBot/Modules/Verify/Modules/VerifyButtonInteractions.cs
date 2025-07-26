@@ -6,8 +6,10 @@ using NetCord.Services.ComponentInteractions;
 
 namespace BouncerBot.Modules.Verify.Modules;
 
-public class VerifyButtonInteractions(ILogger<VerifyButtonInteractions> logger,
-    VerificationOrchestrator verificationOrchestrator) : ComponentInteractionModule<ButtonInteractionContext>
+public class VerifyButtonInteractions(
+    ILogger<VerifyButtonInteractions> logger,
+    IVerificationOrchestrator verificationOrchestrator)
+    : ComponentInteractionModule<ButtonInteractionContext>
 {
     [ComponentInteraction("verify user confirm")]
     public async Task VerifyUser(uint mouseHuntId, ulong discordId)

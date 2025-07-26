@@ -30,17 +30,18 @@ builder.Services
     .AddTransient<IGuildLoggingService, GuildLoggingService>()
     .AddTransient<IGuildUserRoleMonitorService, GuildUserRoleMonitor>()
     .AddTransient<IRandomPhraseGenerator, RandomPhraseGenerator>()
-    .AddTransient<AchievementMessageService>()
-    .AddTransient<AchievementRoleService>()
-    .AddTransient<AchievementRoleOrchestrator>()
-    .AddTransient<AchievementService>()
-    .AddTransient<ConfigService>()
-    .AddTransient<VerificationOrchestrator>()
-    .AddTransient<VerificationService>()
+    .AddTransient<IAchievementMessageService, AchievementMessageService>()
+    .AddTransient<IAchievementRoleService, AchievementRoleService>()
+    .AddTransient<IAchievementRoleOrchestrator, AchievementRoleOrchestrator>()
+    .AddTransient<IAchievementService, AchievementService>()
+    .AddTransient<IConfigService, ConfigService>()
+    .AddTransient<IVerificationOrchestrator, VerificationOrchestrator>()
+    .AddTransient<IVerificationService, VerificationService>()
     .AddMouseHuntClient()
     ;
 
 builder.Services
+    .AddTransient<IMouseRipService, MouseRipService>()
     .AddHttpClient<MouseRipService>((sp, httpClient) =>
     {
         httpClient.BaseAddress = new Uri("https://api.mouse.rip/");

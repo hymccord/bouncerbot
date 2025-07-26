@@ -4,7 +4,9 @@ using NetCord.Services.ComponentInteractions;
 
 namespace BouncerBot.Modules.Achieve.Modules;
 
-public class AchieveButtonInteractions(AchievementRoleOrchestrator achievementRoleOrchestrator) : ComponentInteractionModule<ButtonInteractionContext>
+public class AchieveButtonInteractions(
+    IAchievementRoleOrchestrator achievementRoleOrchestrator)
+    : ComponentInteractionModule<ButtonInteractionContext>
 {
     [ComponentInteraction("achieve verify share")]
     public async Task ShareAchievementAsync(string content)
@@ -30,7 +32,7 @@ public class AchieveButtonInteractions(AchievementRoleOrchestrator achievementRo
 
         try
         {
-            await achievementRoleOrchestrator.ResetAchievementsAsync(Context.Guild!.Id, achievement, async (current, total) =>
+            await achievementRoleOrchestrator.ResetAchievementAsync(Context.Guild!.Id, achievement, async (current, total) =>
             {
                 await ModifyResponseAsync(m =>
                     m.Content = $"""

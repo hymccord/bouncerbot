@@ -2,7 +2,13 @@ using System.Net.Http.Json;
 using System.Text.Json;
 
 namespace BouncerBot.Services;
-public class MouseRipService(HttpClient httpClient)
+
+public interface IMouseRipService
+{
+    Task<MouseRipMouse[]?> GetAllMiceAsync();
+}
+
+public class MouseRipService(HttpClient httpClient) : IMouseRipService
 {
     private static readonly JsonSerializerOptions s_jsonSerializerOptions = new JsonSerializerOptions
     {

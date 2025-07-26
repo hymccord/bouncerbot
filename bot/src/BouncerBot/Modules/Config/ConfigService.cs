@@ -4,7 +4,19 @@ using BouncerBot.Db.Models;
 
 namespace BouncerBot.Modules.Config;
 
-public class ConfigService(BouncerBotDbContext dbContext)
+public interface IConfigService
+{
+    Task<ulong?> GetChannelSettingAsync(ulong guildId, LogChannel channel);
+    Task<(LogSetting? LogSettings, RoleSetting? RoleSettings, AchievementMessage? AchievementMessages, VerifySetting? VerifySettings)> GetGuildConfigAsync(ulong guildId);
+    Task<string?> GetMessageSettingAsync(ulong guildId, AchievementRole role);
+    Task<ulong?> GetRoleSettingAsync(ulong guildId, Role role);
+    Task SetLogChannelSettingAsync(ulong guildId, LogChannel channel, ulong? channelId);
+    Task SetMessageSettingAsync(ulong guildId, AchievementRole role, string message);
+    Task SetRoleSettingAsync(ulong guildId, Role role, ulong roleId);
+    Task SetVerifyRankAsync(ulong id, Rank minRank);
+}
+
+public class ConfigService(BouncerBotDbContext dbContext) : IConfigService
 {
     public async Task<ulong?> GetChannelSettingAsync(ulong guildId, LogChannel channel)
     {

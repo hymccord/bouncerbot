@@ -20,7 +20,7 @@ public class GuildUserRemoveGatewayHandler(IServiceScopeFactory serviceScopeFact
     {
         using (var scope = serviceScopeFactory.CreateScope())
         {
-            var verificationOrchestrator = scope.ServiceProvider.GetRequiredService<VerificationOrchestrator>();
+            var verificationOrchestrator = scope.ServiceProvider.GetRequiredService<IVerificationOrchestrator>();
 
             await verificationOrchestrator.ProcessVerificationAsync(VerificationType.Remove, new VerificationParameters()
             {

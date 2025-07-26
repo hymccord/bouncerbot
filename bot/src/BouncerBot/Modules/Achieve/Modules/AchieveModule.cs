@@ -11,8 +11,8 @@ namespace BouncerBot.Modules.Achieve.Modules;
 [SlashCommand("achieve", "Commands related to role achievements.")]
 [RequireGuildContext<ApplicationCommandContext>]
 public class AchieveModule(
-    AchievementService achievementService,
-    AchievementRoleService achievementRoleService) : ApplicationCommandModule<ApplicationCommandContext>
+    IAchievementService achievementService,
+    IAchievementRoleService achievementRoleService) : ApplicationCommandModule<ApplicationCommandContext>
 {
     [SubSlashCommand("verify", "Check if a Hunter ID qualifies for an achievement.")]
     [RequireManageRoles<ApplicationCommandContext>]

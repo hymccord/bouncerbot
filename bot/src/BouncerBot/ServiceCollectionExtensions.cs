@@ -15,7 +15,7 @@ public static class ServiceCollectionExtensions
             .AddOptions<MouseHuntRestClientOptions>()
             .BindConfiguration("MouseHunt");
 
-        services.AddSingleton<MouseHuntRestClient>();
+        services.AddSingleton<IMouseHuntRestClient, MouseHuntRestClient>();
 
         services.AddHostedService<MouseHuntRestClientHostedService>();
 

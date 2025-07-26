@@ -15,7 +15,8 @@ namespace BouncerBot.Modules.Variables.Modules;
 [SlashCommand("config", "Manage bot configuration")]
 [RequireUserPermissions<ApplicationCommandContext>(Permissions.ManageGuild)]
 [RequireGuildContext<ApplicationCommandContext>]
-public class ConfigModule(ConfigService configService) : ApplicationCommandModule<ApplicationCommandContext>
+public class ConfigModule(IConfigService configService)
+    : ApplicationCommandModule<ApplicationCommandContext>
 {
 
     [SubSlashCommand("log", "Set channel where specified events go. Leave empty to clear channel.")]

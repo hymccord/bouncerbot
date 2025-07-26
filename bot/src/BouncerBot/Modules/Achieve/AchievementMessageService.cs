@@ -5,7 +5,14 @@ using Scriban;
 
 namespace BouncerBot.Modules.Achieve;
 
-public class AchievementMessageService(BouncerBotDbContext dbContext, IGuildLoggingService guildLoggingService)
+public interface IAchievementMessageService
+{
+    Task SendAchievementMessageAsync(ulong userId, ulong guildId, AchievementRole achievement, CancellationToken cancellationToken = default);
+}
+
+public class AchievementMessageService(
+    BouncerBotDbContext dbContext,
+    IGuildLoggingService guildLoggingService) : IAchievementMessageService
 {
     public async Task SendAchievementMessageAsync(ulong userId, ulong guildId, AchievementRole achievement, CancellationToken cancellationToken = default)
     {

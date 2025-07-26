@@ -2,7 +2,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace BouncerBot.Rest;
 
-internal class MouseHuntRestClientHostedService(MouseHuntRestClient client) : IHostedService
+internal class MouseHuntRestClientHostedService(IMouseHuntRestClient client) : IHostedService
 {
     public async Task StartAsync(CancellationToken cancellationToken)
     {

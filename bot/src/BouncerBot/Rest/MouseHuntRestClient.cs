@@ -10,7 +10,24 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace BouncerBot.Rest;
-public partial class MouseHuntRestClient
+
+public interface IMouseHuntRestClient
+{
+    Task<Corkboard> GetCorkboardAsync(uint mhId, CancellationToken cancellationToken = default);
+    Task<User> GetMeAsync(CancellationToken cancellationToken = default);
+    Task<Title[]> GetTitlesAsync(CancellationToken cancellationToken = default);
+    Task<UserItemCategoryCompletion> GetUserLocationStatsAsync(uint mhId, CancellationToken cancellationToken = default);
+    Task<UserMouseStatistics> GetUserMiceAsync(uint mhId, CancellationToken cancellationToken = default);
+    Task<UserItemCategoryCompletion> GetUserProfileItems(uint mhId, CancellationToken cancellationToken = default);
+    Task<UserSnuIdInfo> GetUserSnuIdAsync(uint mhId, CancellationToken cancellationToken = default);
+    Task<UserTitle> GetUserTitleAsync(uint mhId, CancellationToken cancellationToken = default);
+    Task<bool> IsEggMaster(uint mhId, CancellationToken cancellationToken = default);
+    Task<LoginDetails> LoginAsync(string username, string password, CancellationToken cancellationToken = default);
+    Task StartAsync(CancellationToken cancellationToken);
+    Task StopAsync(CancellationToken cancellationToken);
+}
+
+public partial class MouseHuntRestClient : IMouseHuntRestClient
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
     {
@@ -37,7 +54,7 @@ public partial class MouseHuntRestClient
         _dbContextFactory = dbContextFactory;
     }
 
-    internal async Task StartAsync(CancellationToken cancellationToken)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
         await TryLoadSessionToken(cancellationToken);
 
@@ -60,7 +77,7 @@ public partial class MouseHuntRestClient
         await SaveSessionToken(token, cancellationToken);
     }
 
-    internal async Task StopAsync(CancellationToken cancellationToken)
+    public async Task StopAsync(CancellationToken cancellationToken)
     {
 
     }
