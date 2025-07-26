@@ -35,12 +35,7 @@ public class VerificationOrchestrator(
 
             if (result.WasAdded)
             {
-                var message = await guildLoggingService.LogAsync(parameters.GuildId, LogType.Verification, new()
-                {
-                    Content = $"<@{parameters.DiscordUserId}> self-verified as hunter {result.MouseHuntId} <https://p.mshnt.ca/{result.MouseHuntId}>",
-                    AllowedMentions = AllowedMentionsProperties.None,
-                }, cancellationToken);
-
+                var message = await LogVerificationAsync(parameters, result.MouseHuntId, cancellationToken);
                 if (message is not null)
                 {
                     await verificationService.SetVerificationMessageAsync(new()
@@ -65,7 +60,7 @@ public class VerificationOrchestrator(
             await guildLoggingService.LogAsync(parameters.GuildId, LogType.General, new()
             {
                 Content = $"""
-                <@{parameters.DiscordUserId}> attempted to use `/verify me` on a profile that isn't theirs.
+                <@{parameters.DiscordUserId}> attempted to use `/link` on a profile that isn't theirs.
                 Profile SnuId: {snuid.SnUserId}, Corkboard Author SnuId: {latestMessage?.SnUserId}",
                 """,
                 AllowedMentions = AllowedMentionsProperties.None,
@@ -76,7 +71,7 @@ public class VerificationOrchestrator(
         {
             Success = false,
             Message = $"""
-                Verification failed! Please ensure that you have the correct phrase on your corkboard.
+                Linking failed! Please ensure that you have the correct phrase on your corkboard.
                 The latest message on your corkboard is:
                 ```
                 {latestMessage?.Body ?? "No messages found."}
@@ -93,12 +88,7 @@ public class VerificationOrchestrator(
 
             if (result.WasAdded)
             {
-                var message = await guildLoggingService.LogAsync(parameters.GuildId, LogType.Verification, new()
-                {
-                    Content = $"<@{parameters.DiscordUserId}> was manually verified as hunter {result.MouseHuntId} <https://p.mshnt.ca/{result.MouseHuntId}>",
-                    AllowedMentions = AllowedMentionsProperties.None,
-                }, cancellationToken);
-
+                var message = await LogVerificationAsync(parameters, result.MouseHuntId, cancellationToken);
                 if (message is not null)
                 {
                     await verificationService.SetVerificationMessageAsync(new()
@@ -149,6 +139,14 @@ public class VerificationOrchestrator(
         }
     }
 
+    private async Task<RestMessage?> LogVerificationAsync(VerificationParameters parameters, uint hunterId, CancellationToken cancellationToken = default)
+    {
+        return await guildLoggingService.LogAsync(parameters.GuildId, LogType.Verification, new()
+        {
+            Content = $"<@{parameters.DiscordUserId}> {parameters.DiscordUserId} is hunter {hunterId} <https://p.mshnt.ca/{hunterId}>",
+            AllowedMentions = AllowedMentionsProperties.None,
+        }, cancellationToken);
+    }
 }
 
 public readonly record struct VerificationParameters

@@ -9,6 +9,7 @@ public class BouncerBotDbContext(DbContextOptions<BouncerBotDbContext> options) 
     public DbSet<LogSetting> LogSettings { get; set; } = null!;
     public DbSet<RoleSetting> RoleSettings { get; set; } = null!;
     public DbSet<Snuid> SnuidCache { get; set; } = null!;
+    public DbSet<VerificationHistory> VerificationHistory { get; set; } = null!;
     public DbSet<VerifyMessage> VerifyMessages { get; set; } = null!;
     public DbSet<VerifySetting> VerifySettings { get; set; } = null!;
     public DbSet<VerifiedUser> VerifiedUsers { get; set; } = null!;
@@ -65,6 +66,14 @@ public class BouncerBotDbContext(DbContextOptions<BouncerBotDbContext> options) 
         modelBuilder.Entity<VerifyMessage>(vm =>
         {
             vm.HasKey(v => v.Id);
+        });
+
+        modelBuilder.Entity<VerificationHistory>(vh =>
+        {
+            vh.HasKey(v => new { v.GuildId, v.DiscordId });
+            vh.Property(v => v.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .ValueGeneratedOnAdd();
         });
     }
 }

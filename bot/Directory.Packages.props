@@ -11,7 +11,7 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.6" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.6" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="9.0.6" />
-    <PackageVersion Include="NetCord.Hosting.Services" Version="1.0.0-alpha.390" />
+    <PackageVersion Include="NetCord.Hosting.Services" Version="1.0.0-alpha.405" />
     <PackageVersion Include="Scriban" Version="6.2.1" />
   </ItemGroup>
 </Project>
