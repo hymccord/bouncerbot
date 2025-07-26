@@ -42,18 +42,23 @@ public class LinkModule(
 
             return;
         }
-        var phrase = randomPhraseGenerator.Generate();
+        var phrase = $"BouncerBot Discord Link: {randomPhraseGenerator.Generate()}";
         await ModifyResponseAsync(x =>
         {
             x.Content = $"""
             This process will associate your current Discord account with your MouseHunt profile.
 
-            Only **ONE (1)** Discord account can be associated with **ONE (1)** MouseHunt account.
+            Only **ONE (1)** Discord account can be associated with **ONE (1)** Hunter ID per server.
+            You can use `/unlink` to undo this at any time, but you will need to go through this process again to re-link your account.
+            If you wish to use a different Hunter ID than one previously linked, you will have to contact the moderators.
+
+            The moderators of this server will be able to access the linked user information at any time for moderation purposes.
+            View the privacy policy with the `/privacy` command.
 
             These are the details I have for you:
             Discord: <@{Context.User.Id}> <-> MHID: {hunterId}
 
-            If this is correct, place the **entire** of the following phrase on your MouseHunt profile corkboard (everything in code block):
+            If this is correct and you agree with the above terms, place the **entire** of the following phrase on your MouseHunt profile corkboard (everything in code block):
             ```
             {phrase}
             ```

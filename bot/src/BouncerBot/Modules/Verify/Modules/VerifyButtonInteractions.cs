@@ -43,10 +43,8 @@ public class VerifyButtonInteractions(ILogger<VerifyButtonInteractions> logger,
 
         var result = await verificationOrchestrator.ProcessVerificationAsync(VerificationType.Remove, new VerificationParameters
         {
-            MouseHuntId = 0, // Not needed for removal
             DiscordUserId = discordId,
             GuildId = Context.Guild!.Id,
-            Phrase = string.Empty, // No phrase needed for removal
         });
 
         await ModifyResponseAsync(x =>

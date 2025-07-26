@@ -16,9 +16,6 @@ public class GuildUserUpdateGatewayHandler(ILogger<GuildUserUpdateGatewayHandler
         // Since this class is a singleton, we need to create a scope for possible transient services
         using (var scope = scopeFactory.CreateScope())
         {
-            // We can use scoped services here if needed
-            logger.LogDebug("Handling guild user update");
-
             // If we can get the user role cache, we can fire role added or role removed
 
             if (client.Cache.Guilds.TryGetValue(guildUser.GuildId, out Guild? guild)

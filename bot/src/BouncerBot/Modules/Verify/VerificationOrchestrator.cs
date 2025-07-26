@@ -153,10 +153,10 @@ public class VerificationOrchestrator(
 
 public readonly record struct VerificationParameters
 {
-    public required uint MouseHuntId { get; init; }
+    public uint MouseHuntId { get; init; }
     public required ulong DiscordUserId { get; init; }
     public required ulong GuildId { get; init; }
-    public required string Phrase { get; init; }
+    public string? Phrase { get; init; }
 }
 
 public enum VerificationType
