@@ -1,3 +1,5 @@
+using BouncerBot.Services;
+
 using NetCord;
 using NetCord.Gateway;
 
@@ -21,7 +23,7 @@ public class AchievementRoleOrchestrator(
     IAchievementService achievementService,
     IAchievementRoleService achievementRoleService,
     IAchievementMessageService achievementMessageService,
-    GatewayClient gatewayClient) : IAchievementRoleOrchestrator
+    IDiscordGatewayClient gatewayClient) : IAchievementRoleOrchestrator
 {
     public async Task<bool> ProcessAchievementAsync(uint mhid, ulong userId, ulong guildId, AchievementRole achievement, CancellationToken cancellationToken = default)
     {

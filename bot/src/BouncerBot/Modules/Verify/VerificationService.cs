@@ -2,6 +2,7 @@ using BouncerBot.Db;
 using BouncerBot.Db.Models;
 using BouncerBot.Rest;
 using BouncerBot.Rest.Models;
+using BouncerBot.Services;
 
 using Humanizer;
 
@@ -24,7 +25,7 @@ public interface IVerificationService
 public class VerificationService(
     ILogger<VerificationService> logger,
     BouncerBotDbContext dbContext,
-    RestClient restClient,
+    IDiscordRestClient restClient,
     IMouseHuntRestClient mouseHuntRestClient) : IVerificationService
 {
     private Title[]? _cachedTitles;
@@ -242,7 +243,11 @@ public class VerificationService(
 
         if (existingUser is null)
         {
-            logger.LogWarning("Attempted to set verification message for user {UserId} in guild {GuildId}, but they are not verified.", parameters.DiscordUserId, parameters.GuildId);
+            logger.LogWarning("Attempted to set verification message {MessageId} in channel {ChannelId} for user {UserId} in guild {GuildId}, but they are not verified.",
+                parameters.MessageId,
+                parameters.ChannelId,
+                parameters.DiscordUserId,
+                parameters.GuildId);
             return;
         }
 
@@ -256,28 +261,15 @@ public class VerificationService(
     }
 }
 
-public readonly record struct SetVerificationMessageParameters
-{
-    public ulong GuildId { get; init; }
-    public ulong DiscordUserId { get; init; }
-    public ulong ChannelId { get; init; }
-    public ulong MessageId { get; init; }
-}
+public readonly record struct SetVerificationMessageParameters(
+    ulong GuildId,
+    ulong DiscordUserId,
+    ulong ChannelId,
+    ulong MessageId
+);
 
-public readonly record struct CanUserVerifyResult
-{
-    public bool CanVerify { get; init; }
-    public required string Message { get; init; }
-}
+public readonly record struct CanUserVerifyResult(bool CanVerify, string Message);
 
-public readonly record struct VerificationAddResult
-{
-    public bool WasAdded { get; init; }
-    public uint MouseHuntId { get; init; }
-}
+public readonly record struct VerificationAddResult(bool WasAdded, uint MouseHuntId);
 
-public readonly record struct VerificationRemoveResult
-{
-    public bool WasRemoved { get; init; }
-    public uint? MouseHuntId { get; init; }
-}
+public readonly record struct VerificationRemoveResult(bool WasRemoved, uint? MouseHuntId);

@@ -22,7 +22,10 @@ public enum LogType
     EggMaster
 }
 
-internal class GuildLoggingService(ILogger<GuildLoggingService> logger, IDbContextFactory<BouncerBotDbContext> dbContextFactory, GatewayClient gatewayClient) : IGuildLoggingService
+internal class GuildLoggingService(
+    ILogger<GuildLoggingService> logger,
+    IDbContextFactory<BouncerBotDbContext> dbContextFactory,
+    IDiscordGatewayClient gatewayClient) : IGuildLoggingService
 {
     public async Task<RestMessage?> LogAsync(ulong guildId, LogType logType, MessageProperties message, CancellationToken cancellationToken = default)
     {

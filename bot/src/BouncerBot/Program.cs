@@ -37,6 +37,8 @@ builder.Services
     .AddTransient<IConfigService, ConfigService>()
     .AddTransient<IVerificationOrchestrator, VerificationOrchestrator>()
     .AddTransient<IVerificationService, VerificationService>()
+    .AddSingleton<IDiscordRestClient, DiscordRestClient>()
+    .AddSingleton<IDiscordGatewayClient, DiscordGatewayClient>()
     .AddMouseHuntClient()
     ;
 
