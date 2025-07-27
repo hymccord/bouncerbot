@@ -2,7 +2,6 @@ using BouncerBot.Db;
 using BouncerBot.Db.Models;
 using BouncerBot.Rest;
 using BouncerBot.Rest.Models;
-using BouncerBot.Services;
 
 using Humanizer;
 

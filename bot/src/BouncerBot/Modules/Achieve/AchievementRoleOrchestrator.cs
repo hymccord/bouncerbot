@@ -1,5 +1,3 @@
-using BouncerBot.Services;
-
 using NetCord;
 using NetCord.Gateway;
 

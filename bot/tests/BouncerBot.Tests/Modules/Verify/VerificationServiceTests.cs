@@ -3,7 +3,6 @@ using BouncerBot.Db.Models;
 using BouncerBot.Modules.Verify;
 using BouncerBot.Rest;
 using BouncerBot.Rest.Models;
-using BouncerBot.Services;
 
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;

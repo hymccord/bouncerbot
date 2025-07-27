@@ -1,13 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NetCord;
 using NetCord.Gateway;
 using NetCord.Rest;
 
-namespace BouncerBot.Services;
+namespace BouncerBot;
 
 public interface IDiscordGatewayClient
 {
