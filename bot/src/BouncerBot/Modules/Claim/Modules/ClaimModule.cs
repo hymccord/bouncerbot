@@ -40,7 +40,7 @@ public class ClaimModule(
     public async Task ClaimAsync(AchievementRole achievement,
         [SlashCommandParameter(Description = "Publicly share your achievement?")]bool? share = true)
     {
-        await RespondAsync(InteractionCallback.DeferredMessage(MessageFlags.Ephemeral));
+        await RespondAsync(InteractionCallback.DeferredEphemeralMessage());
 
         var mhId = (await dbContext.VerifiedUsers
             .FirstOrDefaultAsync(vu => vu.DiscordId == Context.User.Id && vu.GuildId == Context.Guild!.Id))?.MouseHuntId;

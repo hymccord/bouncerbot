@@ -27,8 +27,8 @@ public class VerifyModule(
                 """,
 
             Components =
-            [
-                new ActionRowProperties()
+        [
+            new ActionRowProperties()
                     .AddButtons(new ButtonProperties($"verify user confirm:{hunterId}:{user.Id}", "Confirm", ButtonStyle.Success))
                     .AddButtons(new ButtonProperties("verify user cancel", "Cancel", ButtonStyle.Danger))
             ],
@@ -43,7 +43,7 @@ public class VerifyModule(
         [SlashCommandParameter(Description = "A verified Discord user")] User user
         )
     {
-        await RespondAsync(InteractionCallback.DeferredMessage(MessageFlags.Ephemeral));
+        await RespondAsync(InteractionCallback.DeferredEphemeralMessage());
 
         if (!await verificationService.IsDiscordUserVerifiedAsync(Context.Guild!.Id, Context.User.Id))
         {

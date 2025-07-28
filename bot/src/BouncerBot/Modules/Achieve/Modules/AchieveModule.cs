@@ -18,7 +18,7 @@ public class AchieveModule(
     [RequireManageRoles<ApplicationCommandContext>]
     public async Task VerifyAsync(uint hunterID, AchievementRole achievement)
     {
-        await RespondAsync(InteractionCallback.DeferredMessage(MessageFlags.Ephemeral));
+        await RespondAsync(InteractionCallback.DeferredEphemeralMessage());
 
         bool hasAchievement = await achievementService.HasAchievementAsync(hunterID, achievement);
 

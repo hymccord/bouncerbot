@@ -16,7 +16,7 @@ public class LinkModule(
     public async Task LinkAsync(
         uint hunterId)
     {
-        await RespondAsync(InteractionCallback.DeferredMessage(MessageFlags.Ephemeral));
+        await RespondAsync(InteractionCallback.DeferredEphemeralMessage());
 
         var canVerifyResult = await verificationService.CanUserVerifyAsync(hunterId, Context.Guild!.Id, Context.User.Id);
         if (!canVerifyResult.CanVerify)
@@ -79,7 +79,7 @@ public class LinkModule(
     [RequireVerificationStatus<ApplicationCommandContext>(VerificationStatus.Verified)]
     public async Task UnlinkAsync()
     {
-        await RespondAsync(InteractionCallback.DeferredMessage(MessageFlags.Ephemeral));
+        await RespondAsync(InteractionCallback.DeferredEphemeralMessage());
         // This check is a sanity check, the precondition should ensure this is not called if the user is already verified.
         if (await verificationService.IsDiscordUserVerifiedAsync(Context.Guild!.Id, Context.User.Id))
         {
