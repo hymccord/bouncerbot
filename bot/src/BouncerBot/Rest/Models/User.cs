@@ -5,4 +5,6 @@ public class User
 {
     [JsonPropertyName("uh")]
     public string UniqueHash { get; set; } = string.Empty;
+
+    public bool HasPuzzle { get; set; }
 }

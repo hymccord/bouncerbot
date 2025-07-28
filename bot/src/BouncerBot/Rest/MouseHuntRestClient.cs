@@ -121,6 +121,11 @@ public partial class MouseHuntRestClient : IMouseHuntRestClient
                     continue;
                 }
 
+                if (hgResponse.User.HasPuzzle || true)
+                {
+                    throw new PuzzleException($"Puzzle encounted for endpoint {route}");
+                }
+
                 return data.Deserialize<T>(_jsonSerializerOptions);
             }
 

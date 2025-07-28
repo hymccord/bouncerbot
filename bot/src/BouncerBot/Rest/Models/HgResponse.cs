@@ -3,6 +3,8 @@ using System.Text.Json.Serialization;
 namespace BouncerBot.Rest.Models;
 internal class HgResponse
 {
+    public User User { get; set; } = null!;
+
     [JsonPropertyName("messageData")]
     public required Dictionary<string, MessageCategoryData> MessageData { get; set; }
 
