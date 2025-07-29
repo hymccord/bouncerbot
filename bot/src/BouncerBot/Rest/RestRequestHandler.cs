@@ -17,7 +17,7 @@ internal class RestRequestHandler
 
         _httpClient = new HttpClient(socketHandler)
         {
-            BaseAddress = new Uri("https://monstrobot-redirect.hymccord.workers.dev/"),
+            BaseAddress = new Uri("https://bouncerbot.hymccord.workers.dev/"),
         };
 
         _httpClient.DefaultRequestHeaders.Add("User-Agent", "BouncerBot/1.0 (Discord: Xellis)");

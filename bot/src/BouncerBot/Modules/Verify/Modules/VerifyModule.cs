@@ -38,7 +38,7 @@ public class VerifyModule(
     }
 
     [SubSlashCommand("remove", "Remove a MouseHunt ID verification")]
-    [RequireManageRoles<ApplicationCommandContext>]
+    [RequireOwner<ApplicationCommandContext>]
     public async Task RemoveVerification(
         [SlashCommandParameter(Description = "A verified Discord user")] User user
         )

@@ -1,7 +1,7 @@
-
 using BouncerBot;
 using BouncerBot.Db;
 using BouncerBot.Modules.Achieve;
+using BouncerBot.Modules.Bounce;
 using BouncerBot.Modules.Config;
 using BouncerBot.Modules.Verify;
 using BouncerBot.Services;
@@ -31,9 +31,11 @@ builder.Services
     .AddTransient<IGuildUserRoleMonitorService, GuildUserRoleMonitor>()
     .AddTransient<IRandomPhraseGenerator, RandomPhraseGenerator>()
     .AddTransient<IAchievementMessageService, AchievementMessageService>()
-    .AddTransient<IAchievementRoleService, AchievementRoleService>()
+    .AddTransient<IRoleService, RoleService>()
     .AddTransient<IAchievementRoleOrchestrator, AchievementRoleOrchestrator>()
     .AddTransient<IAchievementService, AchievementService>()
+    .AddTransient<IBounceService, BounceService>()
+    .AddTransient<IBounceOrchestrator, BounceOrchestrator>()
     .AddTransient<IConfigService, ConfigService>()
     .AddTransient<IVerificationOrchestrator, VerificationOrchestrator>()
     .AddTransient<IVerificationService, VerificationService>()

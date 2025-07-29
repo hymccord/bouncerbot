@@ -1,10 +1,8 @@
 using BouncerBot.Db;
 
-using NetCord.Gateway;
-
 namespace BouncerBot.Modules.Achieve;
 
-public interface IAchievementRoleService
+public interface IRoleService
 {
     Task AddRoleAsync(ulong userId, ulong guildId, Role role, CancellationToken cancellationToken = default);
     Task<int> CountUsersInRole(ulong guildId, Role role);
@@ -17,9 +15,9 @@ public interface IAchievementRoleService
 /// </summary>
 /// <remarks>This service allows adding and removing roles for users based on achievements, retrieving role IDs
 /// for specific achievements, and counting users with a specific role.</remarks>
-public class AchievementRoleService(
+public class RoleService(
     IDiscordGatewayClient gatewayClient,
-    BouncerBotDbContext dbContext) : IAchievementRoleService
+    BouncerBotDbContext dbContext) : IRoleService
 {
     public async Task AddRoleAsync(ulong userId, ulong guildId, Role role, CancellationToken cancellationToken = default)
     {

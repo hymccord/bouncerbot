@@ -1,5 +1,6 @@
 using BouncerBot.Db;
 using BouncerBot.Db.Models;
+using BouncerBot.Modules.Bounce;
 using BouncerBot.Rest;
 using BouncerBot.Rest.Models;
 
@@ -25,7 +26,8 @@ public class VerificationService(
     ILogger<VerificationService> logger,
     BouncerBotDbContext dbContext,
     IDiscordRestClient restClient,
-    IMouseHuntRestClient mouseHuntRestClient) : IVerificationService
+    IMouseHuntRestClient mouseHuntRestClient,
+    IBounceService bounceService) : IVerificationService
 {
     private Title[]? _cachedTitles;
 
@@ -96,7 +98,10 @@ public class VerificationService(
     {
         // Check verification restrictions in priority order
 
-        // TODO: Check if the MouseHunt ID is banned
+        // Check if the MouseHunt ID is banned
+        var banCheck = await CheckIfMouseHuntIdBannedAsync(mouseHuntId, guildId, cancellationToken);
+        if (!banCheck.CanVerify)
+            return banCheck;
 
         var existingUserCheck = await CheckIfMouseHuntIdInUseAsync(mouseHuntId, guildId, cancellationToken);
         if (!existingUserCheck.CanVerify)
@@ -115,6 +120,25 @@ public class VerificationService(
             CanVerify = true,
             Message = "",
         };
+    }
+
+    private async Task<CanUserVerifyResult> CheckIfMouseHuntIdBannedAsync(uint mouseHuntId, ulong guildId, CancellationToken cancellationToken)
+    {
+        var bannedHunter = await bounceService.GetBannedHunterAsync(mouseHuntId, guildId);
+        if (bannedHunter != null)
+        {
+            return new CanUserVerifyResult
+            {
+                CanVerify = false,
+                Message = """
+                This MouseHunt ID is banned from linking accounts in this server.
+
+                If you believe this is an error, please contact the moderators.
+                """
+            };
+        }
+
+        return new CanUserVerifyResult { CanVerify = true, Message = "" };
     }
 
     private async Task<CanUserVerifyResult> CheckIfMouseHuntIdInUseAsync(uint mouseHuntId, ulong guildId, CancellationToken cancellationToken)

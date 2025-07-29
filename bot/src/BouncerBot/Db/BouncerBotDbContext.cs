@@ -6,6 +6,7 @@ namespace BouncerBot.Db;
 public class BouncerBotDbContext(DbContextOptions<BouncerBotDbContext> options) : DbContext(options)
 {
     public DbSet<AchievementMessage> AchievementMessages { get; set; } = null!;
+    public DbSet<BannedHunter> BannedHunters { get; set; } = null!;
     public DbSet<LogSetting> LogSettings { get; set; } = null!;
     public DbSet<RoleSetting> RoleSettings { get; set; } = null!;
     public DbSet<Snuid> SnuidCache { get; set; } = null!;
@@ -19,6 +20,14 @@ public class BouncerBotDbContext(DbContextOptions<BouncerBotDbContext> options) 
         modelBuilder.Entity<AchievementMessage>(am =>
         {
             am.HasKey(am => am.GuildId);
+        });
+
+        modelBuilder.Entity<BannedHunter>(bh =>
+        {
+            bh.HasKey(bh => new { bh.MouseHuntId, bh.GuildId });
+            bh.Property(bh => bh.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .ValueGeneratedOnAdd();
         });
 
         modelBuilder.Entity<LogSetting>(ls =>

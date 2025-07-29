@@ -19,7 +19,7 @@ public interface IAchievementRoleOrchestrator
 /// guild.</remarks>
 public class AchievementRoleOrchestrator(
     IAchievementService achievementService,
-    IAchievementRoleService achievementRoleService,
+    IRoleService achievementRoleService,
     IAchievementMessageService achievementMessageService,
     IDiscordGatewayClient gatewayClient) : IAchievementRoleOrchestrator
 {

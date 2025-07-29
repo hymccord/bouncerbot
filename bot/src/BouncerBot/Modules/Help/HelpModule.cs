@@ -39,7 +39,11 @@ public class HelpModule : ApplicationCommandModule<ApplicationCommandContext>
                     Description = """
                     - `/achieve verify <hunterId> <achievement>`: Check if a Hunter ID qualifies for an achievement.
                     - `/achieve reset <achievement>`: Remove achievement role from all users (and grants Achiever role).
-                    - `/verify remove <user>`: Remove verification for a Discord user.
+                    - `/bounce add <hunterId> [note]`: Ban a MouseHunt ID from using `/link`.
+                    - `/bounce remove <hunterId>`: Remove a MouseHunt ID from the ban list.
+                    - `/bounce list`: View all banned MouseHunt IDs.
+                    - `/bounce check <hunterId>`: Check if a MouseHunt ID is banned.
+                    - `/bounce note <hunterId> [note]`: Update the note for a banned MouseHunt ID.
                     """,
                 });
             }

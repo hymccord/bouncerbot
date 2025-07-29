@@ -12,7 +12,7 @@ namespace BouncerBot.Modules.Achieve.Modules;
 [RequireGuildContext<ApplicationCommandContext>]
 public class AchieveModule(
     IAchievementService achievementService,
-    IAchievementRoleService achievementRoleService) : ApplicationCommandModule<ApplicationCommandContext>
+    IRoleService achievementRoleService) : ApplicationCommandModule<ApplicationCommandContext>
 {
     [SubSlashCommand("verify", "Check if a Hunter ID qualifies for an achievement.")]
     [RequireManageRoles<ApplicationCommandContext>]
