@@ -26,6 +26,7 @@ public class HelpModule : ApplicationCommandModule<ApplicationCommandContext>
                 - `/link <hunterId>`: Link your Discord account to your MouseHunt account.
                 - `/unlink`: Unlink your Discord account from your MouseHunt account.
                 - `/claim <achievement> [share]`: Claim an achievement role if you qualify for it.
+                - `/privacy`: View the bot's privacy policy.
                 - `/help`: Provides information about the bot and its commands.
                 """
             });
@@ -36,11 +37,9 @@ public class HelpModule : ApplicationCommandModule<ApplicationCommandContext>
                 {
                     Title = "Moderator Commands",
                     Description = """
-                    - `/verify user <hunterId> <user>`: Manually verify that a user is the owner of a MouseHunt account and link it to their Discord account.
-                    - `/verify remove <user>`: Remove the verification for a user.
-
                     - `/achieve verify <hunterId> <achievement>`: Check if a Hunter ID qualifies for an achievement.
                     - `/achieve reset <achievement>`: Remove achievement role from all users (and grants Achiever role).
+                    - `/verify remove <user>`: Remove verification for a Discord user.
                     """,
                 });
             }
@@ -54,7 +53,7 @@ public class HelpModule : ApplicationCommandModule<ApplicationCommandContext>
                     - `/config log <type> <channel>`: Set the channel where the bot will log events. Leave blank to unset.
                     - `/config role <role> <selectedRole>`: Set the Discord role for various bot operations.
                     - `/config message <achievement> <message>`: Set the message to send when a user qualifies for a Discord Role Challenge achievement.
-                    - `/config verify-rank <min_rank>`: Set the minimum MouseHunt rank required to successfully use the `/link` command. Default is "Novice".
+                    - `/config link <min_rank>`: Set the minimum MouseHunt rank required to successfully use the `/link` command.
                     - `/config list <setting>`: View the current configuration of the bot.
                     """,
                 });

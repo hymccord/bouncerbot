@@ -62,7 +62,7 @@ public class ConfigModule(IConfigService configService)
         }));
     }
 
-    [SubSlashCommand("verify-rank", "Set minumum rank required for successful self-verification.")]
+    [SubSlashCommand("link", "Set minimum rank required for to successfully use /link command.")]
     public async Task SetVerifyRank(Rank minRank)
     {
         await configService.SetVerifyRankAsync(Context.Guild!.Id, minRank);
