@@ -1,5 +1,4 @@
 using BouncerBot.Db;
-using BouncerBot.Modules.Achieve;
 using BouncerBot.Modules.Verify;
 using BouncerBot.Services;
 
@@ -8,21 +7,19 @@ using Microsoft.EntityFrameworkCore;
 using NetCord;
 using NetCord.Rest;
 
-using System.Text;
-
 namespace BouncerBot.Modules.Bounce;
 
 public interface IBounceOrchestrator
 {
     Task<BounceResult> AddBannedHunterAsync(uint hunterId, ulong guildId, string? note = null);
     Task<BounceResult> RemoveBannedHunterAsync(uint hunterId, ulong guildId);
+    Task<BounceResult> RemoveAllBannedHuntersAsync(ulong guildId);
     Task<BounceResult> UpdateBannedHunterNoteAsync(uint hunterId, ulong guildId, string? note = null);
     Task<BounceResult> CheckBannedHunterAsync(uint hunterId, ulong guildId);
 }
 
 public class BounceOrchestrator(
     IBounceService bounceService,
-    IRoleService roleService,
     IGuildLoggingService guildLoggingService,
     IVerificationOrchestrator verificationOrchestrator,
     BouncerBotDbContext dbContext) : IBounceOrchestrator
@@ -120,6 +117,32 @@ public class BounceOrchestrator(
             {
                 Success = false,
                 Message = $"An error occurred while removing the ban: {ex.Message}"
+            };
+        }
+    }
+
+    public async Task<BounceResult> RemoveAllBannedHuntersAsync(ulong guildId)
+    {
+        try
+        {
+            await bounceService.RemoveAllBannedHuntersAsync(guildId);
+            await guildLoggingService.LogAsync(guildId, LogType.General, new MessageProperties
+            {
+                Content = $"All banned hunters have been removed from the ban list."
+            });
+
+            return new BounceResult
+            {
+                Success = true,
+                Message = $"✅ Successfully removed all banned hunters from the ban list."
+            };
+        }
+        catch (Exception ex)
+        {
+            return new BounceResult
+            {
+                Success = false,
+                Message = $"An error occurred while removing all hunter bans: {ex.Message}"
             };
         }
     }

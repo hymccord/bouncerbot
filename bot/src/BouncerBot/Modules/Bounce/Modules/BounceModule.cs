@@ -27,12 +27,30 @@ public class BounceModule(IBounceOrchestrator bounceOrchestrator, IBounceService
     public async Task RemoveBannedHunterAsync(
         [SlashCommandParameter(Description = "MouseHunt ID to unban")] uint hunterId)
     {
-        await RespondAsync(InteractionCallback.DeferredEphemeralMessage());
+        await RespondAsync(InteractionCallback.DeferredMessage());
 
         var result = await bounceOrchestrator.RemoveBannedHunterAsync(hunterId, Context.Guild!.Id);
 
         await ModifyResponseWithResultAsync(result);
+    }
 
+    [SubSlashCommand("remove-all", "Purge the entire ban list for this server")]
+    public async Task ClearBannedHuntersAsync()
+    {
+        await RespondAsync(InteractionCallback.Message(new InteractionMessageProperties()
+        {
+            //Content = "Are you sure you want to clear the entire ban list for this server? This action cannot be undone.",
+            Components = [
+                new ComponentContainerProperties()
+                    .WithComponents([
+                        new TextDisplayProperties("Are you sure you want to clear the entire ban list for this server?\n\nThis action cannot be undone."),
+                        new ActionRowProperties()
+                            .AddButtons(new ButtonProperties($"bounce removeall:{Context.Guild!.Id}", "Confirm", ButtonStyle.Danger))
+                            .AddButtons(new ButtonProperties("bounce removeall cancel", "Cancel", ButtonStyle.Secondary))
+                        ])
+            ],
+            Flags = MessageFlags.IsComponentsV2
+        }));
     }
 
     [SubSlashCommand("list", "View all banned MouseHunt IDs")]
@@ -48,19 +66,18 @@ public class BounceModule(IBounceOrchestrator bounceOrchestrator, IBounceService
         [SlashCommandParameter(Description = "MouseHunt ID to update")] uint hunterId,
         [SlashCommandParameter(Description = "New note (leave blank to remove note)")] string? note = null)
     {
-        await RespondAsync(InteractionCallback.DeferredEphemeralMessage());
+        await RespondAsync(InteractionCallback.DeferredMessage());
 
         var result = await bounceOrchestrator.UpdateBannedHunterNoteAsync(hunterId, Context.Guild!.Id, note);
 
         await ModifyResponseWithResultAsync(result);
-
     }
 
     [SubSlashCommand("check", "Check if a MouseHunt ID is banned")]
     public async Task CheckBannedHunterAsync(
         [SlashCommandParameter(Description = "MouseHunt ID to check")] uint hunterId)
     {
-        await RespondAsync(InteractionCallback.DeferredEphemeralMessage());
+        await RespondAsync(InteractionCallback.DeferredMessage());
 
         var result = await bounceOrchestrator.CheckBannedHunterAsync(hunterId, Context.Guild!.Id);
 
