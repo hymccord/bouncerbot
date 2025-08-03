@@ -59,6 +59,11 @@ public class HelpModule : ApplicationCommandModule<ApplicationCommandContext>
                     - `/config message <achievement> <message>`: Set the message to send when a user qualifies for a Discord Role Challenge achievement.
                     - `/config link <min_rank>`: Set the minimum MouseHunt rank required to successfully use the `/link` command.
                     - `/config list <setting>`: View the current configuration of the bot.
+                    - `/bounce add <hunterId> [note]`: Ban a MouseHunt ID from using `/link`.
+                    - `/bounce remove <hunterId>`: Remove a MouseHunt ID from the ban list.
+                    - `/bounce list`: View all banned MouseHunt IDs.
+                    - `/bounce check <hunterId>`: Check if a MouseHunt ID is banned.
+                    - `/bounce note <hunterId> [note]`: Update the note for a banned MouseHunt ID.
                     """,
                 });
             }
