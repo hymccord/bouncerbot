@@ -98,8 +98,6 @@ public class ConfigModule(IConfigService configService)
             sb.AppendLine($"""
                 Roles:
                 - Verified: {(config.RoleSettings?.VerifiedId is null ? "None" : $"<@&{config.RoleSettings?.VerifiedId}>")}
-                - Trade Banned: {(config.RoleSettings?.TradeBannedId is null ? "None" : $"<@&{config.RoleSettings?.TradeBannedId}>")}
-                - Map Banned {(config.RoleSettings?.MapBannedId is null ? "None" : $"<@&{config.RoleSettings?.MapBannedId}>")}
 
                 - :star:: {(config.RoleSettings?.StarId is null ? "None" : $"<@&{config.RoleSettings?.StarId}>")}
                 - :crown:: {(config.RoleSettings?.CrownId is null ? "None" : $"<@&{config.RoleSettings?.CrownId}>")}

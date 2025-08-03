@@ -1,4 +1,5 @@
 using BouncerBot.Rest;
+using BouncerBot.Rest.Models;
 
 using Microsoft.Extensions.Logging;
 
@@ -34,18 +35,22 @@ internal class EphemeralApplicationCommandResultHandler : IApplicationCommandRes
         else
             logger.LogDebug("Execution of an application command of name '{Name}' failed with '{Message}'", interaction.Data.Name, resultMessage);
 
-        InteractionMessageProperties message = new()
-        {
-            Content = resultMessage,
-            Flags = MessageFlags.Ephemeral,
-        };
-
         if (failResult is IExceptionResult { Exception: PuzzleException })
         {
-            message.Content = "Apologies, my account has a King's Reward and needs human intervention. I've notified the appropriate people. Please try again later.";
+            resultMessage = "Apologies, my account has a King's Reward and needs human intervention. I've notified the appropriate people. Please try again later.";
         }
 
-        return new(interaction.SendFollowupMessageAsync(message));
+        return new(interaction.SendFollowupMessageAsync(new()
+        {
+            Components = new ComponentContainerProperties
+            {
+                AccentColor = new Color(0xFF, 0x00, 0x00),
+                Components = [
+                    new TextDisplayProperties(resultMessage)
+                    ]
+            },
+            Flags = MessageFlags.Ephemeral | MessageFlags.IsComponentsV2
+        }));
     }
 }
 
@@ -66,17 +71,22 @@ internal class EphemeralComponentInteractionResultHandler<TContext> : IComponent
         else
             logger.LogDebug("Execution of an interaction of custom ID '{Id}' failed with '{Message}'", interaction.Data.CustomId, resultMessage);
 
-        InteractionMessageProperties message = new()
-        {
-            Content = resultMessage,
-            Flags = MessageFlags.Ephemeral,
-        };
-
+        
         if (failResult is IExceptionResult { Exception: PuzzleException })
         {
-            message.Content = "Apologies, my account has a King's Reward and needs human intervention. I've notified the appropriate people. Please try again later.";
+            resultMessage = "Apologies, my account has a King's Reward and needs human intervention. I've notified the appropriate people. Please try again later.";
         }
 
-        return new(interaction.SendFollowupMessageAsync(message));
+        return new(interaction.SendFollowupMessageAsync(new()
+        {
+            Components = new ComponentContainerProperties
+            {
+                AccentColor = new Color(0xFF, 0x00, 0x00),
+                Components = [
+                    new TextDisplayProperties(resultMessage)
+                    ]
+            },
+            Flags = MessageFlags.Ephemeral | MessageFlags.IsComponentsV2
+        }));
     }
 }

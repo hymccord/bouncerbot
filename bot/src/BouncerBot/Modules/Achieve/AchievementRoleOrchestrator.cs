@@ -1,5 +1,8 @@
+using BouncerBot.Services;
+
+using Humanizer;
+
 using NetCord;
-using NetCord.Gateway;
 
 namespace BouncerBot.Modules.Achieve;
 
@@ -19,7 +22,7 @@ public interface IAchievementRoleOrchestrator
 /// guild.</remarks>
 public class AchievementRoleOrchestrator(
     IAchievementService achievementService,
-    IRoleService achievementRoleService,
+    IRoleService roleService,
     IAchievementMessageService achievementMessageService,
     IDiscordGatewayClient gatewayClient) : IAchievementRoleOrchestrator
 {
@@ -28,7 +31,7 @@ public class AchievementRoleOrchestrator(
         if (await achievementService.HasAchievementAsync(mhid, achievement, cancellationToken))
         {
             var role = EnumUtils.ToRole(achievement);
-            await achievementRoleService.AddRoleAsync(userId, guildId, role, cancellationToken);
+            await roleService.AddRoleAsync(userId, guildId, role, cancellationToken);
             await achievementMessageService.SendAchievementMessageAsync(userId, guildId, achievement, cancellationToken);
 
             return true;
@@ -42,7 +45,7 @@ public class AchievementRoleOrchestrator(
         if (await achievementService.HasAchievementAsync(mhid, achievement, cancellationToken))
         {
             var role = EnumUtils.ToRole(achievement);
-            await achievementRoleService.AddRoleAsync(userId, guildId, role, cancellationToken);
+            await roleService.AddRoleAsync(userId, guildId, role, cancellationToken);
             // No message sent for silent processing
             return true;
         }
@@ -52,8 +55,8 @@ public class AchievementRoleOrchestrator(
     public async Task ResetAchievementAsync(ulong guildId, AchievementRole achievement, Func<int, int, Task> progress, CancellationToken cancellationToken = default)
     {
         var role = EnumUtils.ToRole(achievement);
-        var roleId = await achievementRoleService.GetRoleIdAsync(guildId, role)
-            ?? throw new InvalidOperationException($"The role for {achievement} has not been configured yet. An admin needs to use `/config role`.");
+        var roleId = await roleService.GetRoleIdAsync(guildId, role)
+            ?? throw new RoleNotConfiguredException(role);
 
         GuildUser[] usersWithAchievement = [..gatewayClient.Cache.Guilds[guildId]?.Users.Values
             .Where(u => u.RoleIds.Contains(roleId)) ?? []];
@@ -63,8 +66,8 @@ public class AchievementRoleOrchestrator(
         for (int i = 0; i < usersWithAchievement.Length; i++)
         {
             // Add achiever role first, since it may fail if not configured. That way we still have the achievement role set on the user.
-            await achievementRoleService.AddRoleAsync(usersWithAchievement[i].Id, guildId, Role.Achiever, cancellationToken: default);
-            await achievementRoleService.RemoveRoleAsync(usersWithAchievement[i].Id, guildId, role, cancellationToken: default);
+            await roleService.AddRoleAsync(usersWithAchievement[i].Id, guildId, Role.Achiever, cancellationToken: default);
+            await roleService.RemoveRoleAsync(usersWithAchievement[i].Id, guildId, role, cancellationToken: default);
 
             if (i % 10 == 0)
             {

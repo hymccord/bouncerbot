@@ -3,13 +3,12 @@ using BouncerBot.Db.Models;
 using BouncerBot.Modules.Bounce;
 using BouncerBot.Rest;
 using BouncerBot.Rest.Models;
+using BouncerBot.Services;
 
 using Humanizer;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-
-using NetCord.Rest;
 
 namespace BouncerBot.Modules.Verify;
 
@@ -24,6 +23,7 @@ public interface IVerificationService
 
 public class VerificationService(
     ILogger<VerificationService> logger,
+    IRoleService roleService,
     BouncerBotDbContext dbContext,
     IDiscordRestClient restClient,
     IMouseHuntRestClient mouseHuntRestClient,
@@ -77,11 +77,7 @@ public class VerificationService(
             logger.LogDebug("User {UserId} is already verified in guild {GuildId}", discordId, guildId);
         }
 
-        var roleConfig = await dbContext.RoleSettings.FindAsync(guildId);
-        if (roleConfig?.VerifiedId is ulong roleId)
-        {
-            await restClient.AddGuildUserRoleAsync(guildId, discordId, roleId, cancellationToken: cancellationToken);
-        }
+        await roleService.AddRoleAsync(discordId, guildId, Role.Verified, cancellationToken);
 
         return new VerificationAddResult
         {
@@ -239,8 +235,14 @@ public class VerificationService(
                 {
                     await restClient.DeleteMessageAsync(verifyMessage.ChannelId, verifyMessage.MessageId, cancellationToken: cancellationToken);
                 }
-                catch
-                { }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Failed to delete verification message {MessageId} in channel {ChannelId} for user {UserId} in guild {GuildId}",
+                        verifyMessage.MessageId,
+                        verifyMessage.ChannelId,
+                        discordId,
+                        guildId);
+                }
                 dbContext.VerifyMessages.Remove(existingUser.VerifyMessage);
             }
             await dbContext.SaveChangesAsync();

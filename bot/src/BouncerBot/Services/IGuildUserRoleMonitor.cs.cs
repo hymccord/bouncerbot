@@ -1,4 +1,5 @@
 using BouncerBot.Db;
+using BouncerBot.Modules.Verify;
 
 using Microsoft.Extensions.Logging;
 
@@ -13,7 +14,12 @@ public interface IGuildUserRoleMonitorService
     Task HandleRolesRemovedAsync(GuildUser guildUser, IEnumerable<ulong> removedRoles);
 }
 
-public class GuildUserRoleMonitor(ILogger<GuildUserRoleMonitor> logger, IGuildLoggingService guildLoggingService, BouncerBotDbContext dbContext) : IGuildUserRoleMonitorService
+public class GuildUserRoleMonitor(
+    ILogger<GuildUserRoleMonitor> logger,
+    IGuildLoggingService guildLoggingService,
+    IVerificationService verificationService,
+    IVerificationOrchestrator verificationOrchestrator,
+    BouncerBotDbContext dbContext) : IGuildUserRoleMonitorService
 {
     public async Task HandleRolesAddedAsync(GuildUser guildUser, IEnumerable<ulong> addedRoles)
     {
@@ -28,22 +34,9 @@ public class GuildUserRoleMonitor(ILogger<GuildUserRoleMonitor> logger, IGuildLo
             return;
         }
 
-        if (addedRoles.Contains(roleSettings.TradeBannedId ?? 0))
+        if (roleSettings.VerifiedId is ulong verifiedRoleId && verifiedRoleId > 0 && addedRoles.Contains(roleSettings.VerifiedId ?? 0))
         {
-            await guildLoggingService.LogAsync(guildUser.GuildId, LogType.General, new MessageProperties
-            {
-                Content = $"Role <@&{roleSettings.TradeBannedId}> added to <@{guildUser.Id}>.",
-                AllowedMentions = AllowedMentionsProperties.None
-            });
-        }
-
-        if (addedRoles.Contains(roleSettings.MapBannedId ?? 0))
-        {
-            await guildLoggingService.LogAsync(guildUser.GuildId, LogType.General, new MessageProperties
-            {
-                Content = $"Role <@&{roleSettings.MapBannedId}> added to <@{guildUser.Id}>.",
-                AllowedMentions = AllowedMentionsProperties.None
-            });
+            await HandleVerifiedAddedAsync(guildUser, verifiedRoleId);
         }
     }
 
@@ -60,22 +53,35 @@ public class GuildUserRoleMonitor(ILogger<GuildUserRoleMonitor> logger, IGuildLo
             return;
         }
 
-        if (removedRoles.Contains(roleSettings.TradeBannedId ?? 0))
+        if (roleSettings.VerifiedId is ulong verifiedRoleId && verifiedRoleId > 0 && removedRoles.Contains(verifiedRoleId))
         {
-            await guildLoggingService.LogAsync(guildUser.GuildId, LogType.General, new MessageProperties
-            {
-                Content = $"Role <@&{roleSettings.TradeBannedId}> removed from <@{guildUser.Id}>.",
-                AllowedMentions = AllowedMentionsProperties.None
-            });
+            await HandleVerifiedRemovedAsync(guildUser, verifiedRoleId);
         }
+    }
 
-        if (removedRoles.Contains(roleSettings.MapBannedId ?? 0))
+    private async Task HandleVerifiedAddedAsync(GuildUser guildUser, ulong verifiedRoleId)
+    {
+        if (!await verificationService.IsDiscordUserVerifiedAsync(guildUser.GuildId, guildUser.Id))
         {
+            logger.LogWarning("User {UserId} in guild {GuildId} was added to the verified role but is not verified. Role will be removed.", guildUser.Id, guildUser.GuildId);
+
+            await guildUser.RemoveRoleAsync(verifiedRoleId);
             await guildLoggingService.LogAsync(guildUser.GuildId, LogType.General, new MessageProperties
             {
-                Content = $"Role <@&{roleSettings.MapBannedId}> removed from <@{guildUser.Id}>.",
-                AllowedMentions = AllowedMentionsProperties.None
+                Content = $"Role <@&{verifiedRoleId}> was added to <@{guildUser.Id}> ({guildUser.Id}) but is not verified. Role will be removed.",
+                AllowedMentions = AllowedMentionsProperties.None,
             });
         }
+    }
+
+    private async Task HandleVerifiedRemovedAsync(GuildUser guildUser, ulong verifiedRoleId)
+    {
+        await verificationOrchestrator.ProcessVerificationAsync(
+            VerificationType.Remove,
+            new VerificationParameters
+            {
+                GuildId = guildUser.GuildId,
+                DiscordUserId = guildUser.Id,
+            });
     }
 }

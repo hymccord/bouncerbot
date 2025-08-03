@@ -80,8 +80,6 @@ public class ConfigService(BouncerBotDbContext dbContext) : IConfigService
             Role.TacticalMaster => setting?.TacticalMasterId,
             Role.MultiMaster => setting?.MultiMasterId,
             Role.Verified => setting?.VerifiedId,
-            Role.MapBanned => setting?.MapBannedId,
-            Role.TradeBanned => setting?.TradeBannedId,
             _ => null
         };
     }
@@ -145,12 +143,8 @@ public class ConfigService(BouncerBotDbContext dbContext) : IConfigService
             case Role.Verified:
                 setting.VerifiedId = roleId;
                 break;
-            case Role.MapBanned:
-                setting.MapBannedId = roleId;
-                break;
-            case Role.TradeBanned:
-                setting.TradeBannedId = roleId;
-                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(role), $"Role {role} is not recognized.");
         }
 
         await dbContext.SaveChangesAsync();

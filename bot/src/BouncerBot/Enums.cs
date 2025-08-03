@@ -8,12 +8,6 @@ namespace BouncerBot;
 public enum Role
 {
     Verified,
-    [SlashCommandChoice(Name = "Map Banned")]
-    [Display(Name = "Map Banned")]
-    MapBanned,
-    [SlashCommandChoice(Name = "Trade Banned")]
-    [Display(Name = "Trade Banned")]
-    TradeBanned,
     [SlashCommandChoice(Name = "⭐")]
     Star,
     [SlashCommandChoice(Name = "👑")]

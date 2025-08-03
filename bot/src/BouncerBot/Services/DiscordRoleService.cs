@@ -1,51 +1,35 @@
 using BouncerBot.Db;
 
-namespace BouncerBot.Modules.Achieve;
+using NetCord;
+
+namespace BouncerBot.Services;
 
 public interface IRoleService
 {
     Task AddRoleAsync(ulong userId, ulong guildId, Role role, CancellationToken cancellationToken = default);
-    Task<int> CountUsersInRole(ulong guildId, Role role);
+    Task<int> GetRoleUserCount(ulong guildId, Role role);
     Task<ulong?> GetRoleIdAsync(ulong guildId, Role role);
+    Task<bool> HasRoleAsync(ulong userId, ulong guildId, Role Role);
     Task RemoveRoleAsync(ulong userId, ulong guildId, Role role, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
-/// Provides services for managing achievement roles within a guild.
+/// Provides services for managing roles within a guild.
 /// </summary>
 /// <remarks>This service allows adding and removing roles for users based on achievements, retrieving role IDs
 /// for specific achievements, and counting users with a specific role.</remarks>
-public class RoleService(
+public class DiscordRoleService(
     IDiscordGatewayClient gatewayClient,
     BouncerBotDbContext dbContext) : IRoleService
 {
     public async Task AddRoleAsync(ulong userId, ulong guildId, Role role, CancellationToken cancellationToken = default)
     {
-        var roleId = await GetRoleIdAsync(guildId, role)
-            ?? throw new InvalidOperationException($"The role for this achievement has not been configured yet. An admin needs to use `/config role`.");
-        var guild = gatewayClient.Cache.Guilds[guildId]
-            ?? throw new InvalidOperationException($"I was unable to find the server in my cache.");
-        var user = guild.Users[userId]
-            ?? throw new InvalidOperationException($"I was unable to find the user in my cache.");
+        var roleId = await GetRequiredRoleIdAsync(guildId, role);
+        var user = GetGuildUser(userId, guildId);
 
         if (!user.RoleIds.Contains(roleId))
         {
             await user.AddRoleAsync(roleId, cancellationToken: cancellationToken);
-        }
-    }
-
-    public async Task RemoveRoleAsync(ulong userId, ulong guildId, Role role, CancellationToken cancellationToken = default)
-    {
-        var roleId = await GetRoleIdAsync(guildId, role)
-            ?? throw new InvalidOperationException($"The role for this achievement has not been configured yet. An admin needs to use `/config role`.");
-        var guild = gatewayClient.Cache.Guilds[guildId]
-            ?? throw new InvalidOperationException($"I was unable to find the server in my cache.");
-        var user = guild.Users[userId]
-            ?? throw new InvalidOperationException($"I was unable to find the user in my cache.");
-
-        if (user.RoleIds.Contains(roleId))
-        {
-            await user.RemoveRoleAsync(roleId, cancellationToken: cancellationToken);
         }
     }
 
@@ -54,8 +38,6 @@ public class RoleService(
         return await dbContext.RoleSettings.FindAsync(guildId) switch
         {
             { VerifiedId: var id } when role == Role.Verified => id,
-            { TradeBannedId: var id } when role == Role.TradeBanned => id,
-            { MapBannedId: var id } when role == Role.MapBanned => id,
             { StarId: var id } when role == Role.Star => id,
             { CrownId: var id } when role == Role.Crown => id,
             { CheckmarkId: var id } when role == Role.Checkmark => id,
@@ -72,15 +54,52 @@ public class RoleService(
             { TacticalMasterId: var id } when role == Role.TacticalMaster => id,
             { MultiMasterId: var id } when role == Role.MultiMaster => id,
             _ => throw new InvalidOperationException("Unable to find role. Please check the bot's server config."),
-        };
+        } ?? throw new RoleNotConfiguredException(role);
+
     }
 
-    public async Task<int> CountUsersInRole(ulong guildId, Role role)
+    public async Task<int> GetRoleUserCount(ulong guildId, Role role)
     {
-        var roleId = await GetRoleIdAsync(guildId, role)
-            ?? throw new InvalidOperationException($"The role for this achievement has not been configured yet. An admin needs to use `/config role`.");
+        var roleId = await GetRequiredRoleIdAsync(guildId, role);
 
         return gatewayClient.Cache.Guilds[guildId]?.Users.Values
             .Count(u => u.RoleIds.Contains(roleId)) ?? 0;
+    }
+
+    public async Task<bool> HasRoleAsync(ulong userId, ulong guildId, Role role)
+    {
+        var roleId = await GetRequiredRoleIdAsync(guildId, role);
+        var user = GetGuildUser(userId, guildId);
+
+        return user.RoleIds.Contains(roleId);
+    }
+
+
+    public async Task RemoveRoleAsync(ulong userId, ulong guildId, Role role, CancellationToken cancellationToken = default)
+    {
+        var roleId = await GetRequiredRoleIdAsync(guildId, role);
+        var user = GetGuildUser(userId, guildId);
+
+        if (user.RoleIds.Contains(roleId))
+        {
+            await user.RemoveRoleAsync(roleId, cancellationToken: cancellationToken);
+        }
+    }
+
+    private GuildUser GetGuildUser(ulong userId, ulong guildId)
+    {
+        var guild = gatewayClient.Cache.Guilds[guildId]
+            ?? throw new InvalidOperationException($"I was unable to find the server in my cache.");
+
+        var user = guild.Users[userId]
+            ?? throw new InvalidOperationException($"I was unable to find the user in my cache.");
+
+        return user;
+    }
+
+    private async Task<ulong> GetRequiredRoleIdAsync(ulong guildId, Role role)
+    {
+        return await GetRoleIdAsync(guildId, role)
+            ?? throw new RoleNotConfiguredException(role);
     }
 }

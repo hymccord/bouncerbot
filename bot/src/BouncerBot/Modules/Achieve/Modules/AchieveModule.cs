@@ -1,4 +1,5 @@
 using BouncerBot.Attributes;
+using BouncerBot.Services;
 
 using Humanizer;
 
@@ -12,7 +13,7 @@ namespace BouncerBot.Modules.Achieve.Modules;
 [RequireGuildContext<ApplicationCommandContext>]
 public class AchieveModule(
     IAchievementService achievementService,
-    IRoleService achievementRoleService) : ApplicationCommandModule<ApplicationCommandContext>
+    IRoleService roleService) : ApplicationCommandModule<ApplicationCommandContext>
 {
     [SubSlashCommand("verify", "Check if a Hunter ID qualifies for an achievement.")]
     [RequireManageRoles<ApplicationCommandContext>]
@@ -46,8 +47,8 @@ public class AchieveModule(
 
         try
         {
-            var numUsers = await achievementRoleService.CountUsersInRole(Context.Guild!.Id, EnumUtils.ToRole(achievement));
-            var numAchievers = await achievementRoleService.CountUsersInRole(Context.Guild.Id, Role.Achiever);
+            var numUsers = await roleService.GetRoleUserCount(Context.Guild!.Id, EnumUtils.ToRole(achievement));
+            var numAchievers = await roleService.GetRoleUserCount(Context.Guild.Id, Role.Achiever);
 
             await ModifyResponseAsync(m =>
             {

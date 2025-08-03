@@ -1,5 +1,6 @@
 using BouncerBot.Attributes;
 using BouncerBot.Modules.Verify;
+using BouncerBot.Services;
 
 using NetCord;
 using NetCord.Rest;
@@ -9,14 +10,23 @@ namespace BouncerBot.Modules.Link.Modules;
 [RequireGuildContext<ApplicationCommandContext>]
 public class LinkModule(
     IRandomPhraseGenerator randomPhraseGenerator,
-    IVerificationService verificationService): ApplicationCommandModule<ApplicationCommandContext>
+    IVerificationService verificationService,
+    IRoleService roleService): ApplicationCommandModule<ApplicationCommandContext>
 {
     [SlashCommand("link", "Link your Discord account to your MouseHunt account.")]
-    [RequireVerificationStatus<ApplicationCommandContext>(VerificationStatus.Unverified)]
     public async Task LinkAsync(
         uint hunterId)
     {
         await RespondAsync(InteractionCallback.DeferredEphemeralMessage());
+
+        if (await roleService.GetRoleIdAsync(Context.Guild!.Id, Role.Verified) is null)
+        {
+            await ModifyResponseAsync(m =>
+            {
+                m.Content = "This server does not have the Verified role configured. Please contact a moderator.";
+                m.Flags = MessageFlags.Ephemeral;
+            });
+        }
 
         var canVerifyResult = await verificationService.CanUserVerifyAsync(hunterId, Context.Guild!.Id, Context.User.Id);
         if (!canVerifyResult.CanVerify)
@@ -30,9 +40,19 @@ public class LinkModule(
             return;
         }
 
-        // This check is a sanity check, the precondition should ensure this is not called if the user is already verified.
         if (await verificationService.IsDiscordUserVerifiedAsync(Context.Guild!.Id, Context.User.Id))
         {
+            string message = "";
+            // Edge case: somehow the role was removed but the user is still linked.
+            if (!await roleService.HasRoleAsync(Context.Guild.Id, Context.User.Id, Role.Verified))
+            {
+                message = "You are already linked, but do not have the associated role. I've added it.";
+                await roleService.AddRoleAsync(Context.Guild.Id, Context.User.Id, Role.Verified);
+            }
+            else
+            {
+                message = "You are already linked!";
+            }
             await ModifyResponseAsync(x =>
             {
                 x.Content = "You are already linked!";
