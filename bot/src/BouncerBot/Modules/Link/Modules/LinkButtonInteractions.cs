@@ -15,7 +15,11 @@ public class LinkButtonInteractions(
 
         await ModifyResponseAsync(x =>
         {
-            x.Content = "Please wait while I read your profile...";
+            x.Embeds = [
+                new EmbedProperties() {
+                    Description = "Please wait while I read your profile..."
+                }
+                ];
             x.Flags = MessageFlags.Ephemeral;
             x.Components = [];
         });
@@ -32,7 +36,12 @@ public class LinkButtonInteractions(
 
         await ModifyResponseAsync(x =>
         {
-            x.Content = verificationResult.Message;
+            x.Embeds = [
+                new EmbedProperties() {
+                    Color = verificationResult.Success ? Colors.Green : Colors.Red,
+                    Description = verificationResult.Message
+                }
+                ];
             x.Flags = MessageFlags.Ephemeral;
         });
 

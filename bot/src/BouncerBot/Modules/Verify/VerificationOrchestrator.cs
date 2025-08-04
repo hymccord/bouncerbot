@@ -1,8 +1,6 @@
 using BouncerBot.Rest;
 using BouncerBot.Services;
 
-using Microsoft.Extensions.Logging;
-
 using NetCord;
 using NetCord.Rest;
 
@@ -76,8 +74,11 @@ public class VerificationOrchestrator(
         {
             Success = false,
             Message = $"""
-                Linking failed! Please ensure that you have the correct phrase on your corkboard.
+                Linking failed!
+
+                Please ensure that you have the correct phrase on your corkboard.
                 The latest message on your corkboard is:
+
                 ```
                 {latestMessage?.Body ?? "No messages found."}
                 ```

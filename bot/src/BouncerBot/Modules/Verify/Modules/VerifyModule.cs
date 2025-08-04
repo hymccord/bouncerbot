@@ -37,32 +37,45 @@ public class VerifyModule(
         }));
     }
 
-    [SubSlashCommand("remove", "Remove a MouseHunt ID verification")]
-    [RequireOwner<ApplicationCommandContext>]
-    public async Task RemoveVerification(
+    [SubSlashCommand("remove", "Manage verification removal")]
+    [RequireGuildContext<ApplicationCommandContext>]
+    public class VerifyRemoveModule(
+        IVerificationService verificationService
+        ) : ApplicationCommandModule<ApplicationCommandContext>
+    {
+        [SubSlashCommand("user", "Remove a MouseHunt ID verification")]
+        [RequireOwner<ApplicationCommandContext>]
+        public async Task RemoveVerification(
         [SlashCommandParameter(Description = "A verified Discord user")] User user
         )
-    {
-        await RespondAsync(InteractionCallback.DeferredEphemeralMessage());
+        {
+            await RespondAsync(InteractionCallback.DeferredEphemeralMessage());
 
-        if (!await verificationService.IsDiscordUserVerifiedAsync(Context.Guild!.Id, Context.User.Id))
-        {
-            await ModifyResponseAsync(x =>
+            if (!await verificationService.IsDiscordUserVerifiedAsync(Context.Guild!.Id, Context.User.Id))
             {
-                x.Content = "That user is not verified";
-            });
+                await ModifyResponseAsync(x =>
+                {
+                    x.Content = "That user is not verified";
+                });
+            }
+            else
+            {
+                await ModifyResponseAsync(x =>
+                {
+                    x.Content = $"Are you sure you want to remove verification for <@{user.Id}>?";
+                    x.AddComponents(
+                        new ActionRowProperties()
+                            .AddButtons(new ButtonProperties($"verify remove confirm:{user.Id}", "Confirm", ButtonStyle.Danger))
+                            .AddButtons(new ButtonProperties("verify remove cancel", "Cancel", ButtonStyle.Secondary))
+                    );
+                });
+            }
         }
-        else
+
+        [SubSlashCommand("history", "Remove historical MouseHunt ID link")]
+        public async Task RemoveVerificationHistory()
         {
-            await ModifyResponseAsync(x =>
-            {
-                x.Content = $"Are you sure you want to remove verification for <@{user.Id}>?";
-                x.AddComponents(
-                    new ActionRowProperties()
-                        .AddButtons(new ButtonProperties($"verify remove confirm:{user.Id}", "Confirm", ButtonStyle.Danger))
-                        .AddButtons(new ButtonProperties("verify remove cancel", "Cancel", ButtonStyle.Secondary))
-                );
-            });
+            await RespondAsync(InteractionCallback.DeferredEphemeralMessage());
         }
     }
 }

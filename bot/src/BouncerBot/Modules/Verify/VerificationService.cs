@@ -18,6 +18,7 @@ public interface IVerificationService
     Task<CanUserVerifyResult> CanUserVerifyAsync(uint mouseHuntId, ulong guildId, ulong discordId, CancellationToken cancellationToken = default);
     Task<bool> IsDiscordUserVerifiedAsync(ulong guildId, ulong discordId, CancellationToken cancellationToken = default);
     Task<VerificationRemoveResult> RemoveVerifiedUser(ulong guildId, ulong discordId, CancellationToken cancellationToken = default);
+    Task<VerificationRemoveResult> RemoveVerificationHistoryAsync(ulong guildId, ulong discordId, CancellationToken cancellationToken = default);
     Task SetVerificationMessageAsync(SetVerificationMessageParameters parameters);
 }
 
@@ -95,11 +96,11 @@ public class VerificationService(
         // Check verification restrictions in priority order
 
         // Check if the MouseHunt ID is banned
-        var banCheck = await CheckIfMouseHuntIdBannedAsync(mouseHuntId, guildId, cancellationToken);
+        var banCheck = await CheckHunterIdBanned(mouseHuntId, guildId, cancellationToken);
         if (!banCheck.CanVerify)
             return banCheck;
 
-        var existingUserCheck = await CheckIfMouseHuntIdInUseAsync(mouseHuntId, guildId, cancellationToken);
+        var existingUserCheck = await CheckHunterInUseAsync(mouseHuntId, guildId, cancellationToken);
         if (!existingUserCheck.CanVerify)
             return existingUserCheck;
 
@@ -118,7 +119,7 @@ public class VerificationService(
         };
     }
 
-    private async Task<CanUserVerifyResult> CheckIfMouseHuntIdBannedAsync(uint mouseHuntId, ulong guildId, CancellationToken cancellationToken)
+    private async Task<CanUserVerifyResult> CheckHunterIdBanned(uint mouseHuntId, ulong guildId, CancellationToken cancellationToken)
     {
         var bannedHunter = await bounceService.GetBannedHunterAsync(mouseHuntId, guildId);
         if (bannedHunter != null)
@@ -137,7 +138,7 @@ public class VerificationService(
         return new CanUserVerifyResult { CanVerify = true, Message = "" };
     }
 
-    private async Task<CanUserVerifyResult> CheckIfMouseHuntIdInUseAsync(uint mouseHuntId, ulong guildId, CancellationToken cancellationToken)
+    private async Task<CanUserVerifyResult> CheckHunterInUseAsync(uint mouseHuntId, ulong guildId, CancellationToken cancellationToken)
     {
         var existingUser = await dbContext.VerifiedUsers
             .FirstOrDefaultAsync(vu => vu.MouseHuntId == mouseHuntId && vu.GuildId == guildId, cancellationToken);
@@ -257,7 +258,22 @@ public class VerificationService(
         return new VerificationRemoveResult
         {
             WasRemoved = existingUser is not null,
-            MouseHuntId = existingUser?.MouseHuntId
+        };
+    }
+
+    public async Task<VerificationRemoveResult> RemoveVerificationHistoryAsync(ulong guildId, ulong discordId, CancellationToken cancellationToken = default)
+    {
+        var existingHistory = await dbContext.VerificationHistory
+            .FirstOrDefaultAsync(vh => vh.GuildId == guildId && vh.DiscordId == discordId, cancellationToken);
+        if (existingHistory is not null)
+        {
+            dbContext.VerificationHistory.Remove(existingHistory);
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        return new VerificationRemoveResult
+        {
+            WasRemoved = existingHistory is not null
         };
     }
 
@@ -297,4 +313,4 @@ public readonly record struct CanUserVerifyResult(bool CanVerify, string Message
 
 public readonly record struct VerificationAddResult(bool WasAdded, uint MouseHuntId);
 
-public readonly record struct VerificationRemoveResult(bool WasRemoved, uint? MouseHuntId);
+public readonly record struct VerificationRemoveResult(bool WasRemoved);
