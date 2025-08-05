@@ -31,10 +31,15 @@ public class AchieveModule(
             """;
         await ModifyResponseAsync(m =>
         {
-            m.Content = content;
+            m.Embeds = [
+                new EmbedProperties()
+                    .WithColor(Colors.Blue)
+                    .WithTitle("Achievement Status")
+                    .WithDescription(content)
+                ];
             m.Components = [
                 new ActionRowProperties()
-                    .AddButtons(new ButtonProperties($"achieve verify share:{content}", "Make Public", ButtonStyle.Primary))
+                    .AddButtons(new ButtonProperties($"achieve verify share:{content}", "Publicize", ButtonStyle.Primary))
             ];
         });
     }

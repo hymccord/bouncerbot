@@ -12,10 +12,17 @@ public class AchieveButtonInteractions(
     public async Task ShareAchievementAsync(string content)
     {
         await RespondAsync(InteractionCallback.DeferredModifyMessage);
-        _ = Context.Channel.SendMessageAsync(content);
-        await ModifyResponseAsync(m =>
+
+        await DeleteResponseAsync();
+
+        _ = Context.Channel.SendMessageAsync(new MessageProperties
         {
-            m.Components = [];
+            Embeds = [
+                new EmbedProperties()
+                    .WithColor(Colors.Blue)
+                    .WithTitle("Achievement Status")
+                    .WithDescription(content)
+                ]
         });
     }
 
