@@ -3,6 +3,7 @@ using BouncerBot.Db;
 using BouncerBot.Modules.Achieve;
 using BouncerBot.Modules.Bounce;
 using BouncerBot.Modules.Config;
+using BouncerBot.Modules.Puzzle;
 using BouncerBot.Modules.Verify;
 using BouncerBot.Services;
 
@@ -41,6 +42,7 @@ builder.Services
     .AddTransient<IVerificationService, VerificationService>()
     .AddSingleton<IDiscordRestClient, DiscordRestClient>()
     .AddSingleton<IDiscordGatewayClient, DiscordGatewayClient>()
+    .AddSingleton<IPuzzleService, PuzzleService>() // Singleton b/c of puzzle state capture
     .AddMouseHuntClient()
     ;
 

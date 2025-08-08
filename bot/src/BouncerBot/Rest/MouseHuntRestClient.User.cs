@@ -122,4 +122,17 @@ partial class MouseHuntRestClient
 
         return result;
     }
+
+    public async Task<bool> SolvePuzzleAsync(string code, CancellationToken cancellationToken = default)
+    {
+        var formData = new List<KeyValuePair<string, string>>()
+        {
+            new ("action", "solve"),
+            new ("code", code),
+        };
+
+        var result = await SendDesktopRequestAsync<HgResponse>(HttpMethod.Post, formData, "managers/ajax/users/puzzle.php", cancellationToken);
+
+        return result?.Success > 0;
+    }
 }

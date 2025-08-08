@@ -1,6 +1,8 @@
+using BouncerBot.Modules.Puzzle;
 using BouncerBot.Rest;
 using BouncerBot.Rest.Models;
 
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 using NetCord;
@@ -38,6 +40,8 @@ internal class EphemeralApplicationCommandResultHandler : IApplicationCommandRes
         if (failResult is IExceptionResult { Exception: PuzzleException })
         {
             resultMessage = "Apologies, my account has a King's Reward and needs human intervention. I've notified the appropriate people. Please try again later.";
+            var puzzleHelper = services.GetRequiredService<IPuzzleService>();
+            _ = puzzleHelper.TriggerPuzzle();
         }
 
         return new(interaction.SendFollowupMessageAsync(new()
@@ -75,6 +79,9 @@ internal class EphemeralComponentInteractionResultHandler<TContext> : IComponent
         if (failResult is IExceptionResult { Exception: PuzzleException })
         {
             resultMessage = "Apologies, my account has a King's Reward and needs human intervention. I've notified the appropriate people. Please try again later.";
+
+            var puzzleHelper = services.GetRequiredService<IPuzzleService>();
+            _ = puzzleHelper.TriggerPuzzle();
         }
 
         return new(interaction.SendFollowupMessageAsync(new()

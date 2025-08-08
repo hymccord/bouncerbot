@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -23,6 +24,7 @@ public interface IMouseHuntRestClient
     Task<UserTitle> GetUserTitleAsync(uint mhId, CancellationToken cancellationToken = default);
     Task<bool> IsEggMaster(uint mhId, CancellationToken cancellationToken = default);
     Task<LoginDetails> LoginAsync(string username, string password, CancellationToken cancellationToken = default);
+    Task<bool> SolvePuzzleAsync(string code, CancellationToken cancellationToken = default);
     Task StartAsync(CancellationToken cancellationToken);
     Task StopAsync(CancellationToken cancellationToken);
 }
@@ -114,14 +116,16 @@ public partial class MouseHuntRestClient : IMouseHuntRestClient
                 var data = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken).ConfigureAwait(false);
 
                 var hgResponse = data.Deserialize<HgResponse>(_jsonSerializerOptions);
-                var popupMessage = hgResponse.MessageData["popup"].Messages.FirstOrDefault()?.MessageData.Body;
-                if (popupMessage == "Your session has expired.")
+                var popupMessage = hgResponse.MessageData["popup"].MessageCount > 0;
+                //if (popupMessage == "Your session has expired.")
+                if (popupMessage)
                 {
+                    Debugger.Break();
                     await RefreshSessionAsync();
                     continue;
                 }
 
-                if (hgResponse.User.HasPuzzle || true)
+                if (hgResponse.User.HasPuzzle)
                 {
                     throw new PuzzleException($"Puzzle encounted for endpoint {route}");
                 }

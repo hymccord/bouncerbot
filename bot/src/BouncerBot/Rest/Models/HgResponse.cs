@@ -13,17 +13,17 @@ internal class HgResponse
 
 internal class MessageCategoryData
 {
+    [JsonPropertyName("messageCount")]
+    public required int MessageCount { get; set; }
     public Message[]? Messages { get; set; }
 }
 
 internal class Message
 {
-    [JsonPropertyName("messageData")]
-    public required MessageData MessageData { get; set; }
+    //[JsonPropertyName("messageData")]
+    //public required MessageData MessageData { get; set; }
 }
 
 internal class MessageData
 {
-    public required string Title { get; set; }
-    public required string Body { get; set; }
 }
