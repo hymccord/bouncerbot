@@ -1,4 +1,7 @@
 using BouncerBot.Attributes;
+
+using Microsoft.Extensions.Options;
+
 using NetCord;
 using NetCord.Rest;
 using NetCord.Services.ApplicationCommands;
@@ -8,7 +11,9 @@ namespace BouncerBot.Modules.WhoIs.Modules;
 [SlashCommand("whois", "Look up verification information")]
 [RequireManageRoles<ApplicationCommandContext>]
 [RequireGuildContext<ApplicationCommandContext>]
-public class WhoIsModule(IWhoIsOrchestrator whoIsOrchestrator) : ApplicationCommandModule<ApplicationCommandContext>
+public class WhoIsModule(
+    IOptions<Options> options,
+    IWhoIsOrchestrator whoIsOrchestrator) : ApplicationCommandModule<ApplicationCommandContext>
 {
     [SubSlashCommand("user", "Get the Hunter ID for a Discord user")]
     public async Task GetHunterIdAsync(
@@ -30,7 +35,7 @@ public class WhoIsModule(IWhoIsOrchestrator whoIsOrchestrator) : ApplicationComm
                         IconUrl = user.GetAvatarUrl()?.ToString() ?? user.DefaultAvatarUrl.ToString(),
                     },
                     Description = result.Message,
-                    Color = result.Success ? Colors.Green : Colors.Red,
+                    Color = new (result.Success ? options.Value.Colors.Success : options.Value.Colors.Error)
                 }
                 ];
             m.AllowedMentions = AllowedMentionsProperties.None;
@@ -41,7 +46,7 @@ public class WhoIsModule(IWhoIsOrchestrator whoIsOrchestrator) : ApplicationComm
     public async Task GetDiscordUserAsync(
         [SlashCommandParameter(Description = "MouseHunt ID to look up")] uint hunterId)
     {
-        await RespondAsync(InteractionCallback.DeferredEphemeralMessage());
+        await RespondAsync(InteractionCallback.DeferredMessage());
 
         var result = await whoIsOrchestrator.GetUserIdAsync(Context.Guild!.Id, hunterId);
 
@@ -52,7 +57,7 @@ public class WhoIsModule(IWhoIsOrchestrator whoIsOrchestrator) : ApplicationComm
                 {
                     Title = "Whois Hunter",
                     Description = result.Message,
-                    Color = result.Success ? Colors.Green : Colors.Red,
+                    Color = new (result.Success ? options.Value.Colors.Success : options.Value.Colors.Error)
                 }
                 ];
         });

@@ -1,5 +1,7 @@
 using BouncerBot.Rest;
 
+using Microsoft.Extensions.Options;
+
 using NetCord;
 using NetCord.Rest;
 
@@ -12,6 +14,7 @@ public interface IPuzzleService
 }
 
 internal class PuzzleService(
+    IOptions<Options> options,
     RestClient client,
     IMouseHuntRestClient mouseHuntRestClient
     ) : IPuzzleService
@@ -29,7 +32,7 @@ internal class PuzzleService(
         _hasPuzzle = true;
         _hunterId ??= (await mouseHuntRestClient.GetMeAsync()).UserId;
 
-        var channel = await client.GetChannelAsync(1402702005943664681);
+        var channel = await client.GetChannelAsync(options.Value.PuzzleChannel);
         await ((TextChannel)channel).SendMessageAsync(new MessageProperties
         {
             Embeds = [

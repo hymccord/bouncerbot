@@ -1,4 +1,4 @@
-using BouncerBot.Modules.Puzzle;
+﻿using BouncerBot.Modules.Puzzle;
 using BouncerBot.Rest;
 using BouncerBot.Rest.Models;
 
@@ -39,9 +39,13 @@ internal class EphemeralApplicationCommandResultHandler : IApplicationCommandRes
 
         if (failResult is IExceptionResult { Exception: PuzzleException })
         {
-            resultMessage = "Apologies, my account has a King's Reward and needs human intervention. I've notified the appropriate people. Please try again later.";
-            var puzzleHelper = services.GetRequiredService<IPuzzleService>();
-            _ = puzzleHelper.TriggerPuzzle();
+            resultMessage = """
+                Apologies, I'm a little busy trying to solve this King's Reward! It's difficult for me... 🤖
+                
+                Please try again later."
+                """;
+
+            services.GetRequiredService<IPuzzleService>().TriggerPuzzle();
         }
 
         return new(interaction.SendFollowupMessageAsync(new()
@@ -78,10 +82,13 @@ internal class EphemeralComponentInteractionResultHandler<TContext> : IComponent
         
         if (failResult is IExceptionResult { Exception: PuzzleException })
         {
-            resultMessage = "Apologies, my account has a King's Reward and needs human intervention. I've notified the appropriate people. Please try again later.";
+            resultMessage = """
+                Apologies, I'm a little busy trying to solve this King's Reward! It's difficult for me... 🤖
+                
+                Please try again later."
+                """;
 
-            var puzzleHelper = services.GetRequiredService<IPuzzleService>();
-            _ = puzzleHelper.TriggerPuzzle();
+            services.GetRequiredService<IPuzzleService>().TriggerPuzzle();
         }
 
         return new(interaction.SendFollowupMessageAsync(new()

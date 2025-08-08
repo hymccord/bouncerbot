@@ -50,6 +50,11 @@ builder.Services
     ;
 
 builder.Services
+    .AddOptions<Options>()
+    .BindConfiguration(nameof(Options))
+    .ValidateDataAnnotations();
+
+builder.Services
     .AddTransient<IMouseRipService, MouseRipService>()
     .AddHttpClient<MouseRipService>((sp, httpClient) =>
     {

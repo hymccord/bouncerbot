@@ -1,11 +1,14 @@
 using BouncerBot.Modules.Verify;
 
+using Microsoft.Extensions.Options;
+
 using NetCord;
 using NetCord.Rest;
 using NetCord.Services.ComponentInteractions;
 
 namespace BouncerBot.Modules.Link.Modules;
 public class LinkButtonInteractions(
+    IOptions<Options> options,
     IVerificationOrchestrator verificationOrchestrator) : ComponentInteractionModule<ButtonInteractionContext>
 {
     [ComponentInteraction("link start")]
@@ -38,7 +41,7 @@ public class LinkButtonInteractions(
         {
             x.Embeds = [
                 new EmbedProperties() {
-                    Color = verificationResult.Success ? Colors.Green : Colors.Red,
+                    Color = new(verificationResult.Success ? options.Value.Colors.Success : options.Value.Colors.Error),
                     Description = verificationResult.Message
                 }
                 ];
