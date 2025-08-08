@@ -44,6 +44,8 @@ public class HelpModule : ApplicationCommandModule<ApplicationCommandContext>
                     - `/bounce list`: View all banned MouseHunt IDs.
                     - `/bounce check <hunterId>`: Check if a MouseHunt ID is banned.
                     - `/bounce note <hunterId> [note]`: Update the note for a banned MouseHunt ID.
+                    - `/whois user <user>`: Get the Hunter ID for a Discord user.
+                    - `/whois hunter <hunterId>`: Get the Discord user for a Hunter ID.
                     """,
                 });
             }

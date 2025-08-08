@@ -5,6 +5,7 @@ using BouncerBot.Modules.Bounce;
 using BouncerBot.Modules.Config;
 using BouncerBot.Modules.Puzzle;
 using BouncerBot.Modules.Verify;
+using BouncerBot.Modules.WhoIs;
 using BouncerBot.Services;
 
 using Microsoft.EntityFrameworkCore;
@@ -40,6 +41,8 @@ builder.Services
     .AddTransient<IConfigService, ConfigService>()
     .AddTransient<IVerificationOrchestrator, VerificationOrchestrator>()
     .AddTransient<IVerificationService, VerificationService>()
+    .AddTransient<IWhoIsService, WhoIsService>()
+    .AddTransient<IWhoIsOrchestrator, WhoIsOrchestrator>()
     .AddSingleton<IDiscordRestClient, DiscordRestClient>()
     .AddSingleton<IDiscordGatewayClient, DiscordGatewayClient>()
     .AddSingleton<IPuzzleService, PuzzleService>() // Singleton b/c of puzzle state capture
