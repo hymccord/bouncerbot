@@ -1,9 +1,9 @@
-﻿using BouncerBot.Modules.Puzzle;
+using BouncerBot.Modules.Puzzle;
 using BouncerBot.Rest;
-using BouncerBot.Rest.Models;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 using NetCord;
 using NetCord.Gateway;
@@ -21,9 +21,12 @@ using NetCord.Services.ComponentInteractions;
 // Note that if you DeferMessage without the ephemeral flag, followup messages will also not be ephemeral.
 
 namespace BouncerBot;
-internal class EphemeralApplicationCommandResultHandler : IApplicationCommandResultHandler<ApplicationCommandContext>
+internal class EphemeralApplicationCommandResultHandler<TContext>(
+    IOptions<Options> options
+    ) : IApplicationCommandResultHandler<TContext>
+    where TContext : IApplicationCommandContext
 {
-    public ValueTask HandleResultAsync(IExecutionResult result, ApplicationCommandContext context, GatewayClient? client, ILogger logger, IServiceProvider services)
+    public ValueTask HandleResultAsync(IExecutionResult result, TContext context, GatewayClient? client, ILogger logger, IServiceProvider services)
     {
         if (result is not IFailResult failResult)
             return default;
@@ -48,21 +51,30 @@ internal class EphemeralApplicationCommandResultHandler : IApplicationCommandRes
             services.GetRequiredService<IPuzzleService>().TriggerPuzzle();
         }
 
-        return new(interaction.SendFollowupMessageAsync(new()
+        var message = new InteractionMessageProperties()
         {
             Components = new ComponentContainerProperties
             {
-                AccentColor = new Color(0xFF, 0x00, 0x00),
+                AccentColor = new Color(options.Value.Colors.Error),
                 Components = [
                     new TextDisplayProperties(resultMessage)
                     ]
             },
             Flags = MessageFlags.Ephemeral | MessageFlags.IsComponentsV2
-        }));
+        };
+
+        if (failResult is PreconditionFailResult)
+        {
+            return new(interaction.SendResponseAsync(InteractionCallback.Message(message)));
+        }
+
+        return new(interaction.SendFollowupMessageAsync(message));
     }
 }
 
-internal class EphemeralComponentInteractionResultHandler<TContext> : IComponentInteractionResultHandler<TContext>
+internal class EphemeralComponentInteractionResultHandler<TContext>(
+    IOptions<Options> options
+    ) : IComponentInteractionResultHandler<TContext>
     where TContext : IComponentInteractionContext
 {
     public ValueTask HandleResultAsync(IExecutionResult result, TContext context, GatewayClient? client, ILogger logger, IServiceProvider services)
@@ -91,16 +103,23 @@ internal class EphemeralComponentInteractionResultHandler<TContext> : IComponent
             services.GetRequiredService<IPuzzleService>().TriggerPuzzle();
         }
 
-        return new(interaction.SendFollowupMessageAsync(new()
-        {
+        var message = new InteractionMessageProperties()
+        { 
             Components = new ComponentContainerProperties
             {
-                AccentColor = new Color(0xFF, 0x00, 0x00),
+                AccentColor = new Color(options.Value.Colors.Error),
                 Components = [
                     new TextDisplayProperties(resultMessage)
                     ]
             },
             Flags = MessageFlags.Ephemeral | MessageFlags.IsComponentsV2
-        }));
+        };
+
+        if (failResult is PreconditionFailResult)
+        {
+            return new(interaction.SendResponseAsync(InteractionCallback.Message(message)));
+        }
+
+        return new(interaction.SendFollowupMessageAsync(message));
     }
 }

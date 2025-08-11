@@ -2,6 +2,7 @@ using BouncerBot.Attributes;
 using BouncerBot.Db;
 using BouncerBot.Modules.Achieve;
 using BouncerBot.Modules.Verify;
+using BouncerBot.Services;
 
 using Microsoft.EntityFrameworkCore;
 
@@ -14,6 +15,7 @@ namespace BouncerBot.Modules.Claim.Modules;
 [RequireGuildContext<ApplicationCommandContext>]
 public class ClaimModule(
     IAchievementRoleOrchestrator achievementRoleOrchestrator,
+    ICommandMentionService commandMentionService,
     BouncerBotDbContext dbContext) : ApplicationCommandModule<ApplicationCommandContext>
 {
     private static readonly string[] s_rejectionPhrases = [
@@ -35,10 +37,10 @@ public class ClaimModule(
         "Hah! You think you can outsmart me? Not today!",
     ];
 
-    [SlashCommand("claim", "Claim an achievment role!")]
+    [SlashCommand("claim", "Claim an achievement role!")]
     [RequireVerificationStatus<ApplicationCommandContext>(VerificationStatus.Verified)]
     public async Task ClaimAsync(AchievementRole achievement,
-        [SlashCommandParameter(Description = "Publicly share your achievement?")]bool? share = true)
+        [SlashCommandParameter(Description = "Publicly share your achievement? (Defaults to true)")]bool? share = true)
     {
         await RespondAsync(InteractionCallback.DeferredEphemeralMessage());
 
@@ -50,7 +52,11 @@ public class ClaimModule(
         {
             await ModifyResponseAsync(m =>
             {
-                m.Content = "This is a verified only club! Once you're on the list, I might let you in!";
+                m.Content = $"""
+                This is a verified only club! Once you're on the list, I might let you in!
+
+                -# Hint: You can use the {commandMentionService.GetCommandMention("link")} command to verify your account.
+                """;
                 m.Flags = MessageFlags.Ephemeral;
             });
 

@@ -116,6 +116,12 @@ public partial class MouseHuntRestClient : IMouseHuntRestClient
                 var data = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken).ConfigureAwait(false);
 
                 var hgResponse = data.Deserialize<HgResponse>(_jsonSerializerOptions);
+
+                if (hgResponse.User.HasPuzzle)
+                {
+                    throw new PuzzleException($"Puzzle encountered for endpoint {route}");
+                }
+
                 var popupMessage = hgResponse.MessageData["popup"].MessageCount > 0;
                 //if (popupMessage == "Your session has expired.")
                 if (popupMessage)
@@ -123,11 +129,6 @@ public partial class MouseHuntRestClient : IMouseHuntRestClient
                     Debugger.Break();
                     await RefreshSessionAsync();
                     continue;
-                }
-
-                if (hgResponse.User.HasPuzzle)
-                {
-                    throw new PuzzleException($"Puzzle encounted for endpoint {route}");
                 }
 
                 return data.Deserialize<T>(_jsonSerializerOptions);
@@ -152,7 +153,7 @@ public partial class MouseHuntRestClient : IMouseHuntRestClient
 
         async Task RefreshSessionAsync()
         {
-            await _requestHandler.SendAsync(new HttpRequestMessage(HttpMethod.Post, "camp.php")
+            await _requestHandler.SendAsync(new HttpRequestMessage(HttpMethod.Get, "camp.php")
             {
                 Content = new FormUrlEncodedContent(_defaultFormData)
             }, cancellationToken);
@@ -217,7 +218,7 @@ public partial class MouseHuntRestClient : IMouseHuntRestClient
 
         try
         {
-            var tokenJson = JsonSerializer.Serialize(loginDetails.LoginToken);
+            var tokenJson = JsonSerializer.Serialize(loginDetails);
             await File.WriteAllTextAsync(tokenFilePath, tokenJson, cancellationToken);
         }
         catch

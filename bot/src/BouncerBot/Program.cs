@@ -18,6 +18,7 @@ using NetCord.Gateway;
 using NetCord.Hosting.Gateway;
 using NetCord.Hosting.Services;
 using NetCord.Hosting.Services.ApplicationCommands;
+using NetCord.Services.ApplicationCommands;
 using NetCord.Services.ComponentInteractions;
 
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
@@ -43,6 +44,7 @@ builder.Services
     .AddTransient<IVerificationService, VerificationService>()
     .AddTransient<IWhoIsService, WhoIsService>()
     .AddTransient<IWhoIsOrchestrator, WhoIsOrchestrator>()
+    .AddTransient<ICommandMentionService, CommandMentionService>()
     .AddSingleton<IDiscordRestClient, DiscordRestClient>()
     .AddSingleton<IDiscordGatewayClient, DiscordGatewayClient>()
     .AddSingleton<IPuzzleService, PuzzleService>() // Singleton b/c of puzzle state capture
@@ -64,9 +66,11 @@ builder.Services
 
 // NetCord services
 builder.Services
-    .AddApplicationCommands(options =>
+    .AddSingleton<IdApplicationCommandServiceStorage<ApplicationCommandContext>>()
+    .AddApplicationCommands((options, services) =>
     {
-        options.ResultHandler = new EphemeralApplicationCommandResultHandler();
+        options.Storage = services.GetRequiredService<IdApplicationCommandServiceStorage<ApplicationCommandContext>>();
+        options.ResultHandler = new EphemeralApplicationCommandResultHandler<ApplicationCommandContext>(services.GetRequiredService<Microsoft.Extensions.Options.IOptions<Options>>());
     })
     // Custom helper extension to easily add ephemeral result handlers for component interactions
     .AddComponentInteractionWithEphemeralResultHandler<ButtonInteraction, ButtonInteractionContext>()
@@ -83,8 +87,7 @@ builder.Services
             Activities = [new("MouseHunters!", UserActivityType.Watching)]
         };
         options.Intents = GatewayIntents.Guilds
-            | GatewayIntents.GuildUsers
-            | GatewayIntents.GuildPresences;
+            | GatewayIntents.GuildUsers;
     })
     .AddGatewayHandlers(typeof(Program).Assembly)
     ;

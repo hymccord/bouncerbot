@@ -25,7 +25,7 @@ public class PrivacyModule : ApplicationCommandModule<ApplicationCommandContext>
             • To verify and manage your hunter profile
 
             **Data Retention:**
-            • Discord ID and Hunter ID information is stored while your account remains linked
+            • Discord ID and Hunter ID information are stored while your account remains linked
             • When you unlink your account, all identifiable information is deleted
             • We retain anonymous hashes to detect if a different hunter ID is used for a given Discord user
 

@@ -2,6 +2,8 @@ using BouncerBot.Attributes;
 using BouncerBot.Modules.Verify;
 using BouncerBot.Services;
 
+using Microsoft.Extensions.Options;
+
 using NetCord;
 using NetCord.Rest;
 using NetCord.Services.ApplicationCommands;
@@ -9,6 +11,7 @@ using NetCord.Services.ApplicationCommands;
 namespace BouncerBot.Modules.Link.Modules;
 [RequireGuildContext<ApplicationCommandContext>]
 public class LinkModule(
+    IOptions<Options> options,
     IRandomPhraseGenerator randomPhraseGenerator,
     IVerificationService verificationService,
     IRoleService roleService): ApplicationCommandModule<ApplicationCommandContext>
@@ -27,8 +30,8 @@ public class LinkModule(
                     new EmbedProperties()
                     {
                         Title = "Error",
-                        Description = "This server does not have the Verified role configured. Please contact a moderator.",
-                        Color = Colors.Red
+                        Description = "This server does not have the Verified role configured. Please contact an admin!",
+                        Color = new(options.Value.Colors.Error)
                     }];
                 m.Flags = MessageFlags.Ephemeral;
             });
@@ -44,7 +47,7 @@ public class LinkModule(
                     {
                         Title = "Error",
                         Description = canVerifyResult.Message,
-                        Color = Colors.Red
+                        Color = new(options.Value.Colors.Error)
                     }];
                 m.Flags = MessageFlags.Ephemeral;
             });
@@ -73,13 +76,30 @@ public class LinkModule(
                     {
                         Title = "Error",
                         Description = message,
-                        Color = Colors.Yellow
+                        Color = new(options.Value.Colors.Warning)
                     }];
                 m.Flags = MessageFlags.Ephemeral;
             });
 
             return;
         }
+
+        if (await verificationService.HasDiscordUserVerifiedBeforeAsync(hunterId, Context.Guild.Id, Context.User.Id))
+        {
+            await ModifyResponseAsync(m =>
+            {
+                m.Embeds = [
+                    new EmbedProperties()
+                    {
+                        Title = "Success",
+                        Description = "You previously linked with this MouseHunt ID. I've added the appropriate role!",
+                        Color = new (options.Value.Colors.Success)
+                    }];
+                m.Flags = MessageFlags.Ephemeral;
+            });
+            return;
+        }
+
         var phrase = $"BouncerBot Discord Link: {randomPhraseGenerator.Generate()}";
         await ModifyResponseAsync(x =>
         {
@@ -106,7 +126,7 @@ public class LinkModule(
 
                         Click 'Start!' to proceed, otherwise 'Cancel'.
                         """,
-                    Color = Colors.Blue
+                    Color = new(options.Value.Colors.Primary)
                 }
             ];
             x.AddComponents(
@@ -133,7 +153,7 @@ public class LinkModule(
                     {
                         Title = "Error",
                         Description = "You are already unlinked!",
-                        Color = Colors.Yellow
+                        Color = new(options.Value.Colors.Warning)
                     }];
                 x.Flags = MessageFlags.Ephemeral;
             });
@@ -149,7 +169,7 @@ public class LinkModule(
                 {
                     Title = "Unlinked",
                     Description = "Your Discord account has been unlinked from your MouseHunt account.",
-                    Color = Colors.Green
+                    Color = new (options.Value.Colors.Success)
                 }];
             x.Flags = MessageFlags.Ephemeral;
         });

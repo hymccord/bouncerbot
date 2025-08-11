@@ -1,6 +1,7 @@
 using BouncerBot.Rest;
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 using NetCord;
 using NetCord.Hosting.Services.ComponentInteractions;
@@ -26,9 +27,9 @@ public static class ServiceCollectionExtensions
         where TInteraction : ComponentInteraction
         where TContext : IComponentInteractionContext
     {
-        services.AddComponentInteractions<TInteraction, TContext>(options =>
+        services.AddComponentInteractions<TInteraction, TContext>((options, services) =>
         {
-            options.ResultHandler = new EphemeralComponentInteractionResultHandler<TContext>();
+            options.ResultHandler = new EphemeralComponentInteractionResultHandler<TContext>(services.GetRequiredService<IOptions<Options>>());
         });
 
         return services;

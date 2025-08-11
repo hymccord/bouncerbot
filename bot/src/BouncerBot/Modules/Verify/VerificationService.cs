@@ -17,6 +17,7 @@ public interface IVerificationService
     Task<VerificationAddResult> AddVerifiedUserAsync(uint mouseHuntId, ulong guildId, ulong discordId, CancellationToken cancellationToken = default);
     Task<CanUserVerifyResult> CanUserVerifyAsync(uint mouseHuntId, ulong guildId, ulong discordId, CancellationToken cancellationToken = default);
     Task<bool> IsDiscordUserVerifiedAsync(ulong guildId, ulong discordId, CancellationToken cancellationToken = default);
+    Task<bool> HasDiscordUserVerifiedBeforeAsync(uint mousehuntId, ulong guildId, ulong discordId, CancellationToken cancellationToken = default);
     Task<VerificationRemoveResult> RemoveVerifiedUser(ulong guildId, ulong discordId, CancellationToken cancellationToken = default);
     Task<VerificationRemoveResult> RemoveVerificationHistoryAsync(ulong guildId, ulong discordId, CancellationToken cancellationToken = default);
     Task SetVerificationMessageAsync(SetVerificationMessageParameters parameters);
@@ -170,9 +171,9 @@ public class VerificationService(
             {
                 CanVerify = false,
                 Message = """
-                You have previously used a different MouseHunt ID in this server.
+                You previously linked a different MouseHunt ID in this server.
 
-                If you need to change your linked account, please contact the moderators.
+                Please contact the moderators if you think this is an error or to explain why a change is required.
                 """
             };
         }
@@ -219,6 +220,14 @@ public class VerificationService(
     {
         _cachedTitles ??= await mouseHuntRestClient.GetTitlesAsync(cancellationToken)
             ?? throw new Exception("Failed to fetch titles from MouseHunt API");
+    }
+
+    public async Task<bool> HasDiscordUserVerifiedBeforeAsync(uint mousehuntId, ulong guildId, ulong discordId, CancellationToken cancellationToken = default)
+    {
+        var existingHistory = await dbContext.VerificationHistory
+            .FirstOrDefaultAsync(vh => vh.GuildId == guildId && vh.DiscordId == discordId, cancellationToken);
+
+        return existingHistory?.VerifyMouseHuntId(mousehuntId) ?? false;
     }
 
     public async Task<VerificationRemoveResult> RemoveVerifiedUser(ulong guildId, ulong discordId, CancellationToken cancellationToken = default)

@@ -1,6 +1,6 @@
 using BouncerBot.Db;
-using BouncerBot.Db.Models;
 using BouncerBot.Modules.Verify;
+using BouncerBot.Services;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,14 +8,15 @@ using Microsoft.Extensions.DependencyInjection;
 using NetCord.Services;
 
 namespace BouncerBot.Attributes;
-internal class RequireVerificationStatusAttribute<TContext> : PreconditionAttribute<TContext>
+internal class RequireVerificationStatusAttribute<TContext> : RequireContextAttribute<TContext>
     where TContext : IUserContext, IGuildContext
 {
-    private readonly VerificationStatus _verificationStatus;
+    private readonly VerificationStatus _shouldBe;
 
     public RequireVerificationStatusAttribute(VerificationStatus verificationStatus)
+        : base(RequiredContext.Guild)
     {
-        _verificationStatus = verificationStatus;
+        _shouldBe = verificationStatus;
     }
 
     public override async ValueTask<PreconditionResult> EnsureCanExecuteAsync(TContext context, IServiceProvider? serviceProvider)
@@ -25,25 +26,30 @@ internal class RequireVerificationStatusAttribute<TContext> : PreconditionAttrib
             return PreconditionResult.Fail("The bot encountered an unexpected error.");
         }
 
-        if (context.Guild is null)
-        {
-            return PreconditionResult.Fail("The current guild could not be found.");
-        }
-
         var userId = context.User.Id;
-        var guildId = context.Guild.Id;
+        var guildId = context.Guild!.Id;
 
-        var dbContext = serviceProvider!.GetRequiredService<BouncerBotDbContext>();
+        var dbContext = serviceProvider.GetRequiredService<BouncerBotDbContext>();
+        var commandMentionService = serviceProvider.GetRequiredService<ICommandMentionService>();
 
-        VerifiedUser? user = await dbContext.VerifiedUsers
-            .FirstOrDefaultAsync(vu => vu.DiscordId == userId && vu.GuildId == guildId);
+        bool isVerified = await dbContext.VerifiedUsers
+            .FirstOrDefaultAsync(vu => vu.DiscordId == userId && vu.GuildId == guildId) is not null;
 
-        return (user, _verificationStatus) switch
+        return (isVerified, _shouldBe) switch
         {
-            (null, VerificationStatus.Unverified) => PreconditionResult.Success,
-            (null, VerificationStatus.Verified) => PreconditionResult.Fail("You must link your Discord to your Hunter ID to use this command."),
-            (_, VerificationStatus.Unverified) => PreconditionResult.Fail("You must unlink your Discord to your Hunter ID to use this command."),
-            (_, VerificationStatus.Verified) => PreconditionResult.Success,
+            (false, VerificationStatus.Unverified) => PreconditionResult.Success,
+            (false, VerificationStatus.Verified) => PreconditionResult.Fail($""""
+                This is a verified user only club! Once you're on my list, I'll let you use that command.
+
+                -# Hint: Use the {commandMentionService.GetCommandMention("link")} command.
+                """"),
+            (true, VerificationStatus.Unverified) => PreconditionResult.Fail($"""
+                I don't let verified users use this! I could bounce you out of my club, then I'll let you use that command.
+                
+                -# Hint: Use the {commandMentionService.GetCommandMention("unlink")} command.
+                """),
+            (true, VerificationStatus.Verified) => PreconditionResult.Success,
+
             _ => PreconditionResult.Fail("Unexpected verification status.")
         };
     }
