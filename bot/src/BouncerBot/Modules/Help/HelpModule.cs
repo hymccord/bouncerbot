@@ -1,4 +1,5 @@
 using BouncerBot.Attributes;
+using BouncerBot.Services;
 
 using NetCord;
 using NetCord.Rest;
@@ -7,7 +8,9 @@ using NetCord.Services.ApplicationCommands;
 namespace BouncerBot.Modules.Help;
 
 
-public class HelpModule : ApplicationCommandModule<ApplicationCommandContext>
+public class HelpModule(
+    ICommandMentionService cms
+    ) : ApplicationCommandModule<ApplicationCommandContext>
 {
     [SlashCommand("help", "Provides information about the bot and its commands.")]
     [RequireGuildContext<ApplicationCommandContext>]
@@ -22,12 +25,12 @@ public class HelpModule : ApplicationCommandModule<ApplicationCommandContext>
             embeds.Add(new EmbedProperties()
             {
                 Title = "User Commands",
-                Description = """
-                - `/link <hunterId>`: Link your Discord account to your MouseHunt account.
-                - `/unlink`: Unlink your Discord account from your MouseHunt account.
-                - `/claim <achievement> [share]`: Claim an achievement role if you qualify for it.
-                - `/privacy`: View the bot's privacy policy.
-                - `/help`: Provides information about the bot and its commands.
+                Description = $"""
+                - {cms.GetCommandMention("link")} `<hunterId>`: Link your Discord account to your MouseHunt account.
+                - {cms.GetCommandMention("unlink")}: Unlink your Discord account from your MouseHunt account.
+                - {cms.GetCommandMention("claim")} `<achievement> [share]`: Claim an achievement role if you qualify for it.
+                - {cms.GetCommandMention("privacy")}: View the bot's privacy policy.
+                - {cms.GetCommandMention("help")}: Provides information about the bot and its commands.
                 """
             });
 
@@ -36,16 +39,17 @@ public class HelpModule : ApplicationCommandModule<ApplicationCommandContext>
                 embeds.Add(new EmbedProperties()
                 {
                     Title = "Moderator Commands",
-                    Description = """
-                    - `/achieve verify <hunterId> <achievement>`: Check if a Hunter ID qualifies for an achievement.
-                    - `/achieve reset <achievement>`: Remove achievement role from all users (and grants Achiever role).
-                    - `/bounce add <hunterId> [note]`: Ban a MouseHunt ID from using `/link`.
-                    - `/bounce remove <hunterId>`: Remove a MouseHunt ID from the ban list.
-                    - `/bounce list`: View all banned MouseHunt IDs.
-                    - `/bounce check <hunterId>`: Check if a MouseHunt ID is banned.
-                    - `/bounce note <hunterId> [note]`: Update the note for a banned MouseHunt ID.
-                    - `/whois user <user>`: Get the Hunter ID for a Discord user.
-                    - `/whois hunter <hunterId>`: Get the Discord user for a Hunter ID.
+                    Description = $"""
+                    - {cms.GetSubCommandMention("achieve verify")} `<hunterId> <achievement>`: Check if a Hunter ID qualifies for an achievement.
+                    - {cms.GetSubCommandMention("achieve reset")} `<achievement>`: Remove achievement role from all users (and grants Achiever role).
+                    - {cms.GetSubCommandMention("bounce add")} `<hunterId> [note]`: Ban a MouseHunt ID from using `/link`.
+                    - {cms.GetSubCommandMention("bounce remove")} `<hunterId>`: Remove a MouseHunt ID from the ban list.
+                    - {cms.GetSubCommandMention("bounce remove-all")}: Purge the entire ban list for this server.
+                    - {cms.GetSubCommandMention("bounce list")}: View all banned MouseHunt IDs.
+                    - {cms.GetSubCommandMention("bounce check")} `<hunterId>`: Check if a MouseHunt ID is banned.
+                    - {cms.GetSubCommandMention("bounce note")} `<hunterId> [note]`: Update the note for a banned MouseHunt ID.
+                    - {cms.GetSubCommandMention("whois user")} `<user>`: Get the Hunter ID for a Discord user.
+                    - {cms.GetSubCommandMention("whois hunter")} `<hunterId>`: Get the Discord user for a Hunter ID.
                     """,
                 });
             }
@@ -55,17 +59,12 @@ public class HelpModule : ApplicationCommandModule<ApplicationCommandContext>
                 embeds.Add(new EmbedProperties()
                 {
                     Title = "Administrator Commands",
-                    Description = """
-                    - `/config log <type> <channel>`: Set the channel where the bot will log events. Leave blank to unset.
-                    - `/config role <role> <selectedRole>`: Set the Discord role for various bot operations.
-                    - `/config message <achievement> <message>`: Set the message to send when a user qualifies for a Discord Role Challenge achievement.
-                    - `/config link <min_rank>`: Set the minimum MouseHunt rank required to successfully use the `/link` command.
-                    - `/config list <setting>`: View the current configuration of the bot.
-                    - `/bounce add <hunterId> [note]`: Ban a MouseHunt ID from using `/link`.
-                    - `/bounce remove <hunterId>`: Remove a MouseHunt ID from the ban list.
-                    - `/bounce list`: View all banned MouseHunt IDs.
-                    - `/bounce check <hunterId>`: Check if a MouseHunt ID is banned.
-                    - `/bounce note <hunterId> [note]`: Update the note for a banned MouseHunt ID.
+                    Description = $"""
+                    - {cms.GetSubCommandMention("config log")} `<type> [channel]`: Set the channel where the bot will log events. Leave blank to unset.
+                    - {cms.GetSubCommandMention("config role")} `<role> <selectedRole>`: Set the Discord role for various bot operations.
+                    - {cms.GetSubCommandMention("config message")} `<achievement> <message>`: Set the message to send when a user qualifies for a Discord Role Challenge achievement.
+                    - {cms.GetSubCommandMention("config link")} `<min_rank>`: Set the minimum MouseHunt rank required to successfully use the `/link` command.
+                    - {cms.GetSubCommandMention("config list")} `[setting]`: View the current configuration of the bot.
                     """,
                 });
             }
