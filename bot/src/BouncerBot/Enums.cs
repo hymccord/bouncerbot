@@ -9,13 +9,16 @@ public enum Role
 {
     Verified,
     [SlashCommandChoice(Name = "⭐")]
+    [Display(Name = "⭐")]
     Star,
     [SlashCommandChoice(Name = "👑")]
+    [Display(Name = "👑")]
     Crown,
     [SlashCommandChoice(Name = "✅")]
+    [Display(Name = "✅")]
     Checkmark,
     [SlashCommandChoice(Name = "🥚")]
-    [Display(Name = "Egg Master")]
+    [Display(Name = "🥚")]
     EggMaster,
     [SlashCommandChoice(Name = "Achiever 🍪")]
     Achiever,
@@ -55,13 +58,16 @@ public enum Role
 public enum AchievementRole
 {
     [SlashCommandChoice(Name = "⭐")]
+    [Display(Name = "⭐")]
     Star,
     [SlashCommandChoice(Name = "👑")]
+    [Display(Name = "👑")]
     Crown,
     [SlashCommandChoice(Name = "✅")]
+    [Display(Name = "✅")]
     Checkmark,
     [SlashCommandChoice(Name = "🥚")]
-    [Display(Name = "Egg Master")]
+    [Display(Name = "🥚")]
     EggMaster,
     [SlashCommandChoice(Name = "Arcane Master")]
     [Display(Name = "Arcane Master")]
