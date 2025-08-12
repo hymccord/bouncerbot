@@ -22,7 +22,7 @@ using NetCord.Services.ComponentInteractions;
 
 namespace BouncerBot;
 internal class EphemeralApplicationCommandResultHandler<TContext>(
-    IOptions<Options> options
+    IOptionsMonitor<BouncerBotOptions> options
     ) : IApplicationCommandResultHandler<TContext>
     where TContext : IApplicationCommandContext
 {
@@ -55,7 +55,7 @@ internal class EphemeralApplicationCommandResultHandler<TContext>(
         {
             Components = new ComponentContainerProperties
             {
-                AccentColor = new Color(options.Value.Colors.Error),
+                AccentColor = new Color(options.CurrentValue.Colors.Error),
                 Components = [
                     new TextDisplayProperties(resultMessage)
                     ]
@@ -73,7 +73,7 @@ internal class EphemeralApplicationCommandResultHandler<TContext>(
 }
 
 internal class EphemeralComponentInteractionResultHandler<TContext>(
-    IOptions<Options> options
+    IOptionsMonitor<BouncerBotOptions> options
     ) : IComponentInteractionResultHandler<TContext>
     where TContext : IComponentInteractionContext
 {
@@ -107,7 +107,7 @@ internal class EphemeralComponentInteractionResultHandler<TContext>(
         { 
             Components = new ComponentContainerProperties
             {
-                AccentColor = new Color(options.Value.Colors.Error),
+                AccentColor = new Color(options.CurrentValue.Colors.Error),
                 Components = [
                     new TextDisplayProperties(resultMessage)
                     ]

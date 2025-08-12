@@ -14,7 +14,7 @@ public interface IPuzzleService
 }
 
 internal class PuzzleService(
-    IOptions<Options> options,
+    IOptionsMonitor<BouncerBotOptions> options,
     RestClient client,
     IMouseHuntRestClient mouseHuntRestClient
     ) : IPuzzleService
@@ -32,7 +32,7 @@ internal class PuzzleService(
         _hasPuzzle = true;
         _hunterId ??= (await mouseHuntRestClient.GetMeAsync()).UserId;
 
-        var channel = await client.GetChannelAsync(options.Value.PuzzleChannel);
+        var channel = await client.GetChannelAsync(options.CurrentValue.PuzzleChannel);
         await ((TextChannel)channel).SendMessageAsync(new MessageProperties
         {
             Embeds = [

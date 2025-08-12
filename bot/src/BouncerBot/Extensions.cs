@@ -33,7 +33,7 @@ public static class Extensions
         {
             services.AddComponentInteractions<TInteraction, TContext>((options, services) =>
             {
-                options.ResultHandler = new EphemeralComponentInteractionResultHandler<TContext>(services.GetRequiredService<IOptions<Options>>());
+                options.ResultHandler = new EphemeralComponentInteractionResultHandler<TContext>(services.GetRequiredService<IOptionsMonitor<BouncerBotOptions>>());
             });
 
             return services;

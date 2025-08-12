@@ -70,7 +70,7 @@ builder.Services
     .AddApplicationCommands((options, services) =>
     {
         options.Storage = services.GetRequiredService<IdApplicationCommandServiceStorage<ApplicationCommandContext>>();
-        options.ResultHandler = new EphemeralApplicationCommandResultHandler<ApplicationCommandContext>(services.GetRequiredService<Microsoft.Extensions.Options.IOptions<Options>>());
+        options.ResultHandler = new EphemeralApplicationCommandResultHandler<ApplicationCommandContext>(services.GetRequiredService<IOptionsMonitor<BouncerBotOptions>>());
     })
     // Custom helper extension to easily add ephemeral result handlers for component interactions
     .AddComponentInteractionWithEphemeralResultHandler<ButtonInteraction, ButtonInteractionContext>()
