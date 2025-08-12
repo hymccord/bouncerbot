@@ -86,8 +86,10 @@ builder.Services
         {
             Activities = [new("MouseHunters!", UserActivityType.Watching)]
         };
-        options.Intents = GatewayIntents.Guilds
-            | GatewayIntents.GuildUsers;
+        options.Intents = 0
+            | GatewayIntents.Guilds             // For joining new guilds
+            | GatewayIntents.GuildUsers         // Mainly when roles are added/removed to users
+            | GatewayIntents.GuildPresences;    // To cache Guild Users on GUILD_CREATE for small guilds
     })
     .AddGatewayHandlers(typeof(Program).Assembly)
     ;
