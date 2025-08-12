@@ -8,10 +8,9 @@ namespace BouncerBot.Modules.Verify.Modules;
 
 [SlashCommand("verify", "Manage MouseHunt ID verification")]
 [RequireGuildContext<ApplicationCommandContext>]
-public class VerifyModule(
-    IVerificationService verificationService) : ApplicationCommandModule<ApplicationCommandContext>
+public class VerifyModule() : ApplicationCommandModule<ApplicationCommandContext>
 {
-    // Only owner for now: testing
+#if DEBUG
     [SubSlashCommand("user", "Manually verify a MouseHunt ID and Discord user")]
     [RequireOwner<ApplicationCommandContext>]
     //[RequireManageRoles<ApplicationCommandContext>]
@@ -29,13 +28,14 @@ public class VerifyModule(
             Components =
         [
             new ActionRowProperties()
-                    .AddButtons(new ButtonProperties($"verify user confirm:{hunterId}:{user.Id}", "Confirm", ButtonStyle.Success))
-                    .AddButtons(new ButtonProperties("verify user cancel", "Cancel", ButtonStyle.Danger))
+                    .AddButtons(new ButtonProperties($"{VerifyInteractionIds.VerifyUserConfirm}:{hunterId}:{user.Id}", "Confirm", ButtonStyle.Success))
+                    .AddButtons(new ButtonProperties(VerifyInteractionIds.VerifyUserCancel, "Cancel", ButtonStyle.Danger))
             ],
             AllowedMentions = AllowedMentionsProperties.None,
             Flags = MessageFlags.Ephemeral
         }));
     }
+#endif
 
     [SubSlashCommand("remove", "Manage verification removal")]
     [RequireGuildContext<ApplicationCommandContext>]
@@ -65,17 +65,44 @@ public class VerifyModule(
                     x.Content = $"Are you sure you want to remove verification for <@{user.Id}>?";
                     x.AddComponents(
                         new ActionRowProperties()
-                            .AddButtons(new ButtonProperties($"verify remove confirm:{user.Id}", "Confirm", ButtonStyle.Danger))
-                            .AddButtons(new ButtonProperties("verify remove cancel", "Cancel", ButtonStyle.Secondary))
+                            .AddButtons(new ButtonProperties($"{VerifyInteractionIds.VerifyRemoveConfirm}:{user.Id}", "Confirm", ButtonStyle.Danger))
+                            .AddButtons(new ButtonProperties(VerifyInteractionIds.VerifyRemoveCancel, "Cancel", ButtonStyle.Secondary))
                     );
                 });
             }
         }
 
         [SubSlashCommand("history", "Remove historical MouseHunt ID link")]
-        public async Task RemoveVerificationHistory()
+        public async Task RemoveVerificationHistory(
+        [SlashCommandParameter(Description = "A Discord user that has previously verified")] User user
+        )
         {
-            await RespondAsync(InteractionCallback.DeferredEphemeralMessage());
+            await RespondAsync(InteractionCallback.DeferredMessage());
+
+            if (!await verificationService.IsDiscordUserVerifiedAsync(Context.Guild!.Id, Context.User.Id))
+            {
+                await ModifyResponseAsync(x =>
+                {
+                    x.Content = "That user is not verified.";
+                });
+            }
+            else
+            {
+                await ModifyResponseAsync(x =>
+                {
+                    x.Content = $"""
+                    Are you sure you want to remove historical verification for <@{user.Id}>?
+
+                    This will allow them to verify with a different MouseHunt ID.
+                    """;
+                    
+                    x.AddComponents(
+                        new ActionRowProperties()
+                            .AddButtons(new ButtonProperties($"{VerifyInteractionIds.VerifyHistoryRemoveConfirm}:{user.Id}", "Confirm", ButtonStyle.Danger))
+                            .AddButtons(new ButtonProperties(VerifyInteractionIds.VerifyHistoryRemoveCancel, "Cancel", ButtonStyle.Secondary))
+                    );
+                });
+            }
         }
     }
 }

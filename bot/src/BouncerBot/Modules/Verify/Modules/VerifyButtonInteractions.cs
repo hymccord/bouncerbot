@@ -8,10 +8,11 @@ namespace BouncerBot.Modules.Verify.Modules;
 
 public class VerifyButtonInteractions(
     ILogger<VerifyButtonInteractions> logger,
+    IVerificationService verificationService,
     IVerificationOrchestrator verificationOrchestrator)
     : ComponentInteractionModule<ButtonInteractionContext>
 {
-    [ComponentInteraction("verify user confirm")]
+    [ComponentInteraction(VerifyInteractionIds.VerifyUserConfirm)]
     public async Task VerifyUser(uint mouseHuntId, ulong discordId)
     {
         await RespondAsync(InteractionCallback.DeferredModifyMessage);
@@ -32,13 +33,13 @@ public class VerifyButtonInteractions(
         });
     }
 
-    [ComponentInteraction("verify user cancel")]
+    [ComponentInteraction(VerifyInteractionIds.VerifyUserCancel)]
     public async Task CancelVerifyUser()
     {
         await DeferModifyAndDeleteResponseAsync();
     }
 
-    [ComponentInteraction("verify remove confirm")]
+    [ComponentInteraction(VerifyInteractionIds.VerifyRemoveConfirm)]
     public async Task RemoveVerification(ulong discordId)
     {
         await RespondAsync(InteractionCallback.DeferredModifyMessage);
@@ -57,7 +58,7 @@ public class VerifyButtonInteractions(
         });
     }
 
-    [ComponentInteraction("verify remove cancel")]
+    [ComponentInteraction(VerifyInteractionIds.VerifyRemoveCancel)]
     public async Task CancelRemoveVerification()
     {
         await DeferModifyAndDeleteResponseAsync();
@@ -67,5 +68,26 @@ public class VerifyButtonInteractions(
     {
         await RespondAsync(InteractionCallback.DeferredModifyMessage);
         await DeleteResponseAsync();
+    }
+
+    [ComponentInteraction(VerifyInteractionIds.VerifyHistoryRemoveConfirm)]
+    public async Task RemoveVerificationHistory(ulong discordId)
+    {
+        await RespondAsync(InteractionCallback.DeferredModifyMessage);
+
+        var result = await verificationService.RemoveVerificationHistoryAsync(Context.Guild!.Id, discordId);
+
+        await ModifyResponseAsync(x =>
+        {
+            x.Content = result.WasRemoved ? "User MouseHunt ID history removed!" : "Sorry, I couldn't remove their history. It doesn't exist.";
+            x.Flags = MessageFlags.Ephemeral;
+            x.Components = [];
+        });
+    }
+
+    [ComponentInteraction(VerifyInteractionIds.VerifyHistoryRemoveCancel)]
+    public async Task CancelRemoveVerificationHistory()
+    {
+        await DeferModifyAndDeleteResponseAsync();
     }
 }
