@@ -1,7 +1,7 @@
 using System.Text;
 
+using BouncerBot;
 using BouncerBot.Attributes;
-using BouncerBot.Modules.Config;
 
 using Humanizer;
 
@@ -12,7 +12,7 @@ using NetCord.Rest;
 using NetCord.Services;
 using NetCord.Services.ApplicationCommands;
 
-namespace BouncerBot.Modules.Variables.Modules;
+namespace BouncerBot.Modules.Config.Modules;
 
 [SlashCommand("config", "Manage bot configuration")]
 [RequireUserPermissions<ApplicationCommandContext>(Permissions.ManageGuild)]
