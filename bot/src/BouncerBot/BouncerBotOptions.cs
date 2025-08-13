@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 
 namespace BouncerBot;
-public class Options
+public class BouncerBotOptions
 {
     [Required]
     public required EmojiOptions Emojis { get; set; }

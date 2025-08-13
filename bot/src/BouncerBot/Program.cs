@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 using NetCord;
 using NetCord.Gateway;
@@ -52,8 +53,8 @@ builder.Services
     ;
 
 builder.Services
-    .AddOptions<Options>()
-    .BindConfiguration(nameof(Options))
+    .AddOptions<BouncerBotOptions>()
+    .BindConfiguration(nameof(BouncerBotOptions))
     .ValidateDataAnnotations();
 
 builder.Services

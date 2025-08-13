@@ -18,7 +18,7 @@ namespace BouncerBot.Modules.Variables.Modules;
 [RequireUserPermissions<ApplicationCommandContext>(Permissions.ManageGuild)]
 [RequireGuildContext<ApplicationCommandContext>]
 public class ConfigModule(
-    IOptionsSnapshot<Options> options,
+    IOptionsSnapshot<BouncerBotOptions> options,
     IConfigService configService)
     : ApplicationCommandModule<ApplicationCommandContext>
 {

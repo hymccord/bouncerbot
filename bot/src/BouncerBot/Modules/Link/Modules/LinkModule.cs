@@ -11,7 +11,7 @@ using NetCord.Services.ApplicationCommands;
 namespace BouncerBot.Modules.Link.Modules;
 [RequireGuildContext<ApplicationCommandContext>]
 public class LinkModule(
-    IOptionsSnapshot<Options> options,
+    IOptionsSnapshot<BouncerBotOptions> options,
     IRandomPhraseGenerator randomPhraseGenerator,
     IVerificationService verificationService,
     IRoleService roleService): ApplicationCommandModule<ApplicationCommandContext>

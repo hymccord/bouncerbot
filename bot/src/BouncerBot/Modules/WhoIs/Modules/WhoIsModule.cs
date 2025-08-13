@@ -12,7 +12,7 @@ namespace BouncerBot.Modules.WhoIs.Modules;
 [RequireManageRoles<ApplicationCommandContext>]
 [RequireGuildContext<ApplicationCommandContext>]
 public class WhoIsModule(
-    IOptionsSnapshot<Options> options,
+    IOptionsSnapshot<BouncerBotOptions> options,
     IWhoIsOrchestrator whoIsOrchestrator) : ApplicationCommandModule<ApplicationCommandContext>
 {
     [SubSlashCommand("user", "Get the Hunter ID for a Discord user")]

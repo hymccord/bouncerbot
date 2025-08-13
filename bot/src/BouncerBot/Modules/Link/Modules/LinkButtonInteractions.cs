@@ -8,7 +8,7 @@ using NetCord.Services.ComponentInteractions;
 
 namespace BouncerBot.Modules.Link.Modules;
 public class LinkButtonInteractions(
-    IOptionsSnapshot<Options> options,
+    IOptionsSnapshot<BouncerBotOptions> options,
     IVerificationOrchestrator verificationOrchestrator) : ComponentInteractionModule<ButtonInteractionContext>
 {
     [ComponentInteraction("link start")]
