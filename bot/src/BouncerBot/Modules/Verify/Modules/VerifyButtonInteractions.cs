@@ -1,65 +1,57 @@
-using Microsoft.Extensions.Logging;
+using BouncerBot.Modules.Verification;
+
+using Microsoft.Extensions.Options;
 
 using NetCord;
 using NetCord.Rest;
 using NetCord.Services.ComponentInteractions;
 
 namespace BouncerBot.Modules.Verify.Modules;
-
 public class VerifyButtonInteractions(
-    ILogger<VerifyButtonInteractions> logger,
-    IVerificationService verificationService,
-    IVerificationOrchestrator verificationOrchestrator)
-    : ComponentInteractionModule<ButtonInteractionContext>
+    IOptionsSnapshot<BouncerBotOptions> options,
+    IVerificationOrchestrator verificationOrchestrator) : ComponentInteractionModule<ButtonInteractionContext>
 {
-    [ComponentInteraction(VerifyInteractionIds.VerifyUserConfirm)]
-    public async Task VerifyUser(uint mouseHuntId, ulong discordId)
+    [ComponentInteraction("link start")]
+    public async Task VerifyMe(uint mouseHuntId, string phrase)
     {
         await RespondAsync(InteractionCallback.DeferredModifyMessage);
 
-        var result = await verificationOrchestrator.ProcessVerificationAsync(VerificationType.Add, new VerificationParameters
+        await ModifyResponseAsync(x =>
+        {
+            x.Embeds = [
+                new EmbedProperties() {
+                    Description = "Please wait while I read your profile..."
+                }
+                ];
+            x.Flags = MessageFlags.Ephemeral;
+            x.Components = [];
+        });
+
+        var verificationParameters = new VerificationParameters
         {
             MouseHuntId = mouseHuntId,
-            DiscordUserId = discordId,
+            DiscordUserId = Context.User.Id,
             GuildId = Context.Guild!.Id,
-            Phrase = string.Empty, // No phrase needed for manual verification
-        });
+            Phrase = phrase,
+        };
+
+        var verificationResult = await verificationOrchestrator.ProcessVerificationAsync(VerificationType.Self, verificationParameters);
 
         await ModifyResponseAsync(x =>
         {
-            x.Content = result.Message;
+            x.Embeds = [
+                new EmbedProperties() {
+                    Color = new(verificationResult.Success ? options.Value.Colors.Success : options.Value.Colors.Error),
+                    Description = verificationResult.Message
+                }
+                ];
             x.Flags = MessageFlags.Ephemeral;
-            x.Components = [];
-        });
-    }
-
-    [ComponentInteraction(VerifyInteractionIds.VerifyUserCancel)]
-    public async Task CancelVerifyUser()
-    {
-        await DeferModifyAndDeleteResponseAsync();
-    }
-
-    [ComponentInteraction(VerifyInteractionIds.VerifyRemoveConfirm)]
-    public async Task RemoveVerification(ulong discordId)
-    {
-        await RespondAsync(InteractionCallback.DeferredModifyMessage);
-
-        var result = await verificationOrchestrator.ProcessVerificationAsync(VerificationType.Remove, new VerificationParameters
-        {
-            DiscordUserId = discordId,
-            GuildId = Context.Guild!.Id,
         });
 
-        await ModifyResponseAsync(x =>
-        {
-            x.Content = result.Message;
-            x.Flags = MessageFlags.Ephemeral;
-            x.Components = [];
-        });
     }
 
-    [ComponentInteraction(VerifyInteractionIds.VerifyRemoveCancel)]
-    public async Task CancelRemoveVerification()
+    [ComponentInteraction("link cancel")]
+    public async Task CancelVerification()
     {
         await DeferModifyAndDeleteResponseAsync();
     }
@@ -68,26 +60,5 @@ public class VerifyButtonInteractions(
     {
         await RespondAsync(InteractionCallback.DeferredModifyMessage);
         await DeleteResponseAsync();
-    }
-
-    [ComponentInteraction(VerifyInteractionIds.VerifyHistoryRemoveConfirm)]
-    public async Task RemoveVerificationHistory(ulong discordId)
-    {
-        await RespondAsync(InteractionCallback.DeferredModifyMessage);
-
-        var result = await verificationService.RemoveVerificationHistoryAsync(Context.Guild!.Id, discordId);
-
-        await ModifyResponseAsync(x =>
-        {
-            x.Content = result.WasRemoved ? "User MouseHunt ID history removed!" : "Sorry, I couldn't remove their history. It doesn't exist.";
-            x.Flags = MessageFlags.Ephemeral;
-            x.Components = [];
-        });
-    }
-
-    [ComponentInteraction(VerifyInteractionIds.VerifyHistoryRemoveCancel)]
-    public async Task CancelRemoveVerificationHistory()
-    {
-        await DeferModifyAndDeleteResponseAsync();
     }
 }

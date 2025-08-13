@@ -1,5 +1,5 @@
 using BouncerBot.Db;
-using BouncerBot.Modules.Verify;
+using BouncerBot.Modules.Verification;
 
 using Microsoft.Extensions.Logging;
 

@@ -1,10 +1,11 @@
+using BouncerBot;
 using BouncerBot.Rest;
 using BouncerBot.Services;
 
 using NetCord;
 using NetCord.Rest;
 
-namespace BouncerBot.Modules.Verify;
+namespace BouncerBot.Modules.Verification;
 
 public interface IVerificationOrchestrator
 {

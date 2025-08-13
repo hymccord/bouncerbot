@@ -4,7 +4,7 @@ using BouncerBot.Modules.Achieve;
 using BouncerBot.Modules.Bounce;
 using BouncerBot.Modules.Config;
 using BouncerBot.Modules.Puzzle;
-using BouncerBot.Modules.Verify;
+using BouncerBot.Modules.Verification;
 using BouncerBot.Modules.WhoIs;
 using BouncerBot.Services;
 

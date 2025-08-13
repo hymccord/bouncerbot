@@ -1,7 +1,7 @@
 using BouncerBot.Attributes;
 using BouncerBot.Db;
 using BouncerBot.Modules.Achieve;
-using BouncerBot.Modules.Verify;
+using BouncerBot.Modules.Verification;
 using BouncerBot.Services;
 
 using Microsoft.EntityFrameworkCore;

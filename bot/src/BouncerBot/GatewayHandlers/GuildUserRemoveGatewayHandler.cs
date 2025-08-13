@@ -1,4 +1,4 @@
-using BouncerBot.Modules.Verify;
+using BouncerBot.Modules.Verification;
 
 using Microsoft.Extensions.DependencyInjection;
 

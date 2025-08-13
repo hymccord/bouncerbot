@@ -1,6 +1,8 @@
+using BouncerBot;
+
 using CrypticWizard.RandomWordGenerator;
 
-namespace BouncerBot.Modules.Verify;
+namespace BouncerBot.Modules.Verification;
 
 public interface IRandomPhraseGenerator
 {

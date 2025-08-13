@@ -1,6 +1,6 @@
-namespace BouncerBot.Modules.Verify.Modules;
+namespace BouncerBot.Modules.Verification.Modules;
 
-public static class VerifyInteractionIds
+public static class VerificationInteractionIds
 {
     public const string VerifyUserConfirm = "verify user confirm";
     public const string VerifyUserCancel = "verify user cancel";

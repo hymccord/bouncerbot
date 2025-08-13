@@ -1,3 +1,4 @@
+using BouncerBot;
 using BouncerBot.Db;
 using BouncerBot.Db.Models;
 using BouncerBot.Modules.Bounce;
@@ -10,7 +11,7 @@ using Humanizer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace BouncerBot.Modules.Verify;
+namespace BouncerBot.Modules.Verification;
 
 public interface IVerificationService
 {
@@ -39,7 +40,7 @@ public class VerificationService(
             .FirstOrDefaultAsync(vu => vu.DiscordId == discordId && vu.GuildId == guildId);
         if (existingUser is null)
         {
-            await dbContext.VerifiedUsers.AddAsync(new Db.Models.VerifiedUser
+            await dbContext.VerifiedUsers.AddAsync(new VerifiedUser
             {
                 MouseHuntId = mouseHuntId,
                 GuildId = guildId,
@@ -301,7 +302,7 @@ public class VerificationService(
             return;
         }
 
-        existingUser.VerifyMessage = new Db.Models.VerifyMessage
+        existingUser.VerifyMessage = new VerifyMessage
         {
             ChannelId = parameters.ChannelId,
             MessageId = parameters.MessageId

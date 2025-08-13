@@ -1,4 +1,4 @@
-namespace BouncerBot.Modules.Verify;
+namespace BouncerBot.Modules.Verification;
 internal enum VerificationStatus
 {
     Unverified,
