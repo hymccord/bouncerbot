@@ -36,7 +36,7 @@ public partial class MouseHuntRestClient : IMouseHuntRestClient
         NumberHandling = JsonNumberHandling.AllowReadingFromString,
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
     };
-
+    private readonly ILogger<MouseHuntRestClient> _logger;
     private readonly IOptions<MouseHuntRestClientOptions> _options;
     private readonly RestRequestHandler _requestHandler;
     private readonly IDbContextFactory<BouncerBotDbContext> _dbContextFactory;
@@ -52,6 +52,7 @@ public partial class MouseHuntRestClient : IMouseHuntRestClient
         IDbContextFactory<BouncerBotDbContext> dbContextFactory)
     {
         _requestHandler = new RestRequestHandler();
+        _logger = logger;
         _options = options;
         _dbContextFactory = dbContextFactory;
     }
@@ -71,18 +72,36 @@ public partial class MouseHuntRestClient : IMouseHuntRestClient
 
             return;
         }
-        catch
-        { }
+        catch (RestException ex) when ((int)ex.StatusCode >= 500 && (int)ex.StatusCode < 600)
+        {
+            _logger.LogWarning(ex, "Failed to login to MouseHunt API. Status code: {StatusCode}. Retrying in 1 minute.", ex.StatusCode);
+
+            // Try to login again in a minute
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(TimeSpan.FromMinutes(1), cancellationToken);
+                await StartAsync(cancellationToken);
+            }, cancellationToken);
+
+            return;
+        }
+        catch (RestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized || ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
+        {
+            // If we get a 401 or 403, we need to re-login
+            _logger.LogInformation(ex, "Unauthorized or forbidden access to MouseHunt API. Status code: {StatusCode}. Attempting to re-login.", ex.StatusCode);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogCritical(ex, "An unexpected error occurred while starting MouseHuntRestClient. {Message}", ex.Message);
+            throw;
+        }
 
         LoginDetails token = await LoginAsync(_options.Value.Username, _options.Value.Password, cancellationToken);
 
         await SaveSessionToken(token, cancellationToken);
     }
 
-    public async Task StopAsync(CancellationToken cancellationToken)
-    {
-
-    }
+    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
     public Task<T> SendRequestAsync<T>(HttpMethod method, string route, CancellationToken cancellationToken = default)
     {
@@ -181,13 +200,21 @@ public partial class MouseHuntRestClient : IMouseHuntRestClient
 
         if (content.Headers.ContentType is { MediaType: "application/json" })
         {
-            throw new Exception($"Request to {response.RequestMessage.RequestUri} failed with status code {response.StatusCode}: {await content.ReadAsStringAsync(cancellationToken)}");
+            RestError error;
+            try
+            {
+                error = (await JsonSerializer.DeserializeAsync<RestError>(await content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false), cancellationToken: cancellationToken).ConfigureAwait(false))!;
+            }
+            catch (JsonException)
+            {
+                throw new RestException(response.StatusCode, response.ReasonPhrase);
+            }
+            throw new RestException(response.StatusCode, response.ReasonPhrase, error);
         }
         else
         {
-            throw new Exception($"Request to {response.RequestMessage.RequestUri} failed with status code {response.StatusCode}: {response.ReasonPhrase}");
+            throw new RestException(response.StatusCode, response.ReasonPhrase);
         }
-
     }
 
     private async Task TryLoadSessionToken(CancellationToken cancellationToken = default)
