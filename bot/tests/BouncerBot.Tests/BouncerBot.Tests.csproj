@@ -1,4 +1,4 @@
-<Project Sdk="MSTest.Sdk/3.9.3">
+﻿<Project Sdk="MSTest.Sdk/3.9.3">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -13,6 +13,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Modules\Verify\VerificationOrchestratorTests.cs" />
+    <Compile Remove="Modules\Verify\VerificationServiceTests.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Modules\Verify\VerificationOrchestratorTests.cs" />
+    <None Include="Modules\Verify\VerificationServiceTests.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Diagnostics.Testing" />
     <PackageReference Include="NSubstitute" />
     <PackageReference Include="NSubstitute.Analyzers.CSharp">
@@ -23,6 +33,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\BouncerBot\BouncerBot.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Services\" />
   </ItemGroup>
 
 </Project>

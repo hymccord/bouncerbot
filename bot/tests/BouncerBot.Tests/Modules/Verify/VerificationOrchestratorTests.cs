@@ -79,10 +79,9 @@ public class VerificationOrchestratorTests
         var snuid = new UserSnuIdInfo { SnUserId = "abc" };
         var corkboard = new Corkboard
         {
-            CorkboardMessages = new[]
-            {
+            CorkboardMessages = [
                 new CorkboardMessage { SnUserId = "def", Body = "test phrase" }
-            }
+            ]
         };
 
         _mouseHuntRestClient.GetUserSnuIdAsync(123, Arg.Any<CancellationToken>()).Returns(snuid);

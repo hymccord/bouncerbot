@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BouncerBot.Db.Migrations
 {
     [DbContext(typeof(BouncerBotDbContext))]
-    [Migration("20250729214152_Add-BannedHunters")]
-    partial class AddBannedHunters
+    [Migration("20250814205112_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -20,52 +20,33 @@ namespace BouncerBot.Db.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.6");
 
+            modelBuilder.Entity("BouncerBot.Db.Models.AchievementLogChannelOverride", b =>
+                {
+                    b.Property<ulong>("GuildId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<uint>("AchievementRole")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("ChannelId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("GuildId", "AchievementRole");
+
+                    b.ToTable("AchievementLogOverrides");
+                });
+
             modelBuilder.Entity("BouncerBot.Db.Models.AchievementMessage", b =>
                 {
                     b.Property<ulong>("GuildId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("ArcaneMaster")
-                        .HasColumnType("TEXT");
+                    b.Property<uint>("AchievementRole")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<string>("Checkmark")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Crown")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("DraconicMaster")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("EggMaster")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ForgottenMaster")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("HydroMaster")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("LawMaster")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("MultiMaster")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("PhysicalMaster")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("RiftMaster")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ShadowMaster")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Star")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("TacticalMaster")
+                    b.Property<string>("Message")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("GuildId");
@@ -94,19 +75,16 @@ namespace BouncerBot.Db.Migrations
                     b.ToTable("BannedHunters");
                 });
 
-            modelBuilder.Entity("BouncerBot.Db.Models.LogSetting", b =>
+            modelBuilder.Entity("BouncerBot.Db.Models.LogChannelsSetting", b =>
                 {
                     b.Property<ulong>("GuildId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<ulong?>("EggMasterId")
+                    b.Property<ulong?>("AchievementId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<ulong?>("FlexId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<ulong?>("LogId")
+                    b.Property<ulong?>("GeneralId")
                         .HasColumnType("INTEGER");
 
                     b.Property<ulong?>("VerificationId")
@@ -120,64 +98,15 @@ namespace BouncerBot.Db.Migrations
             modelBuilder.Entity("BouncerBot.Db.Models.RoleSetting", b =>
                 {
                     b.Property<ulong>("GuildId")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<ulong?>("AchieverId")
+                    b.Property<int>("Role")
                         .HasColumnType("INTEGER");
 
-                    b.Property<ulong?>("ArcaneMasterId")
+                    b.Property<ulong>("DiscordRoleId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<ulong?>("CheckmarkId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<ulong?>("CrownId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<ulong?>("DraconicMasterId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<ulong?>("EggMasterId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<ulong?>("ForgottenMasterId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<ulong?>("HydroMasterId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<ulong?>("LawMasterId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<ulong?>("MapBannedId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<ulong?>("MultiMasterId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<ulong?>("PhysicalMasterId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<ulong?>("RiftMasterId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<ulong?>("ShadowMasterId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<ulong?>("StarId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<ulong?>("TacticalMasterId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<ulong?>("TradeBannedId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<ulong?>("VerifiedId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("GuildId");
+                    b.HasKey("GuildId", "Role");
 
                     b.ToTable("RoleSettings");
                 });
@@ -201,8 +130,8 @@ namespace BouncerBot.Db.Migrations
                     b.Property<ulong>("GuildId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<ulong>("DiscordId")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("DiscordIdHash")
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -213,31 +142,31 @@ namespace BouncerBot.Db.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.HasKey("GuildId", "DiscordId");
+                    b.HasKey("GuildId", "DiscordIdHash");
+
+                    b.HasIndex("GuildId", "MouseHuntIdHash")
+                        .IsUnique();
 
                     b.ToTable("VerificationHistory");
                 });
 
             modelBuilder.Entity("BouncerBot.Db.Models.VerifiedUser", b =>
                 {
-                    b.Property<uint>("MouseHuntId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<ulong>("GuildId")
                         .HasColumnType("INTEGER");
 
                     b.Property<ulong>("DiscordId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<uint>("MouseHuntId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int?>("VerifyMessageId")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("MouseHuntId", "GuildId", "DiscordId");
+                    b.HasKey("GuildId", "DiscordId");
 
                     b.HasIndex("VerifyMessageId")
-                        .IsUnique();
-
-                    b.HasIndex("GuildId", "DiscordId")
                         .IsUnique();
 
                     b.HasIndex("GuildId", "MouseHuntId")

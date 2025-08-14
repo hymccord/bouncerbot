@@ -64,7 +64,7 @@ public class VerificationOrchestrator(
             await guildLoggingService.LogAsync(parameters.GuildId, LogType.General, new()
             {
                 Content = $"""
-                <@{parameters.DiscordUserId}> attempted to use `/link` on a profile that isn't theirs.
+                <@{parameters.DiscordUserId}> attempted to use `/verify` on a profile that isn't theirs.
                 Profile SnuId: {snuid.SnUserId}, Corkboard Author SnuId: {latestMessage?.SnUserId}",
                 """,
                 AllowedMentions = AllowedMentionsProperties.None,
