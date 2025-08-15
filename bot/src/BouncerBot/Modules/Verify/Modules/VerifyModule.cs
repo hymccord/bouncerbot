@@ -63,10 +63,10 @@ public class VerifyModule(
         {
             var message = "";
             // Edge case: somehow the role was removed but the user is still linked.
-            if (!await roleService.HasRoleAsync(Context.Guild.Id, Context.User.Id, Role.Verified))
+            if (!await roleService.HasRoleAsync(Context.User.Id, Context.Guild.Id, Role.Verified))
             {
                 message = "You are already verified, but do not have the associated role. I've added it.";
-                await roleService.AddRoleAsync(Context.Guild.Id, Context.User.Id, Role.Verified);
+                await roleService.AddRoleAsync(Context.User.Id, Context.Guild.Id, Role.Verified);
             }
             else
             {
