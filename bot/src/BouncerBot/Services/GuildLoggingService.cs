@@ -105,9 +105,17 @@ internal class GuildLoggingService(
         }
 
         logger.LogInformation("Logging achievement '{Achievement}' to channel {LogChannelId} in guild {GuildId}: {Message}", achievement, logChannelId.Value, guildId, content);
-        await textChannel.SendMessageAsync(new MessageProperties
+
+        try
         {
-            Content = content
-        }, cancellationToken: cancellationToken);
+            await textChannel.SendMessageAsync(new MessageProperties
+            {
+                Content = content
+            }, cancellationToken: cancellationToken);
+        }
+        catch (RestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
+        {
+            logger.LogWarning(ex, "Failed to log achievement '{Achievement}' to channel {LogChannelId} in guild {GuildId}: {Message}", achievement, logChannelId.Value, guildId, content);
+        }
     }
 }

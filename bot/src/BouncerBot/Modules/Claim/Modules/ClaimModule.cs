@@ -77,6 +77,28 @@ public class ClaimModule(
                 });
             }
         }
+        catch (RoleNotConfiguredException)
+        {
+            await ModifyResponseAsync(m =>
+            {
+                m.Content = $"""
+                    The role for this achievement is not configured properly. Please contact the server moderators to resolve this issue.
+                    """;
+                m.Flags = MessageFlags.Ephemeral;
+            });
+        }
+        catch (MessageNotConfiguredException)
+        {
+            await ModifyResponseAsync(m =>
+            {
+                m.Content = $"""
+                    The message for this achievement is not configured properly, but the role has been assigned successfully.
+
+                    Please contact the server moderators to resolve this issue.
+                    """;
+                m.Flags = MessageFlags.Ephemeral;
+            });
+        }
         catch (Exception ex)
         {
             await ModifyResponseAsync(m =>
@@ -84,7 +106,7 @@ public class ClaimModule(
                 m.Content = $"""
                     An error occurred while processing your achievement. Please try again later.
 
-                    Error: `{ex.Message}`
+                    -# Error: {ex.Message}
                     """;
                 m.Flags = MessageFlags.Ephemeral;
             });

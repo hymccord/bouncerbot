@@ -20,7 +20,7 @@ public interface IAchievementMessageService
     /// <param name="achievement">The type of achievement role that was earned.</param>
     /// <param name="cancellationToken">Token to cancel the asynchronous operation.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    /// <exception cref="RoleNotConfiguredException">Thrown when no achievement message is configured for the specified guild and achievement type.</exception>
+    /// <exception cref="MessageNotConfiguredException">Thrown when no achievement message is configured for the specified guild and achievement type.</exception>
     Task SendAchievementMessageAsync(ulong userId, ulong guildId, AchievementRole achievement, CancellationToken cancellationToken = default);
 }
 
@@ -32,7 +32,7 @@ public class AchievementMessageService(
     {
         var achievementMessage = await dbContext.AchievementMessages
             .FirstOrDefaultAsync(am => am.GuildId == guildId && am.AchievementRole == achievement, cancellationToken: cancellationToken)
-            ?? throw new RoleNotConfiguredException(EnumUtils.ToRole(achievement));
+            ?? throw new MessageNotConfiguredException(achievement);
 
         var template = Template.Parse(achievementMessage.Message.Replace("{mention}", "{{mention}}"));
         var content = template.Render(new
