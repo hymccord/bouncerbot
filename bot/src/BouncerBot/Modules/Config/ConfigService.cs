@@ -132,17 +132,7 @@ public class ConfigService(BouncerBotDbContext dbContext) : IConfigService
         var achievementOverride = await dbContext.AchievementLogOverrides
             .FirstOrDefaultAsync(alo => alo.GuildId == guildId && alo.AchievementRole == achievementRole);
 
-        if (achievementOverride != null)
-            return achievementOverride.ChannelId;
-
-        // Fall back to general settings based on achievement type
-        var logSetting = await dbContext.LogSettings.FindAsync(guildId);
-        if (logSetting == null) return null;
-
-        return achievementRole switch
-        {
-            _ => logSetting.AchievementId ?? logSetting.GeneralId
-        };
+        return achievementOverride?.ChannelId;
     }
 
     public async Task SetAchievementLogChannelAsync(ulong guildId, AchievementRole achievementRole, ulong? channelId = null)
