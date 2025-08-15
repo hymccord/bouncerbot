@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - .github/workflows/cloudflare.yml
-      - ./worker/**
+      - worker/**
   workflow_dispatch:
 
 concurrency:
