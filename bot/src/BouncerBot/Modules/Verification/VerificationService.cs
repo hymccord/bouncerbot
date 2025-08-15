@@ -103,7 +103,7 @@ public class VerificationService(
         if (!banCheck.CanVerify)
             return banCheck;
 
-        var existingUserCheck = await CheckHunterInUseAsync(mouseHuntId, guildId, cancellationToken);
+        var existingUserCheck = await CheckHunterInUseAsync(mouseHuntId, guildId, discordId, cancellationToken);
         if (!existingUserCheck.CanVerify)
             return existingUserCheck;
 
@@ -141,10 +141,10 @@ public class VerificationService(
         return new CanUserVerifyResult { CanVerify = true, Message = "" };
     }
 
-    private async Task<CanUserVerifyResult> CheckHunterInUseAsync(uint mouseHuntId, ulong guildId, CancellationToken cancellationToken)
+    private async Task<CanUserVerifyResult> CheckHunterInUseAsync(uint mouseHuntId, ulong guildId, ulong discordId, CancellationToken cancellationToken)
     {
         var existingUser = await dbContext.VerifiedUsers
-            .FirstOrDefaultAsync(vu => vu.MouseHuntId == mouseHuntId && vu.GuildId == guildId, cancellationToken);
+            .FirstOrDefaultAsync(vu => vu.GuildId == guildId && vu.MouseHuntId == mouseHuntId && vu.DiscordId != discordId, cancellationToken);
 
         if (existingUser is not null)
         {
@@ -152,7 +152,7 @@ public class VerificationService(
             {
                 CanVerify = false,
                 Message = """
-                This MouseHunt ID is already being used by a Discord account in this server.
+                This MouseHunt ID is already being used by different Discord user in this server.
 
                 If you believe this is an error, please contact the moderators immediately.
                 """
