@@ -11,6 +11,12 @@ public static class ConfigModuleMetadata
         public const string Description = "Set channel where specified events go. Leave empty to clear channel.";
     }
 
+    public static class LogAchievementCommand
+    {
+        public const string Name = "log-achievement";
+        public const string Description = "Set channel override per achievement. Leave empty to clear channel.";
+    }
+
     public static class RoleCommand
     {
         public const string Name = "role";

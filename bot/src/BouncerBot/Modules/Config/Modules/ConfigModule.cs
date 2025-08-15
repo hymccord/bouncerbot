@@ -1,5 +1,3 @@
-using System.Text;
-
 using BouncerBot;
 using BouncerBot.Attributes;
 
@@ -26,11 +24,56 @@ public partial class ConfigModule(
     [SubSlashCommand(ConfigModuleMetadata.LogCommand.Name, ConfigModuleMetadata.LogCommand.Description)]
     public async Task SetLogChannelAsync(
         [SlashCommandParameter(Description = "Log type", Name = "type")] LogChannel logChannel,
-        [SlashCommandParameter(Description = "Output channel")] Channel? channel = default)
+        [SlashCommandParameter(Description = "Output channel")] TextChannel? channel = default)
     {
         await configService.SetLogChannelSettingAsync(Context.Guild!.Id, logChannel, channel?.Id);
 
         await RespondAsync(InteractionCallback.Message($"Set {logChannel.Humanize()} channel to {(channel is null ? "none" : $"<#{channel.Id}>")}"));
+    }
+
+    [SubSlashCommand(ConfigModuleMetadata.LogAchievementCommand.Name, ConfigModuleMetadata.LogAchievementCommand.Description)]
+    public async Task SetLogAchievementChannelAsync(
+        [SlashCommandParameter(Description = "Achievement")] AchievementRole achievement,
+        [SlashCommandParameter(Description = "Output channel")] TextChannel? channel = default)
+    {
+
+        if (channel is not null)
+        {
+            var botUser = Context.Guild!.Users[Context.Client.Cache.User!.Id]!;
+            var permissions = botUser.GetResolvedChannelPermissions(Context.Guild, channel.Id);
+
+            if (!permissions.HasFlag(Permissions.SendMessages))
+            {
+                await RespondAsync(InteractionCallback.Message(new()
+                {
+                    Content = $"I don't have permission to send messages in <#{channel.Id}>.",
+                    Flags = MessageFlags.Ephemeral
+                }));
+
+                return;
+            }
+        }
+
+        // Ensure permission to send messages in the channel
+        if (channel is IInteractionChannel interactionChannel && !interactionChannel.Permissions.HasFlag(Permissions.SendMessages))
+        {
+            await RespondAsync(InteractionCallback.Message(new()
+            {
+                Content = $"I don't have permission to send messages in <#{channel.Id}>.",
+                Flags = MessageFlags.Ephemeral
+            }));
+        }
+
+        await configService.SetAchievementLogChannelAsync(Context.Guild!.Id, achievement, channel?.Id);
+
+        if (channel is null)
+        {
+            await RespondAsync(InteractionCallback.Message($"Unset override. {achievement.Humanize()} achievement will log to the default achievement channel."));
+        }
+        else
+        {
+            await RespondAsync(InteractionCallback.Message($"Overrode {achievement.Humanize()} achievement to log channel to <#{channel.Id}>"));
+        }
     }
 
     [SubSlashCommand(ConfigModuleMetadata.RoleCommand.Name, ConfigModuleMetadata.RoleCommand.Description)]
@@ -50,7 +93,7 @@ public partial class ConfigModule(
     [SubSlashCommand(ConfigModuleMetadata.MessageCommand.Name, ConfigModuleMetadata.MessageCommand.Description)]
     public async Task SetMessageAsync(
         [SlashCommandParameter(Description = "Achievement type", Name = "achievement")] AchievementRole achievementRole,
-        [SlashCommandParameter(Description = "Message to send.")] string message)
+        [SlashCommandParameter(Description = "Message to send. Use {mention} to mention the user.")] string message)
     {
         await configService.SetAchievementMessageAsync(Context.Guild!.Id, achievementRole, message);
 

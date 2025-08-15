@@ -10,8 +10,6 @@ using NetCord.Services.ComponentInteractions;
 namespace BouncerBot;
 public static class Extensions
 {
-#pragma warning disable IDE0079 // Remove unnecessary suppression
-#pragma warning disable CA1822 // Mark members as static
     extension(IServiceCollection services)
     {
         public IServiceCollection AddMouseHuntClient()
@@ -39,6 +37,4 @@ public static class Extensions
             return services;
         }
     }
-#pragma warning restore CA1822,IDE0079
-
 }
