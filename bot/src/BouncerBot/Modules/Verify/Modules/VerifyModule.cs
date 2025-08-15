@@ -1,5 +1,6 @@
 using BouncerBot;
 using BouncerBot.Attributes;
+using BouncerBot.Modules.Privacy.Modules;
 using BouncerBot.Modules.Verification;
 using BouncerBot.Services;
 
@@ -18,7 +19,7 @@ public class VerifyModule(
     IRoleService roleService,
     ICommandMentionService commandMentionService): ApplicationCommandModule<ApplicationCommandContext>
 {
-    [SlashCommand("verify", "Verify that you own a MouseHunt account.")]
+    [SlashCommand(VerifyModuleMetadata.VerifyCommand.Name, VerifyModuleMetadata.VerifyCommand.Description)]
     public async Task LinkAsync(
         [SlashCommandParameter(Description = "Your MouseHunt ID", MinValue = 1)]
         uint mousehuntID)
@@ -98,7 +99,7 @@ public class VerifyModule(
                         Description = $"""
                         You previously verified with this MouseHunt ID. I've added the appropriate role!
 
-                        -# To learn how I know this, use the {commandMentionService.GetCommandMention("privacy")} command.
+                        -# To learn how I know this, use the {commandMentionService.GetCommandMention(PrivacyModuleMetadata.PrivacyCommand.Name)} command.
                         """,
                         Color = new (options.Value.Colors.Success)
                     }];
@@ -107,7 +108,7 @@ public class VerifyModule(
             return;
         }
 
-        var phrase = $"BouncerBot Discord Link: {randomPhraseGenerator.Generate()}";
+        var phrase = $"BouncerBot Verification: {randomPhraseGenerator.Generate()}";
         await ModifyResponseAsync(x =>
         {
             x.Embeds = [
@@ -117,10 +118,10 @@ public class VerifyModule(
                     Description = $"""
                         This process will associate your current Discord account with your MouseHunt profile.
 
-                        Only **ONE (1)** Discord account can be associated with **ONE (1)** Hunter ID per server. You can use {commandMentionService.GetCommandMention("verify")} to undo this at any time, but you will need to go through this process again to re-link your account. If you wish to use a different Hunter ID than one previously linked, you will have to contact the moderators.
+                        Only **ONE (1)** Discord account can be associated with **ONE (1)** Hunter ID per server. You can use {commandMentionService.GetCommandMention(VerifyModuleMetadata.UnverifyCommand.Name)} to undo this at any time, but you will need to go through this process again to re-link your account. If you wish to use a different Hunter ID than one previously linked, you will have to contact the moderators.
 
                         The moderators of this server will be able to access the linked user information at any time for moderation purposes.
-                        View the privacy policy with the {commandMentionService.GetCommandMention("privacy")} command.
+                        View the privacy policy with the {commandMentionService.GetCommandMention(PrivacyModuleMetadata.PrivacyCommand.Name)} command.
 
                         These are the details I have for you:
                         Discord: <@{Context.User.Id}> <-> MHID: {mousehuntID}
@@ -146,7 +147,7 @@ public class VerifyModule(
         });
     }
 
-    [SlashCommand("unverify", "Unlink your Discord account from your MouseHunt account.")]
+    [SlashCommand(VerifyModuleMetadata.UnverifyCommand.Name, VerifyModuleMetadata.UnverifyCommand.Description)]
     [RequireVerificationStatus<ApplicationCommandContext>(VerificationStatus.Verified)]
     public async Task UnlinkAsync()
     {
@@ -160,7 +161,7 @@ public class VerifyModule(
                     new EmbedProperties()
                     {
                         Title = "Error",
-                        Description = "You are already unlinked!",
+                        Description = "You are already unverified!",
                         Color = new(options.Value.Colors.Warning)
                     }];
                 x.Flags = MessageFlags.Ephemeral;
@@ -176,7 +177,9 @@ public class VerifyModule(
                 new EmbedProperties()
                 {
                     Title = "Unlinked",
-                    Description = "Your Discord account has been unlinked from your MouseHunt account.",
+                    Description = """
+                    Your have been unverified and I have removed your Discord ID and MouseHunt ID from my records.
+                    """,
                     Color = new (options.Value.Colors.Success)
                 }];
             x.Flags = MessageFlags.Ephemeral;

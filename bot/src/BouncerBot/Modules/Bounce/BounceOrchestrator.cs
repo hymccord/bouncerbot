@@ -68,7 +68,7 @@ public class BounceOrchestrator(
             {
                 Success = true,
                 Message = $"""
-                    ✅ Successfully banned Hunter ID {hunterId} from using `/link`.
+                    ✅ Successfully banned Hunter ID {hunterId} from verifying.
                     {(note != null ? $"Note: {note}" : "")}
                     """
             };
@@ -102,7 +102,7 @@ public class BounceOrchestrator(
             // Log the unban action
             await guildLoggingService.LogAsync(guildId, LogType.General, new MessageProperties
             {
-                Content = $"Hunter ID {hunterId} was unbanned and can now use `/link`",
+                Content = $"Hunter ID {hunterId} was unbanned and can now verify",
             });
 
             return new BounceResult
@@ -192,7 +192,7 @@ public class BounceOrchestrator(
                 return new BounceResult
                 {
                     Success = true,
-                    Message = $"✅ Hunter ID {hunterId} is **not banned** and can use `/link`."
+                    Message = $"✅ Hunter ID {hunterId} is **not banned** and can verify."
                 };
             }
 
@@ -200,7 +200,7 @@ public class BounceOrchestrator(
             {
                 Success = true,
                 Message = $"""
-                    ❌ Hunter ID {hunterId} is **banned** from using `/link`.
+                    ❌ Hunter ID {hunterId} is **banned** from verifying.
                     
                     Banned <t:{((DateTimeOffset)bannedHunter.CreatedAt).ToUnixTimeSeconds()}:F>
                     {(string.IsNullOrWhiteSpace(bannedHunter.Note) ? "" : $"Note: {bannedHunter.Note}")}

@@ -1,4 +1,11 @@
 using BouncerBot.Attributes;
+using BouncerBot.Modules.Achieve.Modules;
+using BouncerBot.Modules.Bounce.Modules;
+using BouncerBot.Modules.Claim.Modules;
+using BouncerBot.Modules.Config.Modules;
+using BouncerBot.Modules.Privacy.Modules;
+using BouncerBot.Modules.Verify.Modules;
+using BouncerBot.Modules.WhoIs.Modules;
 using BouncerBot.Services;
 
 using NetCord;
@@ -26,11 +33,11 @@ public class HelpModule(
             {
                 Title = "User Commands",
                 Description = $"""
-                - {cms.GetCommandMention("link")} `<hunterId>`: Link your Discord account to your MouseHunt account.
-                - {cms.GetCommandMention("unlink")}: Unlink your Discord account from your MouseHunt account.
-                - {cms.GetCommandMention("claim")} `<achievement> [share]`: Claim an achievement role if you qualify for it.
-                - {cms.GetCommandMention("privacy")}: View the bot's privacy policy.
-                - {cms.GetCommandMention("help")}: Provides information about the bot and its commands.
+                - {cms.GetCommandMention(VerifyModuleMetadata.VerifyCommand.Name)} `<hunterId>`: {VerifyModuleMetadata.VerifyCommand.Description}
+                - {cms.GetCommandMention(VerifyModuleMetadata.UnverifyCommand.Name)}: {VerifyModuleMetadata.UnverifyCommand.Name}
+                - {cms.GetCommandMention(ClaimModuleMetadata.ClaimCommand.Name)} `<achievement> [private]`: {ClaimModuleMetadata.ClaimCommand.Description}
+                - {cms.GetCommandMention(PrivacyModuleMetadata.PrivacyCommand.Name)}: {PrivacyModuleMetadata.PrivacyCommand.Description}
+                - {cms.GetCommandMention(HelpModuleMetadata.HelpCommand.Name)}: {HelpModuleMetadata.HelpCommand.Description}
                 """
             });
 
@@ -40,16 +47,16 @@ public class HelpModule(
                 {
                     Title = "Moderator Commands",
                     Description = $"""
-                    - {cms.GetSubCommandMention("achieve verify")} `<hunterId> <achievement>`: Check if a Hunter ID qualifies for an achievement.
-                    - {cms.GetSubCommandMention("achieve reset")} `<achievement>`: Remove achievement role from all users (and grants Achiever role).
-                    - {cms.GetSubCommandMention("bounce add")} `<hunterId> [note]`: Ban a MouseHunt ID from using `/link`.
-                    - {cms.GetSubCommandMention("bounce remove")} `<hunterId>`: Remove a MouseHunt ID from the ban list.
-                    - {cms.GetSubCommandMention("bounce remove-all")}: Purge the entire ban list for this server.
-                    - {cms.GetSubCommandMention("bounce list")}: View all banned MouseHunt IDs.
-                    - {cms.GetSubCommandMention("bounce check")} `<hunterId>`: Check if a MouseHunt ID is banned.
-                    - {cms.GetSubCommandMention("bounce note")} `<hunterId> [note]`: Update the note for a banned MouseHunt ID.
-                    - {cms.GetSubCommandMention("whois user")} `<user>`: Get the Hunter ID for a Discord user.
-                    - {cms.GetSubCommandMention("whois hunter")} `<hunterId>`: Get the Discord user for a Hunter ID.
+                    - {cms.GetSubCommandMention("achieve verify")} `<hunterId> <achievement>`: {AchieveModuleMetadata.VerifyCommand.Description}
+                    - {cms.GetSubCommandMention("achieve reset")} `<achievement>`: {AchieveModuleMetadata.ResetCommand.Description}
+                    - {cms.GetSubCommandMention("bounce add")} `<hunterId> [note]`: {BounceModuleMetadata.AddCommand.Description}
+                    - {cms.GetSubCommandMention("bounce remove")} `<hunterId>`: {BounceModuleMetadata.RemoveCommand.Description}
+                    - {cms.GetSubCommandMention("bounce remove-all")}: {BounceModuleMetadata.RemoveAllCommand.Description}
+                    - {cms.GetSubCommandMention("bounce list")}: {BounceModuleMetadata.ListCommand.Description}
+                    - {cms.GetSubCommandMention("bounce check")} `<hunterId>`: {BounceModuleMetadata.CheckCommand.Description}
+                    - {cms.GetSubCommandMention("bounce note")} `<hunterId> [note]`: {BounceModuleMetadata.NoteCommand.Description}
+                    - {cms.GetSubCommandMention("whois user")} `<user>`: {WhoIsModuleMetadata.UserCommand.Description}
+                    - {cms.GetSubCommandMention("whois hunter")} `<hunterId>`: {WhoIsModuleMetadata.HunterCommand.Description}
                     """,
                 });
             }
@@ -60,11 +67,11 @@ public class HelpModule(
                 {
                     Title = "Administrator Commands",
                     Description = $"""
-                    - {cms.GetSubCommandMention("config log")} `<type> [channel]`: Set the channel where the bot will log events. Leave blank to unset.
-                    - {cms.GetSubCommandMention("config role")} `<role> <selectedRole>`: Set the Discord role for various bot operations.
-                    - {cms.GetSubCommandMention("config message")} `<achievement> <message>`: Set the message to send when a user qualifies for a Discord Role Challenge achievement.
-                    - {cms.GetSubCommandMention("config link")} `<min_rank>`: Set the minimum MouseHunt rank required to successfully use the `/link` command.
-                    - {cms.GetSubCommandMention("config list")} `[setting]`: View the current configuration of the bot.
+                    - {cms.GetSubCommandMention("config log")} `<type> [channel]`: {ConfigModuleMetadata.LogCommand.Description}
+                    - {cms.GetSubCommandMention("config role")} `<role> <selectedRole>`: {ConfigModuleMetadata.RoleCommand.Description}
+                    - {cms.GetSubCommandMention("config message")} `<achievement> <message>`: {ConfigModuleMetadata.MessageCommand.Description}
+                    - {cms.GetSubCommandMention("config verify")} `<min_rank>`: {ConfigModuleMetadata.VerifyCommand.Description}
+                    - {cms.GetSubCommandMention("config list")} `[setting]`: {ConfigModuleMetadata.ListCommand.Description}
                     """,
                 });
             }

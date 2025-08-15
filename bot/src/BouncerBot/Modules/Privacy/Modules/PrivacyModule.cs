@@ -1,4 +1,5 @@
 using BouncerBot.Attributes;
+using BouncerBot.Modules.Verify.Modules;
 using BouncerBot.Services;
 
 using NetCord.Rest;
@@ -10,7 +11,7 @@ public class PrivacyModule(
     ICommandMentionService commandMentionService
 ) : ApplicationCommandModule<ApplicationCommandContext>
 {
-    [SlashCommand("privacy", "Show the privacy policy")]
+    [SlashCommand(PrivacyModuleMetadata.PrivacyCommand.Name, PrivacyModuleMetadata.PrivacyCommand.Description)]
     public async Task ShowPrivacyPolicyAsync()
     {
         await RespondAsync(InteractionCallback.Message(new InteractionMessageProperties()
@@ -19,21 +20,21 @@ public class PrivacyModule(
             **Privacy Policy**
 
             **Information We Collect:**
-            • Discord user information (user ID)
-            • MouseHunt ID when your account is linked to our service
+            • Discord user information (Discord User ID)
+            • MouseHunt ID when your account is verified
 
             **How We Use Your Information:**
-            • To provide bot achievment functionality
+            • To provide bot achievement functionality
             • Moderators can view Discord user IDs and MouseHunt IDs for server moderation purposes
 
             **Data Retention:**
             • We **permanently retain** anonymous hashes of the Discord ID and MouseHunt ID after verification
             • Discord ID and MouseHunt ID are stored together while your account remains verified
-            • When you {commandMentionService.GetCommandMention("unverify")} or leave the server, all identifiable information is deleted
+            • When you {commandMentionService.GetCommandMention(VerifyModuleMetadata.UnverifyCommand.Name)} or leave the server (willingly or not), all identifiable verified information is deleted
 
             **Data Protection:**
             • Your information is stored on the secure <https://mhct.win> server (right next to LarryBot) and only used for bot operations
-            • You can {commandMentionService.GetCommandMention("unverify")} at any time
+            • You can {commandMentionService.GetCommandMention(VerifyModuleMetadata.UnverifyCommand.Name)} at any time
 
             **Contact:**
             If you have questions about this privacy policy or your data, please contact the moderators.

@@ -1,5 +1,6 @@
 using BouncerBot.Db;
 using BouncerBot.Modules.Verification;
+using BouncerBot.Modules.Verify.Modules;
 using BouncerBot.Services;
 
 using Microsoft.EntityFrameworkCore;
@@ -41,12 +42,12 @@ internal class RequireVerificationStatusAttribute<TContext> : RequireContextAttr
             (false, VerificationStatus.Verified) => PreconditionResult.Fail($""""
                 This is a verified user only club! Once you're on my list, I'll let you use that command.
 
-                -# Hint: Use the {commandMentionService.GetCommandMention("link")} command.
+                -# Hint: Use the {commandMentionService.GetCommandMention(VerifyModuleMetadata.VerifyCommand.Name)} command.
                 """"),
             (true, VerificationStatus.Unverified) => PreconditionResult.Fail($"""
                 I don't let verified users use this! I could bounce you out of my club, then I'll let you use that command.
                 
-                -# Hint: Use the {commandMentionService.GetCommandMention("unlink")} command.
+                -# Hint: Use the {commandMentionService.GetCommandMention(VerifyModuleMetadata.UnverifyCommand.Name)} command.
                 """),
             (true, VerificationStatus.Verified) => PreconditionResult.Success,
 

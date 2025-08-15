@@ -2,6 +2,7 @@ using BouncerBot.Attributes;
 using BouncerBot.Db;
 using BouncerBot.Modules.Achieve;
 using BouncerBot.Modules.Verification;
+using BouncerBot.Modules.Verify.Modules;
 using BouncerBot.Services;
 
 using Microsoft.EntityFrameworkCore;
@@ -20,27 +21,20 @@ public class ClaimModule(
 {
     private static readonly string[] s_rejectionPhrases = [
         "Hah, trying to pull a fast one on me!? Scram!",
-        "Not on the list, not in the club! Try again, pal.",
         "You think you can cheese your way in here? Think again!",
-        "Sorry, no entry for hunters without the right credentials!",
-        "You’re not VIP material yet. Come back when you’ve earned it!",
-        "Nice try, but this club’s for achievers only!",
-        "You’re squeaking up the wrong door, buddy!",
-        "No badge, no boogie. Rules are rules!",
-        "I don’t see your name on the VIP list. Scram!",
-        "You’re not quite the big cheese we’re looking for. Move along!",
-        "This club’s for the elite. Better luck next time, rookie!",
-        "You’re trying to sneak in? Not on my watch!",
-        "Come back when you’ve got the right moves, champ!",
-        "Denied! This club’s for qualified hunters only!",
-        "You’re not dressed for success. No entry!",
-        "Hah! You think you can outsmart me? Not today!",
+        "Nice try, but this club is for real achievers only!",
+        "You're not quite the big cheese we're looking for. Move along!",
+        "This club's for the elite. Keep working on it, rookie!",
+        "You're trying to sneak in to this exclusive club without all the work? Not on my watch!",
+        "Come back when you've got all the qualifications, champ!",
+        "Denied. This club is for qualified hunters only!",
+        "Hah! You think you can outsmart me by not completing all the requirements? Not today!",
     ];
 
-    [SlashCommand("claim", "Claim an achievement role!")]
+    [SlashCommand(ClaimModuleMetadata.ClaimCommand.Name, ClaimModuleMetadata.ClaimCommand.Description)]
     [RequireVerificationStatus<ApplicationCommandContext>(VerificationStatus.Verified)]
     public async Task ClaimAsync(AchievementRole achievement,
-        [SlashCommandParameter(Description = "Publicly share your achievement? (Defaults to true)")]bool? share = true)
+        [SlashCommandParameter(Description = "Keep private? (Don't send announcement)")]bool? @private = false)
     {
         await RespondAsync(InteractionCallback.DeferredEphemeralMessage());
 
@@ -55,7 +49,7 @@ public class ClaimModule(
                 m.Content = $"""
                 This is a verified only club! Once you're on the list, I might let you in!
 
-                -# Hint: You can use the {commandMentionService.GetCommandMention("link")} command to verify your account.
+                -# Hint: You can use the {commandMentionService.GetCommandMention(VerifyModuleMetadata.VerifyCommand.Name)} command to verify your account.
                 """;
                 m.Flags = MessageFlags.Ephemeral;
             });
@@ -65,16 +59,20 @@ public class ClaimModule(
 
         try
         {
-            var achieved = (share ?? true)
-                ? achievementRoleOrchestrator.ProcessAchievementAsync(mhId.Value, Context.User.Id, Context.Guild!.Id, achievement)
-                : achievementRoleOrchestrator.ProcessAchievementSilentlyAsync(mhId.Value, Context.User.Id, Context.Guild!.Id, achievement);
+            var achieved = (@private ?? false)
+                ? achievementRoleOrchestrator.ProcessAchievementSilentlyAsync(mhId.Value, Context.User.Id, Context.Guild!.Id, achievement)
+                : achievementRoleOrchestrator.ProcessAchievementAsync(mhId.Value, Context.User.Id, Context.Guild!.Id, achievement);
             if (!await achieved)
             {
                 var randomRejectionPhrase = s_rejectionPhrases[Random.Shared.Next(s_rejectionPhrases.Length)];
 
                 await ModifyResponseAsync(m =>
                 {
-                    m.Content = randomRejectionPhrase;
+                    m.Content = $"""
+                    {randomRejectionPhrase}
+
+                    -# Hint: You are missing some requirements to claim this achievement. Make sure you have completed all the necessary tasks before trying again.
+                    """;
                     m.Flags = MessageFlags.Ephemeral;
                 });
             }

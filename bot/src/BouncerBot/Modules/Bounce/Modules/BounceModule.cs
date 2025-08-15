@@ -6,12 +6,12 @@ using NetCord.Services.ApplicationCommands;
 
 namespace BouncerBot.Modules.Bounce.Modules;
 
-[SlashCommand("bounce", "Manage MouseHunt ID ban list for /link command")]
+[SlashCommand(BounceModuleMetadata.ModuleName, BounceModuleMetadata.ModuleDescription)]
 [RequireManageRoles<ApplicationCommandContext>]
 [RequireGuildContext<ApplicationCommandContext>]
 public class BounceModule(IBounceOrchestrator bounceOrchestrator, IBounceService bounceService) : ApplicationCommandModule<ApplicationCommandContext>
 {
-    [SubSlashCommand("add", "Add a MouseHunt ID to the ban list")]
+    [SubSlashCommand(BounceModuleMetadata.AddCommand.Name, BounceModuleMetadata.AddCommand.Description)]
     public async Task AddBannedHunterAsync(
         [SlashCommandParameter(Description = "MouseHunt ID to ban")] uint hunterId,
         [SlashCommandParameter(Description = "Optional note explaining the ban")] string? note = null)
@@ -23,7 +23,7 @@ public class BounceModule(IBounceOrchestrator bounceOrchestrator, IBounceService
         await ModifyResponseWithResultAsync(result);
     }
 
-    [SubSlashCommand("remove", "Remove a MouseHunt ID from the ban list")]
+    [SubSlashCommand(BounceModuleMetadata.RemoveCommand.Name, BounceModuleMetadata.RemoveCommand.Description)]
     public async Task RemoveBannedHunterAsync(
         [SlashCommandParameter(Description = "MouseHunt ID to unban")] uint hunterId)
     {
@@ -34,7 +34,7 @@ public class BounceModule(IBounceOrchestrator bounceOrchestrator, IBounceService
         await ModifyResponseWithResultAsync(result);
     }
 
-    [SubSlashCommand("remove-all", "Purge the entire ban list for this server")]
+    [SubSlashCommand(BounceModuleMetadata.RemoveAllCommand.Name, BounceModuleMetadata.RemoveAllCommand.Description)]
     public async Task ClearBannedHuntersAsync()
     {
         await RespondAsync(InteractionCallback.Message(new InteractionMessageProperties()
@@ -47,13 +47,13 @@ public class BounceModule(IBounceOrchestrator bounceOrchestrator, IBounceService
                         new ActionRowProperties()
                             .AddButtons(new ButtonProperties($"bounce removeall:{Context.Guild!.Id}", "Confirm", ButtonStyle.Danger))
                             .AddButtons(new ButtonProperties("bounce removeall cancel", "Cancel", ButtonStyle.Secondary))
-                        ])
-            ],
+                    ])
+                ],   
             Flags = MessageFlags.IsComponentsV2
         }));
     }
 
-    [SubSlashCommand("list", "View all banned MouseHunt IDs")]
+    [SubSlashCommand(BounceModuleMetadata.ListCommand.Name, BounceModuleMetadata.ListCommand.Description)]
     public async Task<InteractionMessageProperties> ListBannedHuntersAsync()
     {
         return new InteractionMessageProperties()
@@ -61,7 +61,7 @@ public class BounceModule(IBounceOrchestrator bounceOrchestrator, IBounceService
                                                  .WithFlags(MessageFlags.IsComponentsV2);
     }
 
-    [SubSlashCommand("note", "Update the note for a banned MouseHunt ID")]
+    [SubSlashCommand(BounceModuleMetadata.NoteCommand.Name, BounceModuleMetadata.NoteCommand.Description)]
     public async Task UpdateBannedHunterNoteAsync(
         [SlashCommandParameter(Description = "MouseHunt ID to update")] uint hunterId,
         [SlashCommandParameter(Description = "New note (leave blank to remove note)")] string? note = null)
@@ -73,7 +73,7 @@ public class BounceModule(IBounceOrchestrator bounceOrchestrator, IBounceService
         await ModifyResponseWithResultAsync(result);
     }
 
-    [SubSlashCommand("check", "Check if a MouseHunt ID is banned")]
+    [SubSlashCommand(BounceModuleMetadata.CheckCommand.Name, BounceModuleMetadata.CheckCommand.Description)]
     public async Task CheckBannedHunterAsync(
         [SlashCommandParameter(Description = "MouseHunt ID to check")] uint hunterId)
     {

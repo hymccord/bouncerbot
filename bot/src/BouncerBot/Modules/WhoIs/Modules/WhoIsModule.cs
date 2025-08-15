@@ -8,14 +8,14 @@ using NetCord.Services.ApplicationCommands;
 
 namespace BouncerBot.Modules.WhoIs.Modules;
 
-[SlashCommand("whois", "Look up verification information")]
+[SlashCommand(WhoIsModuleMetadata.ModuleName, WhoIsModuleMetadata.ModuleDescription)]
 [RequireManageRoles<ApplicationCommandContext>]
 [RequireGuildContext<ApplicationCommandContext>]
 public class WhoIsModule(
     IOptionsSnapshot<BouncerBotOptions> options,
     IWhoIsOrchestrator whoIsOrchestrator) : ApplicationCommandModule<ApplicationCommandContext>
 {
-    [SubSlashCommand("user", "Get the Hunter ID for a Discord user")]
+    [SubSlashCommand(WhoIsModuleMetadata.UserCommand.Name, WhoIsModuleMetadata.UserCommand.Description)]
     public async Task GetHunterIdAsync(
         [SlashCommandParameter(Description = "Discord user to look up")] User user)
     {
@@ -42,7 +42,7 @@ public class WhoIsModule(
         });
     }
 
-    [SubSlashCommand("hunter", "Get the Discord user for a Hunter ID")]
+    [SubSlashCommand(WhoIsModuleMetadata.HunterCommand.Name, WhoIsModuleMetadata.HunterCommand.Description)]
     public async Task GetDiscordUserAsync(
         [SlashCommandParameter(Description = "MouseHunt ID to look up")] uint hunterId)
     {

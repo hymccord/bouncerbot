@@ -1,6 +1,5 @@
 using BouncerBot;
 using BouncerBot.Attributes;
-using BouncerBot.Modules.Verification;
 
 using NetCord;
 using NetCord.Rest;
@@ -8,7 +7,7 @@ using NetCord.Services.ApplicationCommands;
 
 namespace BouncerBot.Modules.Verification.Modules;
 
-[SlashCommand("verification", "Manage MouseHunt ID verification")]
+[SlashCommand(VerificationModuleMetadata.ModuleName, VerificationModuleMetadata.ModuleDescription)]
 [RequireGuildContext<ApplicationCommandContext>]
 public class VerificationModule() : ApplicationCommandModule<ApplicationCommandContext>
 {
@@ -23,7 +22,7 @@ public class VerificationModule() : ApplicationCommandModule<ApplicationCommandC
         await RespondAsync(InteractionCallback.Message(new InteractionMessageProperties()
         {
             Content = $"""
-                Are you sure you want to link <@{user.Id}> as Hunter ID {hunterId}?
+                Are you sure you want to verify <@{user.Id}> as Hunter ID {hunterId}?
                 <https://p.mshnt.ca/{hunterId}>
                 """,
 
@@ -39,13 +38,13 @@ public class VerificationModule() : ApplicationCommandModule<ApplicationCommandC
     }
 #endif
 
-    [SubSlashCommand("remove", "Manage verification removal")]
+    [SubSlashCommand(VerificationModuleMetadata.RemoveCommand.Name, VerificationModuleMetadata.RemoveCommand.Description)]
     [RequireGuildContext<ApplicationCommandContext>]
     public class VerifyRemoveModule(
         IVerificationService verificationService
         ) : ApplicationCommandModule<ApplicationCommandContext>
     {
-        [SubSlashCommand("user", "Remove a MouseHunt ID verification")]
+        [SubSlashCommand(VerificationModuleMetadata.RemoveCommand.UserCommand.Name, VerificationModuleMetadata.RemoveCommand.UserCommand.Description)]
         [RequireOwner<ApplicationCommandContext>]
         public async Task RemoveVerification(
         [SlashCommandParameter(Description = "A verified Discord user")] User user
@@ -74,7 +73,7 @@ public class VerificationModule() : ApplicationCommandModule<ApplicationCommandC
             }
         }
 
-        [SubSlashCommand("history", "Remove historical MouseHunt ID verification")]
+        [SubSlashCommand(VerificationModuleMetadata.RemoveCommand.HistoryCommand.Name, VerificationModuleMetadata.RemoveCommand.HistoryCommand.Description)]
         public async Task RemoveVerificationHistory(
         [SlashCommandParameter(Description = "A Discord user that has previously verified")] User user
         )

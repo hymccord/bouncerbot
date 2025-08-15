@@ -9,13 +9,13 @@ using NetCord.Services.ApplicationCommands;
 
 namespace BouncerBot.Modules.Achieve.Modules;
 
-[SlashCommand("achieve", "Commands related to role achievements.")]
+[SlashCommand(AchieveModuleMetadata.ModuleName, AchieveModuleMetadata.ModuleDescription)]
 [RequireGuildContext<ApplicationCommandContext>]
 public class AchieveModule(
     IAchievementService achievementService,
     IRoleService roleService) : ApplicationCommandModule<ApplicationCommandContext>
 {
-    [SubSlashCommand("verify", "Check if a Hunter ID qualifies for an achievement.")]
+    [SubSlashCommand(AchieveModuleMetadata.VerifyCommand.Name, AchieveModuleMetadata.VerifyCommand.Description)]
     [RequireManageRoles<ApplicationCommandContext>]
     public async Task VerifyAsync(uint hunterID, AchievementRole achievement)
     {
@@ -44,7 +44,7 @@ public class AchieveModule(
         });
     }
 
-    [SubSlashCommand("reset", "Removes achievement role from all users (and grants Achiever)")]
+    [SubSlashCommand(AchieveModuleMetadata.ResetCommand.Name, AchieveModuleMetadata.ResetCommand.Description)]
     [RequireManageRoles<ApplicationCommandContext>]
     public async Task ResetAchievementAsync(AchievementRole achievement)
     {
