@@ -32,7 +32,7 @@ internal class RequireVerificationStatusAttribute<TContext> : RequireContextAttr
         var dbContext = serviceProvider.GetRequiredService<BouncerBotDbContext>();
         var commandMentionService = serviceProvider.GetRequiredService<ICommandMentionService>();
 
-        bool isVerified = await dbContext.VerifiedUsers
+        var isVerified = await dbContext.VerifiedUsers
             .FirstOrDefaultAsync(vu => vu.DiscordId == userId && vu.GuildId == guildId) is not null;
 
         return (isVerified, _shouldBe) switch

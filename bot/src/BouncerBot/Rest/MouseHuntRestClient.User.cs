@@ -6,7 +6,7 @@ using BouncerBot.Rest.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace BouncerBot.Rest;
-partial class MouseHuntRestClient
+public partial class MouseHuntRestClient
 {
     public async Task<User> GetMeAsync(CancellationToken cancellationToken = default)
     {

@@ -96,7 +96,7 @@ public partial class MouseHuntRestClient : IMouseHuntRestClient
             throw;
         }
 
-        LoginDetails token = await LoginAsync(_options.Value.Username, _options.Value.Password, cancellationToken);
+        var token = await LoginAsync(_options.Value.Username, _options.Value.Password, cancellationToken);
 
         await SaveSessionToken(token, cancellationToken);
     }
@@ -126,7 +126,7 @@ public partial class MouseHuntRestClient : IMouseHuntRestClient
 
     private async Task<T> SendDesktopRequestAsync<T>(HttpMethod method, IList<KeyValuePair<string, string>> formData, string route, CancellationToken cancellationToken = default)
     {
-        for (int tries = 0; tries < 2; tries++)
+        for (var tries = 0; tries < 2; tries++)
         {
             var response = await _requestHandler.SendAsync(CreateMessage(), cancellationToken);
 
@@ -239,7 +239,7 @@ public partial class MouseHuntRestClient : IMouseHuntRestClient
         }
     }
 
-    private async Task SaveSessionToken(LoginDetails loginDetails, CancellationToken cancellationToken = default)
+    private static async Task SaveSessionToken(LoginDetails loginDetails, CancellationToken cancellationToken = default)
     {
         var tokenFilePath = Path.Combine(Environment.CurrentDirectory, "mousehunt_token.json");
 

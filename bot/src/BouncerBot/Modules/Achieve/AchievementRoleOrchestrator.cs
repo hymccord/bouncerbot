@@ -63,7 +63,7 @@ public class AchievementRoleOrchestrator(
 
         await progress(0, usersWithAchievement.Length);
 
-        for (int i = 0; i < usersWithAchievement.Length; i++)
+        for (var i = 0; i < usersWithAchievement.Length; i++)
         {
             // Add achiever role first, since it may fail if not configured. That way we still have the achievement role set on the user.
             await roleService.AddRoleAsync(usersWithAchievement[i].Id, guildId, Role.Achiever, cancellationToken: default);

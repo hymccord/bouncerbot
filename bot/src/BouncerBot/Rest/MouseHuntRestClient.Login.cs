@@ -1,7 +1,7 @@
 using BouncerBot.Rest.Models;
 
 namespace BouncerBot.Rest;
-partial class MouseHuntRestClient
+public partial class MouseHuntRestClient
 {
     public async Task<LoginDetails> LoginAsync(string username, string password, CancellationToken cancellationToken = default)
     {

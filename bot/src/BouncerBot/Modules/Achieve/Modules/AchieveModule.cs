@@ -21,7 +21,7 @@ public class AchieveModule(
     {
         await RespondAsync(InteractionCallback.DeferredEphemeralMessage());
 
-        bool hasAchievement = await achievementService.HasAchievementAsync(hunterID, achievement);
+        var hasAchievement = await achievementService.HasAchievementAsync(hunterID, achievement);
 
         var content = $"""
             Hunter ID: {hunterID}

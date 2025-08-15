@@ -22,7 +22,7 @@ using NetCord.Hosting.Services.ApplicationCommands;
 using NetCord.Services.ApplicationCommands;
 using NetCord.Services.ComponentInteractions;
 
-HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
+var builder = Host.CreateApplicationBuilder(args);
 
 builder.Configuration.AddUserSecrets<Program>(optional: true);
 
@@ -95,7 +95,7 @@ builder.Services
     .AddGatewayHandlers(typeof(Program).Assembly)
     ;
 
-IHost host = builder
+var host = builder
     .Build()
     .AddModules(typeof(Program).Assembly)
     .UseGatewayHandlers();

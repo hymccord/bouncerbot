@@ -84,7 +84,7 @@ public class BounceModule(IBounceOrchestrator bounceOrchestrator, IBounceService
         await ModifyResponseWithResultAsync(result);
     }
 
-    async Task ModifyResponseWithResultAsync(BounceResult result)
+    private async Task ModifyResponseWithResultAsync(BounceResult result)
     {
         await ModifyResponseAsync(m =>
         {

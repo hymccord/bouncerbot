@@ -128,7 +128,7 @@ public class VerificationOrchestrator(
     {
         if (await verificationService.IsDiscordUserVerifiedAsync(parameters.GuildId, parameters.DiscordUserId, cancellationToken))
         {
-            var result = await verificationService.RemoveVerifiedUser(parameters.GuildId, parameters.DiscordUserId, cancellationToken);
+            _ = await verificationService.RemoveVerifiedUser(parameters.GuildId, parameters.DiscordUserId, cancellationToken);
 
             return new VerificationResult
             {

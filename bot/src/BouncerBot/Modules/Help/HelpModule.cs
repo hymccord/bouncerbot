@@ -18,7 +18,7 @@ public class HelpModule(
     {
         if (Context.User is GuildInteractionUser user)
         {
-            Permissions perms = user.Permissions;
+            var perms = user.Permissions;
 
             List<EmbedProperties> embeds = [];
 

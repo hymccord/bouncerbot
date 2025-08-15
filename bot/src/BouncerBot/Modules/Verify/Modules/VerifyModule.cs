@@ -60,7 +60,7 @@ public class VerifyModule(
 
         if (await verificationService.IsDiscordUserVerifiedAsync(Context.Guild!.Id, Context.User.Id))
         {
-            string message = "";
+            var message = "";
             // Edge case: somehow the role was removed but the user is still linked.
             if (!await roleService.HasRoleAsync(Context.Guild.Id, Context.User.Id, Role.Verified))
             {

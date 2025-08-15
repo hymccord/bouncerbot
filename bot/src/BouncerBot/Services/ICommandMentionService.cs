@@ -105,7 +105,7 @@ internal class CommandMentionService(
         var currentInfo = mainCommand.Info;
         var commandPath = new List<string> { mainCommand.Info.Name };
         
-        for (int i = 1; i < commandParts.Length; i++)
+        for (var i = 1; i < commandParts.Length; i++)
         {
             if (currentInfo is SlashCommandGroupInfo<ApplicationCommandContext> groupInfo)
             {

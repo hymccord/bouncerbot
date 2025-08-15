@@ -34,19 +34,19 @@ internal class GuildLoggingService(
     public async Task<RestMessage?> LogAsync(ulong guildId, LogType logType, MessageProperties message, CancellationToken cancellationToken = default)
     {
         // no guild, no log
-        if (!gatewayClient.Cache.Guilds.TryGetValue(guildId, out Guild? guild))
+        if (!gatewayClient.Cache.Guilds.TryGetValue(guildId, out var guild))
         {
             return null;
         }
 
-        var logSetting = await dbContext.LogSettings.FindAsync(guildId);
+        var logSetting = await dbContext.LogSettings.FindAsync([guildId], cancellationToken: cancellationToken);
 
         if (logSetting is null)
         {
             return null;
         }
 
-        ulong logChannelId = logType switch
+        var logChannelId = logType switch
         {
             LogType.General => logSetting.GeneralId,
             LogType.Verification => logSetting.VerificationId,
@@ -70,7 +70,7 @@ internal class GuildLoggingService(
             return;
         }
 
-        var logSetting = await dbContext.LogSettings.FindAsync(guildId);
+        var logSetting = await dbContext.LogSettings.FindAsync(new object?[] { guildId }, cancellationToken: cancellationToken);
         if (logSetting is null)
         {
             return;

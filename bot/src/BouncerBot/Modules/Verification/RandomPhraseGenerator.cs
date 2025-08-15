@@ -20,9 +20,9 @@ public class RandomPhraseGenerator : IRandomPhraseGenerator
     public string Generate(int numAdjectives = 2, int numNouns = 2)
     {
 
-        List<string> adjectives = s_wordGenerator.GetWords(WordGenerator.PartOfSpeech.adj, numAdjectives);
-        List<string> nouns = s_wordGenerator.GetWords(WordGenerator.PartOfSpeech.noun, numNouns);
-        string words = string.Join(' ', adjectives.Concat(nouns).Select(Capitalize));
+        var adjectives = s_wordGenerator.GetWords(WordGenerator.PartOfSpeech.adj, numAdjectives);
+        var nouns = s_wordGenerator.GetWords(WordGenerator.PartOfSpeech.noun, numNouns);
+        var words = string.Join(' ', adjectives.Concat(nouns).Select(Capitalize));
 
         static string Capitalize(string word) => $"{char.ToUpper(word[0])}{word[1..]}";
 

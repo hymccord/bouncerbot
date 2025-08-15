@@ -18,8 +18,8 @@ public class GuildUserUpdateGatewayHandler(ILogger<GuildUserUpdateGatewayHandler
         {
             // If we can get the user role cache, we can fire role added or role removed
 
-            if (client.Cache.Guilds.TryGetValue(guildUser.GuildId, out Guild? guild)
-                && guild.Users.TryGetValue(guildUser.Id, out GuildUser? oldUser))
+            if (client.Cache.Guilds.TryGetValue(guildUser.GuildId, out var guild)
+                && guild.Users.TryGetValue(guildUser.Id, out var oldUser))
             {
                 var oldRoles = oldUser.RoleIds.ToHashSet();
                 var newRoles = guildUser.RoleIds.ToHashSet();

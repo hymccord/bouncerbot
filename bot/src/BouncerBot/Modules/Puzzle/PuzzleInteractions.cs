@@ -8,7 +8,7 @@ namespace BouncerBot.Modules.Puzzle;
 public class PuzzleButtonInteraction : ComponentInteractionModule<ButtonInteractionContext>
 {
     [ComponentInteraction("puzzle start")]
-    public InteractionCallbackProperties StartPuzzleModal()
+    public static InteractionCallbackProperties StartPuzzleModal()
     {
         return InteractionCallback.Modal(new ModalProperties("puzzle-modal", "BouncerBot's King's Reward")
             .AddComponents(

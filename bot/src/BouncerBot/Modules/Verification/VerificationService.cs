@@ -37,7 +37,7 @@ public class VerificationService(
     public async Task<VerificationAddResult> AddVerifiedUserAsync(uint mouseHuntId, ulong guildId, ulong discordId, CancellationToken cancellationToken = default)
     {
         var existingUser = await dbContext.VerifiedUsers
-            .FirstOrDefaultAsync(vu => vu.DiscordId == discordId && vu.GuildId == guildId);
+            .FirstOrDefaultAsync(vu => vu.DiscordId == discordId && vu.GuildId == guildId, cancellationToken: cancellationToken);
         if (existingUser is null)
         {
             await dbContext.VerifiedUsers.AddAsync(new VerifiedUser
@@ -45,7 +45,7 @@ public class VerificationService(
                 MouseHuntId = mouseHuntId,
                 GuildId = guildId,
                 DiscordId = discordId
-            });
+            }, cancellationToken);
 
             // Add to verification history
             var mhIdHash = VerificationHistory.HashValue(mouseHuntId);
@@ -74,7 +74,7 @@ public class VerificationService(
                 }
             }
 
-            await dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync(cancellationToken);
         }
         else
         {
@@ -92,7 +92,7 @@ public class VerificationService(
 
     public async Task<bool> IsDiscordUserVerifiedAsync(ulong guildId, ulong discordId, CancellationToken cancellationToken = default)
         => await dbContext.VerifiedUsers
-            .AnyAsync(vu => vu.DiscordId == discordId && vu.GuildId == guildId);
+            .AnyAsync(vu => vu.DiscordId == discordId && vu.GuildId == guildId, cancellationToken: cancellationToken);
 
     public async Task<CanUserVerifyResult> CanUserVerifyAsync(uint mouseHuntId, ulong guildId, ulong discordId, CancellationToken cancellationToken = default)
     {
@@ -186,8 +186,8 @@ public class VerificationService(
 
     private async Task<CanUserVerifyResult> CheckUserRankRequirementAsync(uint mouseHuntId, ulong guildId, CancellationToken cancellationToken)
     {
-        Rank minRank = await GetMinimumRankForGuildAsync(guildId, cancellationToken);
-        Rank userRank = await GetUserRankAsync(mouseHuntId, cancellationToken);
+        var minRank = await GetMinimumRankForGuildAsync(guildId, cancellationToken);
+        var userRank = await GetUserRankAsync(mouseHuntId, cancellationToken);
 
         if (userRank < minRank)
         {
@@ -238,7 +238,7 @@ public class VerificationService(
     {
         var existingUser = await dbContext.VerifiedUsers
             .Include(vu => vu.VerifyMessage)
-            .FirstOrDefaultAsync(vu => vu.DiscordId == discordId && vu.GuildId == guildId);
+            .FirstOrDefaultAsync(vu => vu.DiscordId == discordId && vu.GuildId == guildId, cancellationToken: cancellationToken);
         if (existingUser is not null)
         {
             // Note: We don't remove from VerificationHistory - this is intentional to prevent reuse
@@ -259,13 +259,13 @@ public class VerificationService(
                 }
                 dbContext.VerifyMessages.Remove(existingUser.VerifyMessage);
             }
-            await dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync(cancellationToken);
         }
 
-        if ((await dbContext.RoleSettings.FirstOrDefaultAsync(rs => rs.GuildId == guildId && rs.Role == Role.Verified)) is { DiscordRoleId: var verifiedRoleId}
+        if ((await dbContext.RoleSettings.FirstOrDefaultAsync(rs => rs.GuildId == guildId && rs.Role == Role.Verified, cancellationToken: cancellationToken)) is { DiscordRoleId: var verifiedRoleId}
             && verifiedRoleId > 0)
         {
-            await restClient.RemoveGuildUserRoleAsync(guildId, discordId, verifiedRoleId);
+            await restClient.RemoveGuildUserRoleAsync(guildId, discordId, verifiedRoleId, cancellationToken);
         }
 
         return new VerificationRemoveResult

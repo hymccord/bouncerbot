@@ -70,7 +70,7 @@ public class ClaimModule(
                 : achievementRoleOrchestrator.ProcessAchievementSilentlyAsync(mhId.Value, Context.User.Id, Context.Guild!.Id, achievement);
             if (!await achieved)
             {
-                string randomRejectionPhrase = s_rejectionPhrases[Random.Shared.Next(s_rejectionPhrases.Length)];
+                var randomRejectionPhrase = s_rejectionPhrases[Random.Shared.Next(s_rejectionPhrases.Length)];
 
                 await ModifyResponseAsync(m =>
                 {

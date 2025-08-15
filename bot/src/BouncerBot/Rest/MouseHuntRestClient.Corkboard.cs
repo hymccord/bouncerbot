@@ -1,7 +1,7 @@
 using BouncerBot.Rest.Models;
 
 namespace BouncerBot.Rest;
-partial class MouseHuntRestClient
+public partial class MouseHuntRestClient
 {
     public async Task<Corkboard> GetCorkboardAsync(uint mhId, CancellationToken cancellationToken = default)
     {
