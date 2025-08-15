@@ -1,6 +1,6 @@
 using BouncerBot.Db;
 using BouncerBot.Modules.Verification;
-
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 using NetCord;
@@ -34,7 +34,9 @@ public class GuildUserRoleMonitor(
             return;
         }
 
-        if (roleSettings.VerifiedId is ulong verifiedRoleId && verifiedRoleId > 0 && addedRoles.Contains(roleSettings.VerifiedId ?? 0))
+        if ((await dbContext.RoleSettings.FirstOrDefaultAsync(rs => rs.GuildId == guildUser.GuildId && rs.Role == Role.Verified)) is { DiscordRoleId: var verifiedRoleId }
+            && verifiedRoleId > 0
+            && addedRoles.Contains(verifiedRoleId))
         {
             await HandleVerifiedAddedAsync(guildUser, verifiedRoleId);
         }
@@ -47,15 +49,11 @@ public class GuildUserRoleMonitor(
             return;
         }
 
-        var roleSettings = await dbContext.RoleSettings.FindAsync(guildUser.GuildId);
-        if (roleSettings is null)
+        if ((await dbContext.RoleSettings.FirstOrDefaultAsync(rs => rs.GuildId == guildUser.GuildId && rs.Role == Role.Verified)) is {DiscordRoleId: var verifiedRoleId}
+            && verifiedRoleId > 0
+            && removedRoles.Contains(verifiedRoleId))
         {
-            return;
-        }
-
-        if (roleSettings.VerifiedId is ulong verifiedRoleId && verifiedRoleId > 0 && removedRoles.Contains(verifiedRoleId))
-        {
-            await HandleVerifiedRemovedAsync(guildUser, verifiedRoleId);
+            await HandleVerifiedRemovedAsync(guildUser);
         }
     }
 
@@ -74,7 +72,7 @@ public class GuildUserRoleMonitor(
         }
     }
 
-    private async Task HandleVerifiedRemovedAsync(GuildUser guildUser, ulong verifiedRoleId)
+    private async Task HandleVerifiedRemovedAsync(GuildUser guildUser)
     {
         await verificationOrchestrator.ProcessVerificationAsync(
             VerificationType.Remove,

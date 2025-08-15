@@ -100,7 +100,8 @@ IHost host = builder
     .AddModules(typeof(Program).Assembly)
     .UseGatewayHandlers();
 
-using (var dbContext = host.Services.GetRequiredService<BouncerBotDbContext>())
+var dbContextFactory = host.Services.GetRequiredService<IDbContextFactory<BouncerBotDbContext>>();
+using (var dbContext = dbContextFactory.CreateDbContext())
 {
     await dbContext.Database.MigrateAsync();
 }

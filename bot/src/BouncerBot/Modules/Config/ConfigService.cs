@@ -2,30 +2,33 @@
 using BouncerBot.Db;
 using BouncerBot.Db.Models;
 
+using Microsoft.EntityFrameworkCore;
+
 namespace BouncerBot.Modules.Config;
 
 public interface IConfigService
 {
-    Task<ulong?> GetChannelSettingAsync(ulong guildId, LogChannel channel);
-    Task<(LogSetting? LogSettings, RoleSetting? RoleSettings, AchievementMessage? AchievementMessages, VerifySetting? VerifySettings)> GetGuildConfigAsync(ulong guildId);
-    Task<string?> GetMessageSettingAsync(ulong guildId, AchievementRole role);
-    Task<ulong?> GetRoleSettingAsync(ulong guildId, Role role);
+    Task<ulong?> GetLogChannelAsync(ulong guildId, LogChannel channel);
+    Task<ulong?> GetAchievementLogChannelAsync(ulong guildId, AchievementRole achievementRole);
+    Task<string?> GetAchievementMessageAsync(ulong guildId, AchievementRole role);
+    Task<ulong?> GetRoleIdAsync(ulong guildId, Role role);
+
     Task SetLogChannelSettingAsync(ulong guildId, LogChannel channel, ulong? channelId);
-    Task SetMessageSettingAsync(ulong guildId, AchievementRole role, string message);
-    Task SetRoleSettingAsync(ulong guildId, Role role, ulong roleId);
+    Task SetAchievementLogChannelAsync(ulong guildId, AchievementRole achievementRole, ulong? channelId);
+    Task SetAchievementMessageAsync(ulong guildId, AchievementRole role, string message);
+    Task SetRoleIdAsync(ulong guildId, Role role, ulong roleId);
     Task SetVerifyRankAsync(ulong id, Rank minRank);
 }
 
 public class ConfigService(BouncerBotDbContext dbContext) : IConfigService
 {
-    public async Task<ulong?> GetChannelSettingAsync(ulong guildId, LogChannel channel)
+    public async Task<ulong?> GetLogChannelAsync(ulong guildId, LogChannel channel)
     {
         var setting = await dbContext.LogSettings.FindAsync(guildId);
         return channel switch
         {
-            LogChannel.General => setting?.LogId,
-            LogChannel.Achievement => setting?.FlexId,
-            LogChannel.EggMaster => setting?.EggMasterId,
+            LogChannel.General => setting?.GeneralId,
+            LogChannel.Achievement => setting?.AchievementId,
             LogChannel.Verification => setting?.VerificationId,
             _ => null
         };
@@ -36,20 +39,17 @@ public class ConfigService(BouncerBotDbContext dbContext) : IConfigService
         var setting = await dbContext.LogSettings.FindAsync(guildId);
         if (setting is null)
         {
-            setting = new LogSetting { GuildId = guildId };
+            setting = new Db.Models.LogChannelsSetting { GuildId = guildId };
             dbContext.LogSettings.Add(setting);
         }
 
         switch (channel)
         {
             case LogChannel.General:
-                setting.LogId = channelId;
+                setting.GeneralId = channelId;
                 break;
             case LogChannel.Achievement:
-                setting.FlexId = channelId;
-                break;
-            case LogChannel.EggMaster:
-                setting.EggMasterId = channelId;
+                setting.AchievementId = channelId;
                 break;
             case LogChannel.Verification:
                 setting.VerificationId = channelId;
@@ -59,173 +59,57 @@ public class ConfigService(BouncerBotDbContext dbContext) : IConfigService
         await dbContext.SaveChangesAsync();
     }
 
-    public async Task<ulong?> GetRoleSettingAsync(ulong guildId, Role role)
-    {
-        var setting = await dbContext.RoleSettings.FindAsync(guildId);
-        return role switch
-        {
-            Role.Star => setting?.StarId,
-            Role.Crown => setting?.CrownId,
-            Role.Checkmark => setting?.CheckmarkId,
-            Role.EggMaster => setting?.EggMasterId,
-            Role.Achiever => setting?.AchieverId,
-            Role.ArcaneMaster => setting?.ArcaneMasterId,
-            Role.DraconicMaster => setting?.DraconicMasterId,
-            Role.ForgottenMaster => setting?.ForgottenMasterId,
-            Role.HydroMaster => setting?.HydroMasterId,
-            Role.LawMaster => setting?.LawMasterId,
-            Role.PhysicalMaster => setting?.PhysicalMasterId,
-            Role.RiftMaster => setting?.RiftMasterId,
-            Role.ShadowMaster => setting?.ShadowMasterId,
-            Role.TacticalMaster => setting?.TacticalMasterId,
-            Role.MultiMaster => setting?.MultiMasterId,
-            Role.Verified => setting?.VerifiedId,
-            _ => null
-        };
-    }
+    public async Task<ulong?> GetRoleIdAsync(ulong guildId, Role role)
+        => (await dbContext
+                .RoleSettings
+                .AsNoTracking()
+                .FirstOrDefaultAsync(rs => rs.GuildId == guildId && rs.Role == role))?.DiscordRoleId;
 
-    public async Task SetRoleSettingAsync(ulong guildId, Role role, ulong roleId)
+    public async Task SetRoleIdAsync(ulong guildId, Role role, ulong roleId)
     {
-        var setting = await dbContext.RoleSettings.FindAsync(guildId);
+        var setting = await dbContext.RoleSettings.FirstOrDefaultAsync(rs => rs.GuildId == guildId && rs.Role == role);
         if (setting is null)
         {
-            setting = new RoleSetting { GuildId = guildId };
+            setting = new RoleSetting
+            {
+                GuildId = guildId,
+                Role = role,
+                DiscordRoleId = roleId
+            };
             dbContext.RoleSettings.Add(setting);
         }
-
-        switch (role)
+        else
         {
-            case Role.Star:
-                setting.StarId = roleId;
-                break;
-            case Role.Crown:
-                setting.CrownId = roleId;
-                break;
-            case Role.Checkmark:
-                setting.CheckmarkId = roleId;
-                break;
-            case Role.EggMaster:
-                setting.EggMasterId = roleId;
-                break;
-            case Role.Achiever:
-                setting.AchieverId = roleId;
-                break;
-            case Role.ArcaneMaster:
-                setting.ArcaneMasterId = roleId;
-                break;
-            case Role.DraconicMaster:
-                setting.DraconicMasterId = roleId;
-                break;
-            case Role.ForgottenMaster:
-                setting.ForgottenMasterId = roleId;
-                break;
-            case Role.HydroMaster:
-                setting.HydroMasterId = roleId;
-                break;
-            case Role.LawMaster:
-                setting.LawMasterId = roleId;
-                break;
-            case Role.PhysicalMaster:
-                setting.PhysicalMasterId = roleId;
-                break;
-            case Role.RiftMaster:
-                setting.RiftMasterId = roleId;
-                break;
-            case Role.ShadowMaster:
-                setting.ShadowMasterId = roleId;
-                break;
-            case Role.TacticalMaster:
-                setting.TacticalMasterId = roleId;
-                break;
-            case Role.MultiMaster:
-                setting.MultiMasterId = roleId;
-                break;
-            case Role.Verified:
-                setting.VerifiedId = roleId;
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(role), $"Role {role} is not recognized.");
+            setting.DiscordRoleId = roleId;
         }
 
         await dbContext.SaveChangesAsync();
     }
 
-    public async Task<string?> GetMessageSettingAsync(ulong guildId, AchievementRole role)
+    public async Task<string?> GetAchievementMessageAsync(ulong guildId, AchievementRole role)
     {
-        var setting = await dbContext.AchievementMessages.FindAsync(guildId);
-        return role switch
-        {
-            AchievementRole.Star => setting?.Star,
-            AchievementRole.Crown => setting?.Crown,
-            AchievementRole.Checkmark => setting?.Checkmark,
-            AchievementRole.EggMaster => setting?.EggMaster,
-            AchievementRole.ArcaneMaster => setting?.ArcaneMaster,
-            AchievementRole.DraconicMaster => setting?.DraconicMaster,
-            AchievementRole.ForgottenMaster => setting?.ForgottenMaster,
-            AchievementRole.HydroMaster => setting?.HydroMaster,
-            AchievementRole.LawMaster => setting?.LawMaster,
-            AchievementRole.PhysicalMaster => setting?.PhysicalMaster,
-            AchievementRole.RiftMaster => setting?.RiftMaster,
-            AchievementRole.ShadowMaster => setting?.ShadowMaster,
-            AchievementRole.TacticalMaster => setting?.TacticalMaster,
-            AchievementRole.MultiMaster => setting?.MultiMaster,
-            _ => null
-        };
+        return (await dbContext.AchievementMessages
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(am => am.GuildId == guildId && am.AchievementRole == role))
+                    ?.Message;
     }
 
-    public async Task SetMessageSettingAsync(ulong guildId, AchievementRole role, string message)
+    public async Task SetAchievementMessageAsync(ulong guildId, AchievementRole role, string message)
     {
-        var setting = await dbContext.AchievementMessages.FindAsync(guildId);
+        var setting = await dbContext.AchievementMessages.FirstOrDefaultAsync(am => am.GuildId == guildId && am.AchievementRole == role);
         if (setting is null)
         {
-            setting = new AchievementMessage { GuildId = guildId };
+            setting = new AchievementMessage
+            {
+                GuildId = guildId,
+                AchievementRole = role,
+                Message = message
+            };
             dbContext.AchievementMessages.Add(setting);
         }
-
-        switch (role)
+        else
         {
-            case AchievementRole.Star:
-                setting.Star = message;
-                break;
-            case AchievementRole.Crown:
-                setting.Crown = message;
-                break;
-            case AchievementRole.Checkmark:
-                setting.Checkmark = message;
-                break;
-            case AchievementRole.EggMaster:
-                setting.EggMaster = message;
-                break;
-            case AchievementRole.ArcaneMaster:
-                setting.ArcaneMaster = message;
-                break;
-            case AchievementRole.DraconicMaster:
-                setting.DraconicMaster = message;
-                break;
-            case AchievementRole.ForgottenMaster:
-                setting.ForgottenMaster = message;
-                break;
-            case AchievementRole.HydroMaster:
-                setting.HydroMaster = message;
-                break;
-            case AchievementRole.LawMaster:
-                setting.LawMaster = message;
-                break;
-            case AchievementRole.PhysicalMaster:
-                setting.PhysicalMaster = message;
-                break;
-            case AchievementRole.RiftMaster:
-                setting.RiftMaster = message;
-                break;
-            case AchievementRole.ShadowMaster:
-                setting.ShadowMaster = message;
-                break;
-            case AchievementRole.TacticalMaster:
-                setting.TacticalMaster = message;
-                break;
-            case AchievementRole.MultiMaster:
-                setting.MultiMaster = message;
-                break;
+            setting.Message = message;
         }
 
         await dbContext.SaveChangesAsync();
@@ -243,13 +127,50 @@ public class ConfigService(BouncerBotDbContext dbContext) : IConfigService
         await dbContext.SaveChangesAsync();
     }
 
-    public async Task<(LogSetting? LogSettings, RoleSetting? RoleSettings, AchievementMessage? AchievementMessages, VerifySetting? VerifySettings)> GetGuildConfigAsync(ulong guildId)
+    public async Task<ulong?> GetAchievementLogChannelAsync(ulong guildId, AchievementRole achievementRole)
     {
-        var logSetting = await dbContext.LogSettings.FindAsync(guildId);
-        var roleSetting = await dbContext.RoleSettings.FindAsync(guildId);
-        var messageSetting = await dbContext.AchievementMessages.FindAsync(guildId);
-        var verifySetting = await dbContext.VerifySettings.FindAsync(guildId);
+        var achievementOverride = await dbContext.AchievementLogOverrides
+            .FirstOrDefaultAsync(alo => alo.GuildId == guildId && alo.AchievementRole == achievementRole);
 
-        return (logSetting, roleSetting, messageSetting, verifySetting);
+        if (achievementOverride != null)
+            return achievementOverride.ChannelId;
+
+        // Fall back to general settings based on achievement type
+        var logSetting = await dbContext.LogSettings.FindAsync(guildId);
+        if (logSetting == null) return null;
+
+        return achievementRole switch
+        {
+            _ => logSetting.AchievementId ?? logSetting.GeneralId
+        };
+    }
+
+    public async Task SetAchievementLogChannelAsync(ulong guildId, AchievementRole achievementRole, ulong? channelId = null)
+    {
+        var existing = await dbContext.AchievementLogOverrides
+            .FirstOrDefaultAsync(alo => alo.GuildId == guildId && alo.AchievementRole == achievementRole);
+
+        if (channelId.HasValue)
+        {
+            if (existing == null)
+            {
+                dbContext.AchievementLogOverrides.Add(new AchievementLogChannelOverride
+                {
+                    GuildId = guildId,
+                    AchievementRole = achievementRole,
+                    ChannelId = channelId.Value
+                });
+            }
+            else
+            {
+                existing.ChannelId = channelId.Value;
+            }
+        }
+        else if (existing != null)
+        {
+            dbContext.AchievementLogOverrides.Remove(existing);
+        }
+
+        await dbContext.SaveChangesAsync();
     }
 }

@@ -6,8 +6,9 @@ namespace BouncerBot.Db;
 public class BouncerBotDbContext(DbContextOptions<BouncerBotDbContext> options) : DbContext(options)
 {
     public DbSet<AchievementMessage> AchievementMessages { get; set; } = null!;
+    public DbSet<AchievementLogChannelOverride> AchievementLogOverrides { get; set; } = null!;
     public DbSet<BannedHunter> BannedHunters { get; set; } = null!;
-    public DbSet<LogSetting> LogSettings { get; set; } = null!;
+    public DbSet<Models.LogChannelsSetting> LogSettings { get; set; } = null!;
     public DbSet<RoleSetting> RoleSettings { get; set; } = null!;
     public DbSet<Snuid> SnuidCache { get; set; } = null!;
     public DbSet<VerificationHistory> VerificationHistory { get; set; } = null!;
@@ -22,6 +23,11 @@ public class BouncerBotDbContext(DbContextOptions<BouncerBotDbContext> options) 
             am.HasKey(am => am.GuildId);
         });
 
+        modelBuilder.Entity<AchievementLogChannelOverride>(alo =>
+        {
+            alo.HasKey(alo => new { alo.GuildId, alo.AchievementRole });
+        });
+
         modelBuilder.Entity<BannedHunter>(bh =>
         {
             bh.HasKey(bh => new { bh.MouseHuntId, bh.GuildId });
@@ -30,7 +36,7 @@ public class BouncerBotDbContext(DbContextOptions<BouncerBotDbContext> options) 
                 .ValueGeneratedOnAdd();
         });
 
-        modelBuilder.Entity<LogSetting>(ls =>
+        modelBuilder.Entity<Models.LogChannelsSetting>(ls =>
         {
             ls.HasKey(l => l.GuildId);
         });
@@ -42,7 +48,11 @@ public class BouncerBotDbContext(DbContextOptions<BouncerBotDbContext> options) 
 
         modelBuilder.Entity<RoleSetting>(ar =>
         {
-            ar.HasKey(am => am.GuildId);
+            ar.HasKey(am => new
+            {
+                am.GuildId,
+                am.Role,
+            });
         });
 
         modelBuilder.Entity<Snuid>(snuid =>
@@ -53,13 +63,10 @@ public class BouncerBotDbContext(DbContextOptions<BouncerBotDbContext> options) 
 
         modelBuilder.Entity<VerifiedUser>(vu =>
         {
-            vu.HasKey(v => new { v.MouseHuntId, v.GuildId, v.DiscordId });
-
-            vu.HasIndex(vu => new
+            vu.HasKey(v => new
             {
-                vu.GuildId,
-                vu.DiscordId
-            }).IsUnique(true);
+                v.GuildId, v.DiscordId 
+            });
 
             vu.HasIndex(vu => new
             {
@@ -79,7 +86,18 @@ public class BouncerBotDbContext(DbContextOptions<BouncerBotDbContext> options) 
 
         modelBuilder.Entity<VerificationHistory>(vh =>
         {
-            vh.HasKey(v => new { v.GuildId, v.DiscordId });
+            vh.HasKey(v => new
+            {
+                v.GuildId,
+                v.DiscordIdHash
+            });
+
+            vh.HasIndex(vh => new
+            {
+                vh.GuildId,
+                vh.MouseHuntIdHash
+            }).IsUnique(true);
+
             vh.Property(v => v.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .ValueGeneratedOnAdd();

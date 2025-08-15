@@ -1,5 +1,5 @@
 using BouncerBot.Db;
-
+using Microsoft.EntityFrameworkCore;
 using NetCord;
 
 namespace BouncerBot.Services;
@@ -35,27 +35,8 @@ public class DiscordRoleService(
 
     public async Task<ulong?> GetRoleIdAsync(ulong guildId, Role role)
     {
-        return await dbContext.RoleSettings.FindAsync(guildId) switch
-        {
-            { VerifiedId: var id } when role == Role.Verified => id,
-            { StarId: var id } when role == Role.Star => id,
-            { CrownId: var id } when role == Role.Crown => id,
-            { CheckmarkId: var id } when role == Role.Checkmark => id,
-            { EggMasterId: var id } when role == Role.EggMaster => id,
-            { AchieverId: var id } when role == Role.Achiever => id,
-            { ArcaneMasterId: var id } when role == Role.ArcaneMaster => id,
-            { DraconicMasterId: var id } when role == Role.DraconicMaster => id,
-            { ForgottenMasterId: var id } when role == Role.ForgottenMaster => id,
-            { HydroMasterId: var id } when role == Role.HydroMaster => id,
-            { LawMasterId: var id } when role == Role.LawMaster => id,
-            { PhysicalMasterId: var id } when role == Role.PhysicalMaster => id,
-            { RiftMasterId: var id } when role == Role.RiftMaster => id,
-            { ShadowMasterId: var id } when role == Role.ShadowMaster => id,
-            { TacticalMasterId: var id } when role == Role.TacticalMaster => id,
-            { MultiMasterId: var id } when role == Role.MultiMaster => id,
-            _ => throw new InvalidOperationException("Unable to find role. Please check the bot's server config."),
-        } ?? throw new RoleNotConfiguredException(role);
-
+        return (await dbContext.RoleSettings.FirstOrDefaultAsync(rs => rs.GuildId == guildId && rs.Role == role))?.DiscordRoleId
+            ?? throw new RoleNotConfiguredException(role);
     }
 
     public async Task<int> GetRoleUserCount(ulong guildId, Role role)

@@ -1,22 +1,17 @@
 using System.Security.Cryptography;
-using System.Text;
 
 namespace BouncerBot.Db.Models;
 
 public class VerificationHistory
 {
     public ulong GuildId { get; init; }
-    public ulong DiscordId { get; init; }
+    public string DiscordIdHash { get; init; } = string.Empty;
     public string MouseHuntIdHash { get; init; } = string.Empty;
     public DateTime CreatedAt { get; init; }
 
-    /// <summary>
-    /// Creates a hash of the MouseHunt ID 
-    /// </summary>
-    public static string HashMouseHuntId(uint hunterId)
+    public static string HashValue(ulong value)
     {
-        var input = $"{hunterId}";
-        var bytes = SHA512.HashData(Encoding.UTF8.GetBytes(input));
+        var bytes = SHA512.HashData(BitConverter.GetBytes(value));
         return Convert.ToBase64String(bytes);
     }
 
@@ -25,7 +20,13 @@ public class VerificationHistory
     /// </summary>
     public bool VerifyMouseHuntId(uint hunterId)
     {
-        var hash = HashMouseHuntId(hunterId);
+        var hash = HashValue(hunterId);
         return hash.Equals(MouseHuntIdHash);
+    }
+
+    public bool VerifyDiscordId(ulong discordId)
+    {
+        var hash = HashValue(discordId);
+        return hash.Equals(DiscordIdHash);
     }
 }

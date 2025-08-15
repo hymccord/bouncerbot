@@ -54,51 +54,65 @@ public enum Role
     MultiMaster,
 }
 
-// Public facing enum for Discord command parameters
-public enum AchievementRole
+public enum AchievementRole : uint
 {
+    // Regular Achievements start at 1
     [SlashCommandChoice(Name = "⭐")]
     [Display(Name = "⭐")]
-    Star,
+    Star = 1,
+    
     [SlashCommandChoice(Name = "👑")]
     [Display(Name = "👑")]
-    Crown,
+    Crown = 2,
+    
     [SlashCommandChoice(Name = "✅")]
     [Display(Name = "✅")]
-    Checkmark,
+    Checkmark = 3,
+    
     [SlashCommandChoice(Name = "🥚")]
     [Display(Name = "🥚")]
-    EggMaster,
+    EggMaster = 4,
+
+    // Mastery Achievements: start at 11 to leave room for future regular achievements
     [SlashCommandChoice(Name = "Arcane Master")]
     [Display(Name = "Arcane Master")]
-    ArcaneMaster,
+    ArcaneMaster = 11,
+    
     [SlashCommandChoice(Name = "Draconic Master")]
     [Display(Name = "Draconic Master")]
-    DraconicMaster,
+    DraconicMaster = 12,
+    
     [SlashCommandChoice(Name = "Forgotten Master")]
     [Display(Name = "Forgotten Master")]
-    ForgottenMaster,
+    ForgottenMaster = 13,
+    
     [SlashCommandChoice(Name = "Hydro Master")]
     [Display(Name = "Hydro Master")]
-    HydroMaster,
+    HydroMaster = 14,
+    
     [SlashCommandChoice(Name = "Law Master")]
     [Display(Name = "Law Master")]
-    LawMaster,
+    LawMaster = 15,
+    
     [SlashCommandChoice(Name = "Physical Master")]
     [Display(Name = "Physical Master")]
-    PhysicalMaster,
+    PhysicalMaster = 16,
+    
     [SlashCommandChoice(Name = "Rift Master")]
     [Display(Name = "Rift Master")]
-    RiftMaster,
+    RiftMaster = 17,
+    
     [SlashCommandChoice(Name = "Shadow Master")]
     [Display(Name = "Shadow Master")]
-    ShadowMaster,
+    ShadowMaster = 18,
+    
     [SlashCommandChoice(Name = "Tactical Master")]
     [Display(Name = "Tactical Master")]
-    TacticalMaster,
+    TacticalMaster = 19,
+    
     [SlashCommandChoice(Name = "Multi Master")]
     [Display(Name = "Multi Master")]
-    MultiMaster,
+    MultiMaster = 20,
 }
 
 public enum PowerType
