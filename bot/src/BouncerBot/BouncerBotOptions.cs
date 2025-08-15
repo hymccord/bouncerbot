@@ -11,6 +11,8 @@ public class BouncerBotOptions
 
     [Required]
     public required ulong PuzzleChannel { get; set; }
+
+    public DebugOptions Debug { get; set; } = new();
 }
 
 public class EmojiOptions
@@ -50,4 +52,9 @@ public class ColorOptions
 
     [Required]
     public required int Primary { get; set; }
+}
+
+public class DebugOptions
+{
+    public bool DisableAchievementCheck { get; set; } = false;
 }

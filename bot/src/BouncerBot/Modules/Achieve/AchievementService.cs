@@ -1,5 +1,6 @@
 using BouncerBot.Rest;
 using BouncerBot.Services;
+using Microsoft.Extensions.Options;
 
 namespace BouncerBot.Modules.Achieve;
 
@@ -15,11 +16,17 @@ public interface IAchievementService
 /// achievements for a user, such as checkmarks, egg mastery, crowns, stars, and power type mastery. It utilizes the
 /// <see cref="MouseHuntRestClient"/> and <see cref="IMouseRipService"/> to retrieve necessary data.</remarks>
 public class AchievementService(
+    IOptionsSnapshot<BouncerBotOptions> options,
     IMouseHuntRestClient mouseHuntClient,
     IMouseRipService mouseRipService) : IAchievementService
 {
     public async Task<bool> HasAchievementAsync(uint mhId, AchievementRole achievement, CancellationToken cancellationToken = default)
     {
+        if (options.Value.Debug.DisableAchievementCheck)
+        {
+            return true;
+        }
+
         return achievement switch
         {
             AchievementRole.Checkmark => await HasCheckmarkAsync(mhId, cancellationToken),
