@@ -13,6 +13,7 @@
     <PackageVersion Include="Microsoft.Extensions.Diagnostics.Testing" Version="9.7.0" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.6" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="9.0.6" />
+    <PackageVersion Include="MinVer" Version="6.0.0" />
     <PackageVersion Include="NetCord.Hosting.Services" Version="1.0.0-alpha.405" />
     <PackageVersion Include="NSubstitute" Version="5.3.0" />
     <PackageVersion Include="NSubstitute.Analyzers.CSharp" Version="1.0.17" />
