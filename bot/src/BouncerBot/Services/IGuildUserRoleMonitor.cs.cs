@@ -28,12 +28,6 @@ public class GuildUserRoleMonitor(
             return;
         }
 
-        var roleSettings = await dbContext.RoleSettings.FindAsync(guildUser.GuildId);
-        if (roleSettings is null)
-        {
-            return;
-        }
-
         if ((await dbContext.RoleSettings.FirstOrDefaultAsync(rs => rs.GuildId == guildUser.GuildId && rs.Role == Role.Verified)) is { DiscordRoleId: var verifiedRoleId }
             && verifiedRoleId > 0
             && addedRoles.Contains(verifiedRoleId))
