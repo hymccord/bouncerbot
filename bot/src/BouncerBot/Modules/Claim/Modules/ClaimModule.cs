@@ -6,7 +6,7 @@ using BouncerBot.Modules.Verify.Modules;
 using BouncerBot.Services;
 
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.Extensions.Options;
 using NetCord;
 using NetCord.Rest;
 using NetCord.Services.ApplicationCommands;
@@ -15,6 +15,7 @@ namespace BouncerBot.Modules.Claim.Modules;
 
 [RequireGuildContext<ApplicationCommandContext>]
 public class ClaimModule(
+    IOptions<BouncerBotOptions> options,
     IAchievementRoleOrchestrator achievementRoleOrchestrator,
     ICommandMentionService commandMentionService,
     BouncerBotDbContext dbContext) : ApplicationCommandModule<ApplicationCommandContext>
@@ -41,17 +42,23 @@ public class ClaimModule(
         var mhId = (await dbContext.VerifiedUsers
             .FirstOrDefaultAsync(vu => vu.DiscordId == Context.User.Id && vu.GuildId == Context.Guild!.Id))?.MouseHuntId;
 
+        var container = new ComponentContainerProperties();
+        
         // Sanity check, precondition should handle this
         if (mhId is null)
         {
             await ModifyResponseAsync(m =>
             {
-                m.Content = $"""
-                This is a verified only club! Once you're on the list, I might let you in!
+                m.Components = [container
+                    .WithAccentColor(new(options.Value.Colors.Warning))
+                    .AddComponents(
+                    new TextDisplayProperties($"""
+                        This is a verified only club! Once you're on the list, I might let you in!
 
-                -# Hint: You can use the {commandMentionService.GetCommandMention(VerifyModuleMetadata.VerifyCommand.Name)} command to verify your account.
-                """;
-                m.Flags = MessageFlags.Ephemeral;
+                        -# Hint: You can use the {commandMentionService.GetCommandMention(VerifyModuleMetadata.VerifyCommand.Name)} command to verify your account.
+                        """
+                    ))];
+                m.Flags = MessageFlags.Ephemeral | MessageFlags.IsComponentsV2;
             });
 
             return;
@@ -70,12 +77,16 @@ public class ClaimModule(
 
                         await ModifyResponseAsync(m =>
                         {
-                            m.Content = $"""
-                            {randomRejectionPhrase}
+                            m.Components = [container
+                                .WithAccentColor(new(options.Value.Colors.Error))
+                                .AddComponents(
+                                new TextDisplayProperties($"""
+                                {randomRejectionPhrase}
 
-                            -# Hint: You are missing some requirements to claim this achievement. Make sure you have completed all the necessary tasks before trying again.
-                            """;
-                            m.Flags = MessageFlags.Ephemeral;
+                                -# Hint: You are missing some requirements to claim this achievement. Make sure you have completed all the necessary tasks before trying again.
+                                """
+                            ))];
+                            m.Flags = MessageFlags.Ephemeral | MessageFlags.IsComponentsV2;
                         });
                         break;
                     }
@@ -84,12 +95,16 @@ public class ClaimModule(
                     {
                         await ModifyResponseAsync(m =>
                         {
-                            m.Content = $"""
-                            You've already claimed this achievement! No need to do it again.
+                            m.Components = [container
+                                .WithAccentColor(new(options.Value.Colors.Warning))
+                                .AddComponents(
+                                new TextDisplayProperties($"""
+                                You've already claimed this achievement! No need to do it again.
 
-                            -# {(@private ?? false ? "And don't worry, I won't tell anyone you tried!" : "Glad to see you're proud of your achievements!")}
-                            """;
-                            m.Flags = MessageFlags.Ephemeral;
+                                -# {(@private ?? false ? "And don't worry, I won't tell anyone you tried!" : "Glad to see you're proud of your achievements!")}
+                                """
+                            ))];
+                            m.Flags = MessageFlags.Ephemeral | MessageFlags.IsComponentsV2;
                         });
                         break;
                     }
@@ -97,12 +112,16 @@ public class ClaimModule(
                     {
                         await ModifyResponseAsync(m =>
                         {
-                            m.Content = $"""
-                            Congratulations! I've checked your profile and you meet the requirements.
+                            m.Components = [container
+                                .WithAccentColor(new(options.Value.Colors.Success))
+                                .AddComponents(
+                                new TextDisplayProperties($"""
+                                    Congratulations! I've checked your profile and you meet the requirements.
 
-                            I've awarded the role and {(@private ?? false ? "kept it our little secret!" : "shared it with everyone!")}
-                            """;
-                            m.Flags = MessageFlags.Ephemeral;
+                                    I've awarded the role and {(@private ?? false ? "kept it our little secret!" : "shared it with everyone!")}
+                                    """
+                            ))];
+                            m.Flags = MessageFlags.Ephemeral | MessageFlags.IsComponentsV2;
                         });
                         break;
                     }
