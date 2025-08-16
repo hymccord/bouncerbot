@@ -59,22 +59,55 @@ public class ClaimModule(
 
         try
         {
-            var achieved = (@private ?? false)
+            var achieved = await ((@private ?? false)
                 ? achievementRoleOrchestrator.ProcessAchievementSilentlyAsync(mhId.Value, Context.User.Id, Context.Guild!.Id, achievement)
-                : achievementRoleOrchestrator.ProcessAchievementAsync(mhId.Value, Context.User.Id, Context.Guild!.Id, achievement);
-            if (!await achieved)
+                : achievementRoleOrchestrator.ProcessAchievementAsync(mhId.Value, Context.User.Id, Context.Guild!.Id, achievement));
+            switch (achieved)
             {
-                var randomRejectionPhrase = s_rejectionPhrases[Random.Shared.Next(s_rejectionPhrases.Length)];
+                case ClaimResult.NotAchieved:
+                    {
+                        var randomRejectionPhrase = s_rejectionPhrases[Random.Shared.Next(s_rejectionPhrases.Length)];
 
-                await ModifyResponseAsync(m =>
-                {
-                    m.Content = $"""
-                    {randomRejectionPhrase}
+                        await ModifyResponseAsync(m =>
+                        {
+                            m.Content = $"""
+                            {randomRejectionPhrase}
 
-                    -# Hint: You are missing some requirements to claim this achievement. Make sure you have completed all the necessary tasks before trying again.
-                    """;
-                    m.Flags = MessageFlags.Ephemeral;
-                });
+                            -# Hint: You are missing some requirements to claim this achievement. Make sure you have completed all the necessary tasks before trying again.
+                            """;
+                            m.Flags = MessageFlags.Ephemeral;
+                        });
+                        break;
+                    }
+
+                case ClaimResult.AlreadyHasRole:
+                    {
+                        await ModifyResponseAsync(m =>
+                        {
+                            m.Content = $"""
+                            You've already claimed this achievement! No need to do it again.
+
+                            -# {(@private ?? false ? "And don't worry, I won't tell anyone you tried!" : "Glad to see you're proud of your achievements!")}
+                            """;
+                            m.Flags = MessageFlags.Ephemeral;
+                        });
+                        break;
+                    }
+                case ClaimResult.Success:
+                    {
+                        await ModifyResponseAsync(m =>
+                        {
+                            m.Content = $"""
+                            Congratulations! I've checked your profile and you meet the requirements.
+
+                            I've awarded the role and {(@private ?? false ? "kept it our little secret!" : "shared it with everyone!")}
+                            """;
+                            m.Flags = MessageFlags.Ephemeral;
+                        });
+                        break;
+                    }
+                default:
+                    throw new InvalidOperationException("Unknown ClaimResult value.");
             }
         }
         catch (RoleNotConfiguredException)

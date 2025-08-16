@@ -1,15 +1,13 @@
 using BouncerBot.Services;
 
-using Humanizer;
-
 using NetCord;
 
 namespace BouncerBot.Modules.Achieve;
 
 public interface IAchievementRoleOrchestrator
 {
-    Task<bool> ProcessAchievementAsync(uint mhid, ulong userId, ulong guildId, AchievementRole achievement, CancellationToken cancellationToken = default);
-    Task<bool> ProcessAchievementSilentlyAsync(uint mhid, ulong userId, ulong guildId, AchievementRole achievement, CancellationToken cancellationToken = default);
+    Task<ClaimResult> ProcessAchievementAsync(uint mhid, ulong userId, ulong guildId, AchievementRole achievement, CancellationToken cancellationToken = default);
+    Task<ClaimResult> ProcessAchievementSilentlyAsync(uint mhid, ulong userId, ulong guildId, AchievementRole achievement, CancellationToken cancellationToken = default);
     Task ResetAchievementAsync(ulong guildId, AchievementRole achievement, Func<int, int, Task> progress, CancellationToken cancellationToken = default);
 }
 
@@ -26,30 +24,41 @@ public class AchievementRoleOrchestrator(
     IAchievementMessageService achievementMessageService,
     IDiscordGatewayClient gatewayClient) : IAchievementRoleOrchestrator
 {
-    public async Task<bool> ProcessAchievementAsync(uint mhid, ulong userId, ulong guildId, AchievementRole achievement, CancellationToken cancellationToken = default)
+    public async Task<ClaimResult> ProcessAchievementAsync(uint mhid, ulong userId, ulong guildId, AchievementRole achievement, CancellationToken cancellationToken = default)
     {
         if (await achievementService.HasAchievementAsync(mhid, achievement, cancellationToken))
         {
             var role = EnumUtils.ToRole(achievement);
+            if (await roleService.HasRoleAsync(userId, guildId, role))
+            {
+                return ClaimResult.AlreadyHasRole;
+            }
+
             await roleService.AddRoleAsync(userId, guildId, role, cancellationToken);
             await achievementMessageService.SendAchievementMessageAsync(userId, guildId, achievement, cancellationToken);
 
-            return true;
+            return ClaimResult.Success;
         }
 
-        return false;
+        return ClaimResult.NotAchieved;
     }
 
-    public async Task<bool> ProcessAchievementSilentlyAsync(uint mhid, ulong userId, ulong guildId, AchievementRole achievement, CancellationToken cancellationToken = default)
+    public async Task<ClaimResult> ProcessAchievementSilentlyAsync(uint mhid, ulong userId, ulong guildId, AchievementRole achievement, CancellationToken cancellationToken = default)
     {
         if (await achievementService.HasAchievementAsync(mhid, achievement, cancellationToken))
         {
             var role = EnumUtils.ToRole(achievement);
+            if (await roleService.HasRoleAsync(userId, guildId, role))
+            {
+                return ClaimResult.AlreadyHasRole;
+            }
+
             await roleService.AddRoleAsync(userId, guildId, role, cancellationToken);
-            // No message sent for silent processing
-            return true;
+
+            return ClaimResult.Success;
         }
-        return false;
+
+        return ClaimResult.NotAchieved;
     }
 
     public async Task ResetAchievementAsync(ulong guildId, AchievementRole achievement, Func<int, int, Task> progress, CancellationToken cancellationToken = default)
@@ -75,4 +84,11 @@ public class AchievementRoleOrchestrator(
             }
         }
     }
+}
+
+public enum ClaimResult
+{
+    Success,
+    AlreadyHasRole,
+    NotAchieved,
 }
