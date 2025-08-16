@@ -27,7 +27,7 @@ internal static class NetCordExtensions
             else if (!permissions.HasFlag(Permissions.SendMessages))
             {
                 permissions &= ~Permissions.SendTtsMessages;
-                permissions &= Permissions.MentionEveryone;
+                permissions &= ~Permissions.MentionEveryone;
                 permissions &= ~Permissions.EmbedLinks;
                 permissions &= ~Permissions.AttachFiles;
             }

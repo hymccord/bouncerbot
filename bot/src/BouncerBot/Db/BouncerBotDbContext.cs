@@ -8,7 +8,7 @@ public class BouncerBotDbContext(DbContextOptions<BouncerBotDbContext> options) 
     public DbSet<AchievementMessage> AchievementMessages { get; set; } = null!;
     public DbSet<AchievementLogChannelOverride> AchievementLogOverrides { get; set; } = null!;
     public DbSet<BannedHunter> BannedHunters { get; set; } = null!;
-    public DbSet<Models.LogChannelsSetting> LogSettings { get; set; } = null!;
+    public DbSet<LogChannelsSetting> LogSettings { get; set; } = null!;
     public DbSet<RoleSetting> RoleSettings { get; set; } = null!;
     public DbSet<Snuid> SnuidCache { get; set; } = null!;
     public DbSet<VerificationHistory> VerificationHistory { get; set; } = null!;
@@ -36,7 +36,7 @@ public class BouncerBotDbContext(DbContextOptions<BouncerBotDbContext> options) 
                 .ValueGeneratedOnAdd();
         });
 
-        modelBuilder.Entity<Models.LogChannelsSetting>(ls =>
+        modelBuilder.Entity<LogChannelsSetting>(ls =>
         {
             ls.HasKey(l => l.GuildId);
         });
