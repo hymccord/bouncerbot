@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using NetCord;
@@ -21,6 +22,7 @@ using NetCord.Hosting.Services;
 using NetCord.Hosting.Services.ApplicationCommands;
 using NetCord.Services.ApplicationCommands;
 using NetCord.Services.ComponentInteractions;
+using Sentry.Extensions.Logging.Extensions.DependencyInjection;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -64,6 +66,12 @@ builder.Services
         httpClient.BaseAddress = new Uri("https://api.mouse.rip/");
         httpClient.DefaultRequestHeaders.Add("User-Agent", "BouncerBot/1.0 (Discord: Xellis)");
     });
+
+if (!string.IsNullOrEmpty(builder.Configuration["Sentry:Dsn"]))
+{
+    builder.Logging.AddConfiguration(builder.Configuration);
+    builder.Logging.AddSentry();
+}
 
 // NetCord services
 builder.Services
