@@ -42,9 +42,9 @@ internal static class BounceListHelper
                 .AddComponents(new TextDisplayProperties(sb.ToString()))
                 .AddComponents(new ActionRowProperties()
                     .AddButtons(
-                        new ButtonProperties($"bouncelist:{guildId}:{page - 1}", new EmojiProperties("◀️"), ButtonStyle.Primary)
+                        new ButtonProperties($"bouncelist:{guildId}:{page - 1}", EmojiProperties.Standard("◀️"), ButtonStyle.Primary)
                             .WithDisabled(page < 1),
-                        new ButtonProperties($"bouncelist:{guildId}:{page + 1}", new EmojiProperties("▶️"), ButtonStyle.Primary)
+                        new ButtonProperties($"bouncelist:{guildId}:{page + 1}", EmojiProperties.Standard("▶️"), ButtonStyle.Primary)
                             .WithDisabled(totalResults < BounceService.ResultsPerPage)
                     )
                 )

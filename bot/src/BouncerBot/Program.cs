@@ -111,8 +111,7 @@ builder.Services
 
 var host = builder
     .Build()
-    .AddModules(typeof(Program).Assembly)
-    .UseGatewayHandlers();
+    .AddModules(typeof(Program).Assembly);
 
 var dbContextFactory = host.Services.GetRequiredService<IDbContextFactory<BouncerBotDbContext>>();
 using (var dbContext = dbContextFactory.CreateDbContext())
