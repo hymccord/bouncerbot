@@ -1,4 +1,3 @@
-using BouncerBot;
 using BouncerBot.Attributes;
 using BouncerBot.Services;
 using NetCord;
@@ -50,7 +49,7 @@ public class VerificationModule() : ApplicationCommandModule<ApplicationCommandC
         [SlashCommandParameter(Description = "A verified Discord user")] User user
         )
         {
-            await RespondAsync(InteractionCallback.DeferredEphemeralMessage());
+            await RespondAsync(InteractionCallback.DeferredMessage());
 
             if (!await verificationService.IsDiscordUserVerifiedAsync(Context.Guild!.Id, Context.User.Id))
             {

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Options;
 using NetCord;
 using NetCord.Rest;
 using NetCord.Services.ComponentInteractions;
@@ -5,6 +6,7 @@ using NetCord.Services.ComponentInteractions;
 namespace BouncerBot.Modules.Achieve.Modules;
 
 public class AchieveButtonInteractions(
+    IOptions<BouncerBotOptions> options,
     IAchievementRoleOrchestrator achievementRoleOrchestrator)
     : ComponentInteractionModule<ButtonInteractionContext>
 {
@@ -19,7 +21,7 @@ public class AchieveButtonInteractions(
         {
             Embeds = [
                 new EmbedProperties()
-                    .WithColor(Colors.Blue)
+                    .WithColor(new (options.Value.Colors.Primary))
                     .WithTitle("Achievement Status")
                     .WithDescription(content)
                 ]

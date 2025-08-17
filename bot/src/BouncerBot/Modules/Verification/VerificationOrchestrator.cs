@@ -1,7 +1,6 @@
 using BouncerBot;
 using BouncerBot.Rest;
 using BouncerBot.Services;
-
 using NetCord;
 using NetCord.Rest;
 
@@ -13,9 +12,11 @@ public interface IVerificationOrchestrator
 }
 
 public class VerificationOrchestrator(
-    IVerificationService verificationService,
+    IGuildLoggingService guildLoggingService,
     IMouseHuntRestClient mouseHuntRestClient,
-    IGuildLoggingService guildLoggingService) : IVerificationOrchestrator
+    IRoleService roleService,
+    IVerificationService verificationService
+) : IVerificationOrchestrator
 {
     public async Task<VerificationResult> ProcessVerificationAsync(VerificationType type, VerificationParameters parameters, CancellationToken cancellationToken = default)
         => type switch
@@ -37,19 +38,26 @@ public class VerificationOrchestrator(
         {
             var result = await verificationService.AddVerifiedUserAsync(parameters.MouseHuntId, parameters.GuildId, parameters.DiscordUserId, cancellationToken);
 
-            if (result.WasAdded)
+            if (!result.WasAdded)
             {
-                var message = await LogVerificationAsync(parameters, result.MouseHuntId, cancellationToken);
-                if (message is not null)
+                return new VerificationResult
                 {
-                    await verificationService.SetVerificationMessageAsync(new()
-                    {
-                        GuildId = parameters.GuildId,
-                        DiscordUserId = parameters.DiscordUserId,
-                        ChannelId = message.ChannelId,
-                        MessageId = message.Id,
-                    });
-                }
+                    Success = false,
+                    Message = $"Sorry! Something went wrong when processing your self-verification.",
+                };
+            }
+
+            await roleService.AddRoleAsync(parameters.DiscordUserId, parameters.GuildId, Role.Verified, cancellationToken);
+            var message = await LogVerificationAsync(parameters, result.MouseHuntId, cancellationToken);
+            if (message is not null)
+            {
+                await verificationService.SetVerificationMessageAsync(new()
+                {
+                    GuildId = parameters.GuildId,
+                    DiscordUserId = parameters.DiscordUserId,
+                    ChannelId = message.ChannelId,
+                    MessageId = message.Id,
+                });
             }
 
             return new VerificationResult
@@ -93,19 +101,26 @@ public class VerificationOrchestrator(
         {
             var result = await verificationService.AddVerifiedUserAsync(parameters.MouseHuntId, parameters.GuildId, parameters.DiscordUserId, cancellationToken);
 
-            if (result.WasAdded)
+            if (!result.WasAdded)
             {
-                var message = await LogVerificationAsync(parameters, result.MouseHuntId, cancellationToken);
-                if (message is not null)
+                return new VerificationResult
                 {
-                    await verificationService.SetVerificationMessageAsync(new()
-                    {
-                        GuildId = parameters.GuildId,
-                        DiscordUserId = parameters.DiscordUserId,
-                        ChannelId = message.ChannelId,
-                        MessageId = message.Id,
-                    });
-                }
+                    Success = false,
+                    Message = $"Sorry! Something went wrong when processing the verification for <@{parameters.DiscordUserId}>.",
+                };
+            }
+
+            await roleService.AddRoleAsync(parameters.DiscordUserId, parameters.GuildId, Role.Verified, cancellationToken);
+            var message = await LogVerificationAsync(parameters, result.MouseHuntId, cancellationToken);
+            if (message is not null)
+            {
+                await verificationService.SetVerificationMessageAsync(new()
+                {
+                    GuildId = parameters.GuildId,
+                    DiscordUserId = parameters.DiscordUserId,
+                    ChannelId = message.ChannelId,
+                    MessageId = message.Id,
+                });
             }
 
             return new VerificationResult
@@ -129,6 +144,7 @@ public class VerificationOrchestrator(
         if (await verificationService.IsDiscordUserVerifiedAsync(parameters.GuildId, parameters.DiscordUserId, cancellationToken))
         {
             _ = await verificationService.RemoveVerifiedUser(parameters.GuildId, parameters.DiscordUserId, cancellationToken);
+            await roleService.RemoveRoleAsync(parameters.DiscordUserId, parameters.GuildId, Role.Verified, cancellationToken);
 
             return new VerificationResult
             {
@@ -150,8 +166,14 @@ public class VerificationOrchestrator(
     {
         return await guildLoggingService.LogAsync(parameters.GuildId, LogType.Verification, new()
         {
-            Content = $"<@{parameters.DiscordUserId}> {parameters.DiscordUserId} is hunter {hunterId} <https://p.mshnt.ca/{hunterId}>",
+            Components = [
+                new ComponentContainerProperties()
+                    .AddComponents(
+                        new TextDisplayProperties($"<@{parameters.DiscordUserId}> {parameters.DiscordUserId} is hunter [{hunterId}](<https://p.mshnt.ca/{hunterId}>)")
+                    )
+                ],
             AllowedMentions = AllowedMentionsProperties.None,
+            Flags = MessageFlags.IsComponentsV2
         }, cancellationToken);
     }
 }

@@ -4,12 +4,12 @@ using BouncerBot.Db.Models;
 using BouncerBot.Modules.Bounce;
 using BouncerBot.Rest;
 using BouncerBot.Rest.Models;
-using BouncerBot.Services;
 
 using Humanizer;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using NetCord.Rest;
 
 namespace BouncerBot.Modules.Verification;
 
@@ -26,7 +26,6 @@ public interface IVerificationService
 
 public class VerificationService(
     ILogger<VerificationService> logger,
-    IRoleService roleService,
     BouncerBotDbContext dbContext,
     IDiscordRestClient restClient,
     IMouseHuntRestClient mouseHuntRestClient,
@@ -80,8 +79,6 @@ public class VerificationService(
         {
             logger.LogDebug("User {UserId} is already verified in guild {GuildId}", discordId, guildId);
         }
-
-        await roleService.AddRoleAsync(discordId, guildId, Role.Verified, cancellationToken);
 
         return new VerificationAddResult
         {
@@ -249,6 +246,14 @@ public class VerificationService(
                 {
                     await restClient.DeleteMessageAsync(verifyMessage.ChannelId, verifyMessage.MessageId, cancellationToken: cancellationToken);
                 }
+                catch (NetCord.Rest.RestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    logger.LogInformation("Verification message {MessageId} in channel {ChannelId} for user {UserId} in guild {GuildId} was already deleted",
+                        verifyMessage.MessageId,
+                        verifyMessage.ChannelId,
+                        discordId,
+                        guildId);
+                }
                 catch (Exception ex)
                 {
                     logger.LogError(ex, "Failed to delete verification message {MessageId} in channel {ChannelId} for user {UserId} in guild {GuildId}",
@@ -260,12 +265,6 @@ public class VerificationService(
                 dbContext.VerifyMessages.Remove(existingUser.VerifyMessage);
             }
             await dbContext.SaveChangesAsync(cancellationToken);
-        }
-
-        if ((await dbContext.RoleSettings.FirstOrDefaultAsync(rs => rs.GuildId == guildId && rs.Role == Role.Verified, cancellationToken: cancellationToken)) is { DiscordRoleId: var verifiedRoleId}
-            && verifiedRoleId > 0)
-        {
-            await restClient.RemoveGuildUserRoleAsync(guildId, discordId, verifiedRoleId, cancellationToken);
         }
 
         return new VerificationRemoveResult

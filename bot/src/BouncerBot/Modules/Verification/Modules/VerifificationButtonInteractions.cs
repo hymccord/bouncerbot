@@ -1,15 +1,10 @@
-using BouncerBot.Modules.Verification;
-
-using Microsoft.Extensions.Logging;
-
 using NetCord;
 using NetCord.Rest;
 using NetCord.Services.ComponentInteractions;
 
 namespace BouncerBot.Modules.Verification.Modules;
 
-public class VerifificationButtonInteractions(
-    ILogger<VerifificationButtonInteractions> logger,
+public class VerificationButtonInteractions(
     IVerificationService verificationService,
     IVerificationOrchestrator verificationOrchestrator)
     : ComponentInteractionModule<ButtonInteractionContext>
