@@ -29,6 +29,18 @@ var builder = Host.CreateApplicationBuilder(args);
 
 builder.Configuration.AddUserSecrets<Program>(optional: true);
 
+// Diagnostics and monitoring
+if (!string.IsNullOrEmpty(builder.Configuration["AzureMonitorExporter:ConnectionString"]))
+{
+    // Adds an IHostedService that needs to be started first
+    builder.Services.AddOpenTelemetry().UseAzureMonitorExporter();
+}
+if (!string.IsNullOrEmpty(builder.Configuration["Sentry:Dsn"]))
+{
+    builder.Logging.AddConfiguration(builder.Configuration);
+    builder.Logging.AddSentry();
+}
+
 builder.Services
     .AddDbContextFactory<BouncerBotDbContext>(options =>
     {
@@ -67,17 +79,6 @@ builder.Services
         httpClient.BaseAddress = new Uri("https://api.mouse.rip/");
         httpClient.DefaultRequestHeaders.Add("User-Agent", "BouncerBot/1.0 (Discord: Xellis)");
     });
-
-// Diagnostics and monitoring
-if (!string.IsNullOrEmpty(builder.Configuration["AzureMonitorExporter:ConnectionString"]))
-{
-    builder.Services.AddOpenTelemetry().UseAzureMonitorExporter();
-}
-if (!string.IsNullOrEmpty(builder.Configuration["Sentry:Dsn"]))
-{
-    builder.Logging.AddConfiguration(builder.Configuration);
-    builder.Logging.AddSentry();
-}
 
 // NetCord services
 builder.Services

@@ -6,6 +6,7 @@ using BouncerBot.Modules.Verify.Modules;
 using BouncerBot.Services;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NetCord;
 using NetCord.Rest;
@@ -15,6 +16,7 @@ namespace BouncerBot.Modules.Claim.Modules;
 
 [RequireGuildContext<ApplicationCommandContext>]
 public class ClaimModule(
+    ILogger<ClaimModule> logger,
     IOptions<BouncerBotOptions> options,
     IAchievementRoleOrchestrator achievementRoleOrchestrator,
     ICommandMentionService commandMentionService,
@@ -129,24 +131,30 @@ public class ClaimModule(
                     throw new InvalidOperationException("Unknown ClaimResult value.");
             }
         }
-        catch (RoleNotConfiguredException)
+        catch (RoleNotConfiguredException ex)
         {
+            logger.LogInformation(ex, "Role not configured for achievement {Achievement} in guild {Guild}", achievement, Context.Guild!.Id);
+
             await ModifyResponseAsync(m =>
             {
                 m.Content = $"""
-                    The role for this achievement is not configured properly. Please contact the server moderators to resolve this issue.
+                    The role for this achievement has not been configured.
+
+                    Contact the server moderators to resolve this issue.
                     """;
                 m.Flags = MessageFlags.Ephemeral;
             });
         }
-        catch (MessageNotConfiguredException)
+        catch (MessageNotConfiguredException ex)
         {
+            logger.LogInformation(ex, "Message not configured for achievement {Achievement} in guild {Guild}", achievement, Context.Guild!.Id);
+
             await ModifyResponseAsync(m =>
             {
                 m.Content = $"""
                     The message for this achievement is not configured properly, but the role has been assigned successfully.
 
-                    Please contact the server moderators to resolve this issue.
+                    Contact the server moderators to resolve this issue.
                     """;
                 m.Flags = MessageFlags.Ephemeral;
             });

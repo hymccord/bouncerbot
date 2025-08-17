@@ -132,9 +132,10 @@ public partial class MouseHuntRestClient : IMouseHuntRestClient
 
     private async Task<T> SendDesktopRequestAsync<T>(HttpMethod method, IList<KeyValuePair<string, string>> formData, string route, CancellationToken cancellationToken = default)
     {
+        HttpResponseMessage? response = null;
         for (var tries = 0; tries < 2; tries++)
         {
-            var response = await _requestHandler.SendAsync(CreateMessage(), cancellationToken);
+            response = await _requestHandler.SendAsync(CreateMessage(), cancellationToken);
 
             if (response.IsSuccessStatusCode)
             {
@@ -158,10 +159,11 @@ public partial class MouseHuntRestClient : IMouseHuntRestClient
 
                 return data.Deserialize<T>(_jsonSerializerOptions);
             }
-
         }
 
-        throw new Exception($"Request failed");
+        _logger.LogError("Desktop request to {Route} failed with status code {StatusCode}. Reason: {Reason}", route, response!.StatusCode, response.ReasonPhrase);
+
+        throw new Exception($"MouseHunt API request unsuccessful. Status: {response.StatusCode}");
 
         HttpRequestMessage CreateMessage()
         {
