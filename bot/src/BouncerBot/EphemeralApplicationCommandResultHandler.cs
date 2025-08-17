@@ -45,7 +45,7 @@ internal class EphemeralApplicationCommandResultHandler<TContext>(
             resultMessage = """
                 Apologies, I'm a little busy trying to solve this King's Reward! It's difficult for me... 🤖
                 
-                Please try again later."
+                Please try again later.
                 """;
 
             services.GetRequiredService<IPuzzleService>().TriggerPuzzle();
@@ -97,7 +97,7 @@ internal class EphemeralComponentInteractionResultHandler<TContext>(
             resultMessage = """
                 Apologies, I'm a little busy trying to solve this King's Reward! It's difficult for me... 🤖
                 
-                Please try again later."
+                Please try again later.
                 """;
 
             services.GetRequiredService<IPuzzleService>().TriggerPuzzle();

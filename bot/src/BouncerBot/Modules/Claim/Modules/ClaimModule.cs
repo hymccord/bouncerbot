@@ -3,6 +3,7 @@ using BouncerBot.Db;
 using BouncerBot.Modules.Achieve;
 using BouncerBot.Modules.Verification;
 using BouncerBot.Modules.Verify.Modules;
+using BouncerBot.Rest;
 using BouncerBot.Services;
 
 using Microsoft.EntityFrameworkCore;
@@ -158,6 +159,10 @@ public class ClaimModule(
                     """;
                 m.Flags = MessageFlags.Ephemeral;
             });
+        }
+        catch (PuzzleException)
+        {
+            throw;
         }
         catch (Exception ex)
         {

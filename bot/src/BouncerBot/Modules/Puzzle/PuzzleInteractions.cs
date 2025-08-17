@@ -43,5 +43,17 @@ public class PuzzleModalInteraction(
         {
             await DeleteResponseAsync();
         }
+        else
+        {
+            await ModifyResponseAsync(m =>
+            {
+                m.Components = [
+                    new ActionRowProperties()
+                        .WithButtons([
+                            new ButtonProperties("puzzle start", "Try Again", ButtonStyle.Success)
+                            ])
+                ];
+            });
+        }
     }
 }

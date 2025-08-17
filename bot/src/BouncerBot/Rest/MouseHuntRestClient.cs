@@ -152,7 +152,8 @@ public partial class MouseHuntRestClient : IMouseHuntRestClient
                 //if (popupMessage == "Your session has expired.")
                 if (popupMessage)
                 {
-                    Debugger.Break();
+                    _logger.LogInformation("Session expired. Refreshing.");
+
                     await RefreshSessionAsync();
                     continue;
                 }

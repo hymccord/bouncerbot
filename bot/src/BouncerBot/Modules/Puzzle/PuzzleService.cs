@@ -45,7 +45,7 @@ internal class PuzzleService(
             Components = [
                 new ActionRowProperties()
                     .AddButtons(
-                        new ButtonProperties("puzzle start", "Help Solve", ButtonStyle.Success)
+                        new ButtonProperties("puzzle start", "Solve", ButtonStyle.Success)
                     )
                 ]
         });
@@ -55,7 +55,7 @@ internal class PuzzleService(
     {
         if (!_hasPuzzle)
         {
-            return false;
+            return true;
         }
 
         try
