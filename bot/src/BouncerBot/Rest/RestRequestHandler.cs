@@ -1,4 +1,5 @@
 using System.Net;
+using Microsoft.Extensions.Options;
 
 namespace BouncerBot.Rest;
 internal class RestRequestHandler
@@ -6,7 +7,7 @@ internal class RestRequestHandler
     private readonly CookieContainer _cookieContainer;
     private readonly HttpClient _httpClient;
 
-    public RestRequestHandler()
+    public RestRequestHandler(IOptions<BouncerBotOptions> options)
     {
         _cookieContainer = new CookieContainer();
         var socketHandler = new SocketsHttpHandler()
@@ -17,7 +18,7 @@ internal class RestRequestHandler
 
         _httpClient = new HttpClient(socketHandler)
         {
-            BaseAddress = new Uri("https://bouncerbot.hymccord.workers.dev/"),
+            BaseAddress = new Uri(options.Value.MouseHuntUrl),
         };
 
         _httpClient.DefaultRequestHeaders.Add("User-Agent", "BouncerBot/1.0 (Discord: Xellis)");

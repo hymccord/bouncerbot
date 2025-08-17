@@ -68,7 +68,11 @@ builder.Services
         httpClient.DefaultRequestHeaders.Add("User-Agent", "BouncerBot/1.0 (Discord: Xellis)");
     });
 
-builder.Services.AddOpenTelemetry().UseAzureMonitorExporter();
+// Diagnostics and monitoring
+if (!string.IsNullOrEmpty(builder.Configuration["AzureMonitorExporter:ConnectionString"]))
+{
+    builder.Services.AddOpenTelemetry().UseAzureMonitorExporter();
+}
 if (!string.IsNullOrEmpty(builder.Configuration["Sentry:Dsn"]))
 {
     builder.Logging.AddConfiguration(builder.Configuration);

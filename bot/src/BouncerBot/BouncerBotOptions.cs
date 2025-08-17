@@ -12,6 +12,9 @@ public class BouncerBotOptions
     [Required]
     public required ulong PuzzleChannel { get; set; }
 
+    [Required]
+    public required string MouseHuntUrl { get; set; }
+
     public DebugOptions Debug { get; set; } = new();
 }
 

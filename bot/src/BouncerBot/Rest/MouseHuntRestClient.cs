@@ -38,6 +38,7 @@ public partial class MouseHuntRestClient : IMouseHuntRestClient
     };
     private readonly ILogger<MouseHuntRestClient> _logger;
     private readonly IOptions<MouseHuntRestClientOptions> _options;
+    private readonly IOptions<BouncerBotOptions> _bouncerBotOptions;
     private readonly RestRequestHandler _requestHandler;
     private readonly IDbContextFactory<BouncerBotDbContext> _dbContextFactory;
 
@@ -49,16 +50,21 @@ public partial class MouseHuntRestClient : IMouseHuntRestClient
     public MouseHuntRestClient(
         ILogger<MouseHuntRestClient> logger,
         IOptions<MouseHuntRestClientOptions> options,
+        IOptions<BouncerBotOptions> bouncerBotOptions,
         IDbContextFactory<BouncerBotDbContext> dbContextFactory)
     {
-        _requestHandler = new RestRequestHandler();
         _logger = logger;
         _options = options;
+        _bouncerBotOptions = bouncerBotOptions;
         _dbContextFactory = dbContextFactory;
+
+        _requestHandler = new RestRequestHandler(bouncerBotOptions);
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+        _logger.LogInformation("MouseHuntRestClient Login. Endpoint is {Url}", _bouncerBotOptions.Value.MouseHuntUrl);
+
         await TryLoadSessionToken(cancellationToken);
 
         try
