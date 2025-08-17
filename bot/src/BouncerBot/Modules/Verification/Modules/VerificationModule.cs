@@ -1,6 +1,6 @@
 using BouncerBot;
 using BouncerBot.Attributes;
-
+using BouncerBot.Services;
 using NetCord;
 using NetCord.Rest;
 using NetCord.Services.ApplicationCommands;
@@ -12,9 +12,8 @@ namespace BouncerBot.Modules.Verification.Modules;
 public class VerificationModule() : ApplicationCommandModule<ApplicationCommandContext>
 {
 #if DEBUG
-    [SubSlashCommand("user", "Manually verify a MouseHunt ID and Discord user")]
+    [SubSlashCommand("add", "Manually verify a MouseHunt ID and Discord user")]
     [RequireOwner<ApplicationCommandContext>]
-    //[RequireManageRoles<ApplicationCommandContext>]
     public async Task VerifyUserAsync(
         [SlashCommandParameter(Name = "mousehunt_id", Description = "User's MouseHunt ID")] uint hunterId,
         User user)
@@ -41,6 +40,7 @@ public class VerificationModule() : ApplicationCommandModule<ApplicationCommandC
     [SubSlashCommand(VerificationModuleMetadata.RemoveCommand.Name, VerificationModuleMetadata.RemoveCommand.Description)]
     [RequireGuildContext<ApplicationCommandContext>]
     public class VerifyRemoveModule(
+        IRoleService roleService,
         IVerificationService verificationService
         ) : ApplicationCommandModule<ApplicationCommandContext>
     {
@@ -61,14 +61,22 @@ public class VerificationModule() : ApplicationCommandModule<ApplicationCommandC
             }
             else
             {
+                var verifiedRoleId = await roleService.GetRoleIdAsync(Context.Guild!.Id, Role.Verified);
                 await ModifyResponseAsync(x =>
                 {
-                    x.Content = $"Are you sure you want to remove verification for <@{user.Id}>?";
+                    x.Content = $"""
+                        Are you sure you want to remove verification for <@{user.Id}>?
+
+                        -# Hint: This command has the same effect as removing the <@&{verifiedRoleId}> role manually from the user.
+                        """;
+                    
                     x.AddComponents(
                         new ActionRowProperties()
                             .AddButtons(new ButtonProperties($"{VerificationInteractionIds.VerifyRemoveConfirm}:{user.Id}", "Confirm", ButtonStyle.Danger))
                             .AddButtons(new ButtonProperties(VerificationInteractionIds.VerifyRemoveCancel, "Cancel", ButtonStyle.Secondary))
                     );
+
+                    x.AllowedMentions = AllowedMentionsProperties.None;
                 });
             }
         }
@@ -102,6 +110,8 @@ public class VerificationModule() : ApplicationCommandModule<ApplicationCommandC
                             .AddButtons(new ButtonProperties($"{VerificationInteractionIds.VerifyHistoryRemoveConfirm}:{user.Id}", "Confirm", ButtonStyle.Danger))
                             .AddButtons(new ButtonProperties(VerificationInteractionIds.VerifyHistoryRemoveCancel, "Cancel", ButtonStyle.Secondary))
                     );
+
+                    x.AllowedMentions = AllowedMentionsProperties.None;
                 });
             }
         }
