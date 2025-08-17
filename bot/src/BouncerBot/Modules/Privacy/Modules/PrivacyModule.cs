@@ -42,7 +42,7 @@ public class PrivacyModule(
             For any technical questions, contact my developer: <@148604445800923137>
 
             **Source Code:**
-            [GitHub](https://www.github.com/hymccord/bouncerbot/)
+            [GitHub](<https://www.github.com/hymccord/bouncerbot/>)
             """,
             Flags = NetCord.MessageFlags.Ephemeral
         }));
