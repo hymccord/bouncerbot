@@ -51,22 +51,12 @@ jobs:
           name: bouncerbot-publish
           path: ./publish
 
-      - name: Stop service and prepare directory
-        uses: appleboy/ssh-action@v1
+      - name: Install SSH Key
+        uses: shimataro/ssh-key-action@v2
         with:
-          host: ${{ secrets.DO_IP }}
-          username: ${{ secrets.DO_USER }}
-          port: ${{ secrets.DO_PORT }}
           key: ${{ secrets.DO_KEY }}
-          script: |
-            echo ${{ secrets.DO_PASS }} | sudo -S systemctl stop bouncerbot || true
-
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.DO_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -p ${{ secrets.DO_PORT }} ${{ secrets.DO_IP }} >> ~/.ssh/known_hosts
+          name: id_ed25519
+          known_hosts: '${{ secrets.KNOWN_HOSTS }}'
 
       - name: Deploy via rsync
         run: |
@@ -83,5 +73,5 @@ jobs:
           key: ${{ secrets.DO_KEY }}
           script: |
             chmod +x ~/BouncerBot/BouncerBot
-            echo ${{ secrets.DO_PASS }} | sudo -S systemctl start bouncerbot
-            echo ${{ secrets.DO_PASS }} | sudo systemctl is-active bouncerbot
+            echo ${{ secrets.DO_PASS }} | sudo -S systemctl restart bouncerbot
+            echo ${{ secrets.DO_PASS }} | sudo -S systemctl is-active bouncerbot
