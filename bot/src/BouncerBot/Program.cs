@@ -1,3 +1,4 @@
+using Azure.Monitor.OpenTelemetry.Exporter;
 using BouncerBot;
 using BouncerBot.Db;
 using BouncerBot.Modules.Achieve;
@@ -67,6 +68,7 @@ builder.Services
         httpClient.DefaultRequestHeaders.Add("User-Agent", "BouncerBot/1.0 (Discord: Xellis)");
     });
 
+builder.Services.AddOpenTelemetry().UseAzureMonitorExporter();
 if (!string.IsNullOrEmpty(builder.Configuration["Sentry:Dsn"]))
 {
     builder.Logging.AddConfiguration(builder.Configuration);

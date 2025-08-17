@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Azure.Monitor.OpenTelemetry.Exporter" />
     <PackageReference Include="CrypticWizard.RandomWordGenerator" />
     <PackageReference Include="Humanizer.Core" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" />
