@@ -13,7 +13,10 @@
     <PackageReference Include="Azure.Monitor.OpenTelemetry.Exporter" />
     <PackageReference Include="CrypticWizard.RandomWordGenerator" />
     <PackageReference Include="Humanizer.Core" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="Microsoft.Extensions.Http" />
