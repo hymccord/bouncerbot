@@ -95,55 +95,6 @@ internal class CommandMentionService(
             return $"/{commandName}";
         }
 
-        // If it's just a single command, use the regular GetCommandMention logic
-        if (commandParts.Length == 1)
-        {
-            return $"</{mainCommand.Info.Name}:{mainCommand.Id}>";
-        }
-
-        // Navigate through subcommands
-        var currentInfo = mainCommand.Info;
-        var commandPath = new List<string> { mainCommand.Info.Name };
-        
-        for (var i = 1; i < commandParts.Length; i++)
-        {
-            if (currentInfo is SlashCommandGroupInfo<ApplicationCommandContext> groupInfo)
-            {
-                var subCommandKvp = groupInfo.SubCommands
-                    .FirstOrDefault(sc => sc.Key.Equals(commandParts[i], StringComparison.OrdinalIgnoreCase));
-                
-                if (subCommandKvp.Equals(default))
-                {
-                    // Subcommand not found, return plain text
-                    return $"/{commandName}";
-                }
-                
-                commandPath.Add(subCommandKvp.Key);
-                
-                // Check if the subcommand info is also a group for further nesting
-                if (subCommandKvp.Value is SlashCommandGroupInfo<ApplicationCommandContext> nestedGroup)
-                {
-                    currentInfo = nestedGroup;
-                }
-                else
-                {
-                    // This is a leaf command, no more nesting possible
-                    if (i < commandParts.Length - 1)
-                    {
-                        // Still have more parts but reached a leaf, invalid command
-                        return $"/{commandName}";
-                    }
-                }
-            }
-            else
-            {
-                // Current command is not a group, but we still have more parts
-                return $"/{commandName}";
-            }
-        }
-
-        // Build the final mention with the full command path
-        var fullCommandName = string.Join(" ", commandPath);
-        return $"</{fullCommandName}:{mainCommand.Id}>";
+        return $"</{commandName}:{mainCommand.Id}>";
     }
 }

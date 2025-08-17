@@ -4,6 +4,7 @@ using BouncerBot.Modules.Bounce.Modules;
 using BouncerBot.Modules.Claim.Modules;
 using BouncerBot.Modules.Config.Modules;
 using BouncerBot.Modules.Privacy.Modules;
+using BouncerBot.Modules.Verification.Modules;
 using BouncerBot.Modules.Verify.Modules;
 using BouncerBot.Modules.WhoIs.Modules;
 using BouncerBot.Services;
@@ -33,11 +34,11 @@ public class HelpModule(
             {
                 Title = "User Commands",
                 Description = $"""
-                - {cms.GetCommandMention(VerifyModuleMetadata.VerifyCommand.Name)} `<hunterId>`: {VerifyModuleMetadata.VerifyCommand.Description}
-                - {cms.GetCommandMention(VerifyModuleMetadata.UnverifyCommand.Name)}: {VerifyModuleMetadata.UnverifyCommand.Name}
                 - {cms.GetCommandMention(ClaimModuleMetadata.ClaimCommand.Name)} `<achievement> [private]`: {ClaimModuleMetadata.ClaimCommand.Description}
-                - {cms.GetCommandMention(PrivacyModuleMetadata.PrivacyCommand.Name)}: {PrivacyModuleMetadata.PrivacyCommand.Description}
                 - {cms.GetCommandMention(HelpModuleMetadata.HelpCommand.Name)}: {HelpModuleMetadata.HelpCommand.Description}
+                - {cms.GetCommandMention(PrivacyModuleMetadata.PrivacyCommand.Name)}: {PrivacyModuleMetadata.PrivacyCommand.Description}
+                - {cms.GetCommandMention(VerifyModuleMetadata.UnverifyCommand.Name)}: {VerifyModuleMetadata.UnverifyCommand.Name}
+                - {cms.GetCommandMention(VerifyModuleMetadata.VerifyCommand.Name)} `<hunterId>`: {VerifyModuleMetadata.VerifyCommand.Description}
                 """
             });
 
@@ -45,16 +46,18 @@ public class HelpModule(
             {
                 embeds.Add(new EmbedProperties()
                 {
-                    Title = "Moderator Commands",
+                    Title = "Moderator Commands (Has permission 'Manage Roles')",
                     Description = $"""
-                    - {cms.GetSubCommandMention("achieve verify")} `<hunterId> <achievement>`: {AchieveModuleMetadata.VerifyCommand.Description}
                     - {cms.GetSubCommandMention("achieve reset")} `<achievement>`: {AchieveModuleMetadata.ResetCommand.Description}
+                    - {cms.GetSubCommandMention("achieve verify")} `<hunterId> <achievement>`: {AchieveModuleMetadata.VerifyCommand.Description}
                     - {cms.GetSubCommandMention("bounce add")} `<hunterId> [note]`: {BounceModuleMetadata.AddCommand.Description}
+                    - {cms.GetSubCommandMention("bounce check")} `<hunterId>`: {BounceModuleMetadata.CheckCommand.Description}
+                    - {cms.GetSubCommandMention("bounce list")}: {BounceModuleMetadata.ListCommand.Description}
+                    - {cms.GetSubCommandMention("bounce note")} `<hunterId> [note]`: {BounceModuleMetadata.NoteCommand.Description}
                     - {cms.GetSubCommandMention("bounce remove")} `<hunterId>`: {BounceModuleMetadata.RemoveCommand.Description}
                     - {cms.GetSubCommandMention("bounce remove-all")}: {BounceModuleMetadata.RemoveAllCommand.Description}
-                    - {cms.GetSubCommandMention("bounce list")}: {BounceModuleMetadata.ListCommand.Description}
-                    - {cms.GetSubCommandMention("bounce check")} `<hunterId>`: {BounceModuleMetadata.CheckCommand.Description}
-                    - {cms.GetSubCommandMention("bounce note")} `<hunterId> [note]`: {BounceModuleMetadata.NoteCommand.Description}
+                    - {cms.GetSubCommandMention("verification remove user")}: {VerificationModuleMetadata.RemoveCommand.UserCommand.Description}
+                    - {cms.GetSubCommandMention("verification remove history")}: {VerificationModuleMetadata.RemoveCommand.HistoryCommand.Description}
                     - {cms.GetSubCommandMention("whois user")} `<user>`: {WhoIsModuleMetadata.UserCommand.Description}
                     - {cms.GetSubCommandMention("whois hunter")} `<hunterId>`: {WhoIsModuleMetadata.HunterCommand.Description}
                     """,
@@ -65,13 +68,13 @@ public class HelpModule(
             {
                 embeds.Add(new EmbedProperties()
                 {
-                    Title = "Administrator Commands",
+                    Title = "Administrator Commands (Has permission 'Manage Server')",
                     Description = $"""
-                    - {cms.GetSubCommandMention("config log")} `<type> [channel]`: {ConfigModuleMetadata.LogCommand.Description}
-                    - {cms.GetSubCommandMention("config role")} `<role> <selectedRole>`: {ConfigModuleMetadata.RoleCommand.Description}
-                    - {cms.GetSubCommandMention("config message")} `<achievement> <message>`: {ConfigModuleMetadata.MessageCommand.Description}
-                    - {cms.GetSubCommandMention("config verify")} `<min_rank>`: {ConfigModuleMetadata.VerifyCommand.Description}
                     - {cms.GetSubCommandMention("config list")} `[setting]`: {ConfigModuleMetadata.ListCommand.Description}
+                    - {cms.GetSubCommandMention("config log")} `<type> [channel]`: {ConfigModuleMetadata.LogCommand.Description}
+                    - {cms.GetSubCommandMention("config message")} `<achievement> <message>`: {ConfigModuleMetadata.MessageCommand.Description}
+                    - {cms.GetSubCommandMention("config role")} `<role> <selectedRole>`: {ConfigModuleMetadata.RoleCommand.Description}
+                    - {cms.GetSubCommandMention("config verify")} `<min_rank>`: {ConfigModuleMetadata.VerifyCommand.Description}
                     """,
                 });
             }
