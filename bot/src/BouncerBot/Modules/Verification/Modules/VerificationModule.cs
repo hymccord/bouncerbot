@@ -8,6 +8,7 @@ namespace BouncerBot.Modules.Verification.Modules;
 
 [SlashCommand(VerificationModuleMetadata.ModuleName, VerificationModuleMetadata.ModuleDescription)]
 [RequireGuildContext<ApplicationCommandContext>]
+[RequireManageRoles<ApplicationCommandContext>]
 public class VerificationModule() : ApplicationCommandModule<ApplicationCommandContext>
 {
 #if DEBUG
@@ -38,13 +39,13 @@ public class VerificationModule() : ApplicationCommandModule<ApplicationCommandC
 
     [SubSlashCommand(VerificationModuleMetadata.RemoveCommand.Name, VerificationModuleMetadata.RemoveCommand.Description)]
     [RequireGuildContext<ApplicationCommandContext>]
+    [RequireManageRoles<ApplicationCommandContext>]
     public class VerifyRemoveModule(
         IRoleService roleService,
         IVerificationService verificationService
         ) : ApplicationCommandModule<ApplicationCommandContext>
     {
         [SubSlashCommand(VerificationModuleMetadata.RemoveCommand.UserCommand.Name, VerificationModuleMetadata.RemoveCommand.UserCommand.Description)]
-        [RequireOwner<ApplicationCommandContext>]
         public async Task RemoveVerification(
         [SlashCommandParameter(Description = "A verified Discord user")] User user
         )
@@ -87,11 +88,11 @@ public class VerificationModule() : ApplicationCommandModule<ApplicationCommandC
         {
             await RespondAsync(InteractionCallback.DeferredMessage());
 
-            if (!await verificationService.IsDiscordUserVerifiedAsync(Context.Guild!.Id, Context.User.Id))
+            if (!await verificationService.HasDiscordUserVerifiedBeforeAsync(Context.Guild!.Id, Context.User.Id))
             {
                 await ModifyResponseAsync(x =>
                 {
-                    x.Content = "That user is not verified.";
+                    x.Content = "That user has never been verified.";
                 });
             }
             else

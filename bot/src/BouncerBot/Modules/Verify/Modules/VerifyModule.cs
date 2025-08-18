@@ -32,14 +32,16 @@ public class VerifyModule(
         {
             await ModifyResponseAsync(m =>
             {
-                m.Embeds = [
-                    new EmbedProperties()
-                    {
-                        Title = "Error",
-                        Description = "This server does not have the Verified role configured. Please contact an admin!",
-                        Color = new(options.Value.Colors.Error)
-                    }];
-                m.Flags = MessageFlags.Ephemeral;
+                m.Components = [
+                    new ComponentContainerProperties()
+                        .WithAccentColor(new Color(options.Value.Colors.Error))
+                        .AddComponents(
+                            new TextDisplayProperties($"""
+                                This server does not have the Verified role configured. Please contact an admin!
+                                """)
+                        )
+                    ];
+                m.Flags = MessageFlags.Ephemeral | MessageFlags.IsComponentsV2;
             });
         }
 
@@ -48,14 +50,14 @@ public class VerifyModule(
         {
             await ModifyResponseAsync(m =>
             {
-                m.Embeds = [
-                    new EmbedProperties()
-                    {
-                        Title = "Error",
-                        Description = canVerifyResult.Message,
-                        Color = new(options.Value.Colors.Error)
-                    }];
-                m.Flags = MessageFlags.Ephemeral;
+                m.Components = [
+                    new ComponentContainerProperties()
+                        .WithAccentColor(new Color(options.Value.Colors.Error))
+                        .AddComponents(
+                            new TextDisplayProperties(canVerifyResult.Message)
+                        )
+                    ];
+                m.Flags = MessageFlags.Ephemeral | MessageFlags.IsComponentsV2;
             });
 
             return;
@@ -67,7 +69,7 @@ public class VerifyModule(
             // Edge case: somehow the role was removed but the user is still linked.
             if (!await roleService.HasRoleAsync(Context.User.Id, Context.Guild.Id, Role.Verified))
             {
-                message = "You are already verified, but do not have the associated role. I've added it.";
+                message = "You are already on my verified list, but do not have the associated role. I've added it!";
                 await roleService.AddRoleAsync(Context.User.Id, Context.Guild.Id, Role.Verified);
             }
             else
@@ -77,20 +79,20 @@ public class VerifyModule(
 
             await ModifyResponseAsync(m =>
             {
-                m.Embeds = [
-                    new EmbedProperties()
-                    {
-                        Title = "Error",
-                        Description = message,
-                        Color = new(options.Value.Colors.Warning)
-                    }];
-                m.Flags = MessageFlags.Ephemeral;
+                m.Components = [
+                    new ComponentContainerProperties()
+                        .WithAccentColor(new Color(options.Value.Colors.Warning))
+                        .AddComponents(
+                            new TextDisplayProperties(message)
+                        )
+                    ];
+                m.Flags = MessageFlags.Ephemeral | MessageFlags.IsComponentsV2;
             });
 
             return;
         }
 
-        if (await verificationService.HasDiscordUserVerifiedBeforeAsync(mousehuntID, Context.Guild.Id, Context.User.Id))
+        if (await verificationService.HasDiscordUserVerifiedWithMouseHuntIdBeforeAsync(mousehuntID, Context.Guild.Id, Context.User.Id))
         {
             await verificationOrchestrator.ProcessVerificationAsync(VerificationType.Add, new VerificationParameters
             {
@@ -101,18 +103,18 @@ public class VerifyModule(
 
             await ModifyResponseAsync(m =>
             {
-                m.Embeds = [
-                    new EmbedProperties()
-                    {
-                        Title = "Success",
-                        Description = $"""
-                        You previously verified with this MouseHunt ID. I've added the appropriate role!
+                m.Components = [
+                    new ComponentContainerProperties()
+                        .WithAccentColor(new Color(options.Value.Colors.Success))
+                        .AddComponents(
+                            new TextDisplayProperties($"""
+                                You previously verified with this MouseHunt ID. I've added the appropriate role!
 
-                        -# To learn how I know this, use the {commandMentionService.GetCommandMention(PrivacyModuleMetadata.PrivacyCommand.Name)} command.
-                        """,
-                        Color = new (options.Value.Colors.Success)
-                    }];
-                m.Flags = MessageFlags.Ephemeral;
+                                -# To learn how I know this, use the {commandMentionService.GetCommandMention(PrivacyModuleMetadata.PrivacyCommand.Name)} command.
+                                """)
+                        )
+                ];
+                m.Flags = MessageFlags.Ephemeral | MessageFlags.IsComponentsV2;
             });
             return;
         }
@@ -120,38 +122,39 @@ public class VerifyModule(
         var phrase = $"BouncerBot Verification: {randomPhraseGenerator.Generate()}";
         await ModifyResponseAsync(x =>
         {
-            x.Embeds = [
-                new EmbedProperties()
-                {
-                    Title = "MouseHunt Account Verification",
-                    Description = $"""
-                        :exclamation: View the privacy policy with the {commandMentionService.GetCommandMention(PrivacyModuleMetadata.PrivacyCommand.Name)} command. :exclamation:
+            x.Components = [
+                new ComponentContainerProperties()
+                    .WithAccentColor(new Color(options.Value.Colors.Warning))
+                    .AddComponents(
+                        new TextDisplayProperties("## MouseHunt Profile Verification"),
+                        new ComponentSeparatorProperties()
+                                .WithSpacing(ComponentSeparatorSpacingSize.Large)
+                                .WithDivider(true),
+                        new TextDisplayProperties($"""
+                            :exclamation: View the privacy policy with the {commandMentionService.GetCommandMention(PrivacyModuleMetadata.PrivacyCommand.Name)} command. :exclamation:
                         
-                        This process will associate your Discord account with a MouseHunt profile.
+                            This process will associate your Discord account with a MouseHunt profile.
 
-                        Only **ONE (1)** Discord account can be associated with **ONE (1)** MouseHunt ID per server. You can use {commandMentionService.GetCommandMention(VerifyModuleMetadata.UnverifyCommand.Name)} to undo this at any time. If you wish to use a different MouseHunt ID than one previously linked, you will need to contact the moderators.
+                            Only **ONE (1)** Discord account can be associated with **ONE (1)** MouseHunt ID per server. You can use {commandMentionService.GetCommandMention(VerifyModuleMetadata.UnverifyCommand.Name)} to undo this at any time. If you wish to use a different MouseHunt ID than one previously linked, you will need to contact the moderators.
 
-                        These are the details I have for you:
-                        Discord: <@{Context.User.Id}> <-> MHID: {mousehuntID}
+                            These are the details I have for you:
+                            Discord: <@{Context.User.Id}> <-> MHID: {mousehuntID}
 
-                        If you agree with the above terms, place the **entirety** of this phrase on your MouseHunt profile corkboard (_everything_ in code block):
-                        ```
-                        {phrase}
-                        ```
-
-                        I will read your corkboard and verify it matches.
-
-                        Press 'Verify' to proceed, otherwise 'Cancel'.
-                        """,
-                    Color = new(options.Value.Colors.Primary)
-                }
+                            If you agree with the above terms, place the **entirety** of this phrase on your MouseHunt profile corkboard (_everything_ in code block). I will read your corkboard and verify it matches.
+                            ```
+                            {phrase}
+                            ```
+                            Press 'Verify' to proceed, otherwise 'Cancel'.
+                            """),
+                        new ComponentSeparatorProperties()
+                            .WithSpacing(ComponentSeparatorSpacingSize.Large)
+                            .WithDivider(true),
+                        new ActionRowProperties()
+                            .AddButtons(new ButtonProperties($"link start:{mousehuntID}:{phrase}", "Verify", ButtonStyle.Danger))
+                            .AddButtons(new ButtonProperties("link cancel", "Cancel", ButtonStyle.Success))
+                    )
             ];
-            x.AddComponents(
-                new ActionRowProperties()
-                    .AddButtons(new ButtonProperties($"link start:{mousehuntID}:{phrase}", "Verify", ButtonStyle.Danger))
-                    .AddButtons(new ButtonProperties("link cancel", "Cancel", ButtonStyle.Success))
-                );
-            x.AllowedMentions = AllowedMentionsProperties.None;
+            x.Flags = MessageFlags.Ephemeral | MessageFlags.IsComponentsV2;
         });
     }
 
@@ -181,16 +184,18 @@ public class VerifyModule(
         await verificationService.RemoveVerifiedUser(Context.Guild!.Id, Context.User.Id);
         await ModifyResponseAsync(x =>
         {
-            x.Embeds = [
-                new EmbedProperties()
-                {
-                    Title = "Unlinked",
-                    Description = """
-                    Your have been unverified and I have removed your Discord ID and MouseHunt ID from my records.
-                    """,
-                    Color = new (options.Value.Colors.Success)
-                }];
-            x.Flags = MessageFlags.Ephemeral;
+            x.Components = [
+                new ComponentContainerProperties()
+                    .WithAccentColor(new Color(options.Value.Colors.Success))
+                    .AddComponents(
+                        new TextDisplayProperties("""
+                            You have been unverified!
+
+                            I have removed your Discord ID and MouseHunt ID from my records.
+                            """)
+                    )
+            ];
+            x.Flags = MessageFlags.Ephemeral | MessageFlags.IsComponentsV2;
         });
     }
 }

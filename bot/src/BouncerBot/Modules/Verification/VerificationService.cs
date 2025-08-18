@@ -2,14 +2,14 @@ using BouncerBot;
 using BouncerBot.Db;
 using BouncerBot.Db.Models;
 using BouncerBot.Modules.Bounce;
+using BouncerBot.Modules.Privacy.Modules;
 using BouncerBot.Rest;
 using BouncerBot.Rest.Models;
-
+using BouncerBot.Services;
 using Humanizer;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using NetCord.Rest;
 
 namespace BouncerBot.Modules.Verification;
 
@@ -18,7 +18,8 @@ public interface IVerificationService
     Task<VerificationAddResult> AddVerifiedUserAsync(uint mouseHuntId, ulong guildId, ulong discordId, CancellationToken cancellationToken = default);
     Task<CanUserVerifyResult> CanUserVerifyAsync(uint mouseHuntId, ulong guildId, ulong discordId, CancellationToken cancellationToken = default);
     Task<bool> IsDiscordUserVerifiedAsync(ulong guildId, ulong discordId, CancellationToken cancellationToken = default);
-    Task<bool> HasDiscordUserVerifiedBeforeAsync(uint mousehuntId, ulong guildId, ulong discordId, CancellationToken cancellationToken = default);
+    Task<bool> HasDiscordUserVerifiedWithMouseHuntIdBeforeAsync(uint mousehuntId, ulong guildId, ulong discordId, CancellationToken cancellationToken = default);
+    Task<bool> HasDiscordUserVerifiedBeforeAsync(ulong guildId, ulong discordId, CancellationToken cancellationToken = default);
     Task<VerificationRemoveResult> RemoveVerifiedUser(ulong guildId, ulong discordId, CancellationToken cancellationToken = default);
     Task<VerificationRemoveResult> RemoveVerificationHistoryAsync(ulong guildId, ulong discordId, CancellationToken cancellationToken = default);
     Task SetVerificationMessageAsync(SetVerificationMessageParameters parameters);
@@ -27,7 +28,9 @@ public interface IVerificationService
 public class VerificationService(
     ILogger<VerificationService> logger,
     BouncerBotDbContext dbContext,
+    ICommandMentionService commandMentionService,
     IDiscordRestClient restClient,
+    IGuildLoggingService guildLoggingService,
     IMouseHuntRestClient mouseHuntRestClient,
     IBounceService bounceService) : IVerificationService
 {
@@ -98,19 +101,48 @@ public class VerificationService(
         // Check if the MouseHunt ID is banned
         var banCheck = await CheckHunterIdBanned(mouseHuntId, guildId, cancellationToken);
         if (!banCheck.CanVerify)
+        {
+            _ = guildLoggingService.LogErrorAsync(guildId, "Verification Blocked", $"""
+                :warning: <@{discordId}> attempted to verify with a banned MouseHunt ID ([{mouseHuntId}](<https://p.mshnt.ca/{mouseHuntId}>)). :warning:
+                """, default);
             return banCheck;
+        }
 
         var existingUserCheck = await CheckHunterInUseAsync(mouseHuntId, guildId, discordId, cancellationToken);
         if (!existingUserCheck.CanVerify)
+        {
+            _ = guildLoggingService.LogWarningAsync(guildId, "Verification Blocked", $"""
+                <@{discordId}> attempted to verify with a MouseHunt ID ([{mouseHuntId}](<https://p.mshnt.ca/{mouseHuntId}>)) that is already in use.
+                """, default);
             return existingUserCheck;
+        }
 
         var historyCheck = await CheckUserVerificationHistoryAsync(mouseHuntId, guildId, discordId, cancellationToken);
         if (!historyCheck.CanVerify)
+        {
+            _ = guildLoggingService.LogWarningAsync(guildId, "Verification Blocked", $"""
+                <@{discordId}> attempted to verify with a different MouseHunt ID ([{mouseHuntId}](<https://p.mshnt.ca/{mouseHuntId}>)).
+                """, default);
             return historyCheck;
+        }
+
+        historyCheck = await CheckMouseHuntIdVerificationHistoryAsync(mouseHuntId, guildId, discordId, cancellationToken);
+        if (!historyCheck.CanVerify)
+        {
+            _ = guildLoggingService.LogWarningAsync(guildId, "Verification Blocked", $"""
+                <@{discordId}> attempted to verify with a MouseHunt ID ([{mouseHuntId}](<https://p.mshnt.ca/{mouseHuntId}>)) belonging to a different Discord user.
+                """, default);
+            return historyCheck;
+        }
 
         var rankCheck = await CheckUserRankRequirementAsync(mouseHuntId, guildId, cancellationToken);
         if (!rankCheck.CanVerify)
+        {
+            _ = guildLoggingService.LogWarningAsync(guildId, "Verification Blocked", $"""
+                <@{discordId}> attempted to verify with a MouseHunt ID that does not meet the rank requirement: [{mouseHuntId}](<https://p.mshnt.ca/{mouseHuntId}>).
+                """, default);
             return rankCheck;
+        }
 
         return new CanUserVerifyResult
         {
@@ -128,9 +160,9 @@ public class VerificationService(
             {
                 CanVerify = false,
                 Message = """
-                This MouseHunt ID is banned from verifying their account in this server.
+                Sorry, an internal error occurred. Try again later.
 
-                If you believe this is an error, please contact the moderators.
+                Please contact the moderators with error code: `VF-2156-B3`.
                 """
             };
         }
@@ -149,9 +181,9 @@ public class VerificationService(
             {
                 CanVerify = false,
                 Message = """
-                This MouseHunt ID is already being used by different Discord user in this server.
+                Sorry, an internal error occured. Try again later.
 
-                If you believe this is an error, please contact the moderators immediately.
+                Please contact the moderators with error code: `VF-8429-A7`.
                 """
             };
         }
@@ -170,14 +202,36 @@ public class VerificationService(
             return new CanUserVerifyResult
             {
                 CanVerify = false,
-                Message = """
+                Message = $"""
                 You previously verified a different MouseHunt ID in this server.
 
                 Please contact the moderators if you think this is an error or to explain why a change is required.
+
+                -# To learn how I know this, use the {commandMentionService.GetCommandMention(PrivacyModuleMetadata.PrivacyCommand.Name)} command.
                 """
             };
         }
 
+        return new CanUserVerifyResult { CanVerify = true, Message = "" };
+    }
+
+    private async Task<CanUserVerifyResult> CheckMouseHuntIdVerificationHistoryAsync(uint mouseHuntId, ulong guildId, ulong discordId, CancellationToken cancellationToken)
+    {
+        var mhIdHash = VerificationHistory.HashValue(mouseHuntId);
+        var previousVerification = await dbContext.VerificationHistory
+            .FirstOrDefaultAsync(vh => vh.GuildId == guildId && vh.MouseHuntIdHash == mhIdHash, cancellationToken);
+        if (previousVerification is not null && !previousVerification.VerifyDiscordId(discordId))
+        {
+            return new CanUserVerifyResult
+            {
+                CanVerify = false,
+                Message = $"""
+                Sorry, an internal error occurred. Try again later.
+
+                Please contact the moderators with error code: `VF-9518-C3`.
+                """
+            };
+        }
         return new CanUserVerifyResult { CanVerify = true, Message = "" };
     }
 
@@ -191,7 +245,7 @@ public class VerificationService(
             return new CanUserVerifyResult
             {
                 CanVerify = false,
-                Message = $"You're a little too new around here! Rank up to {minRank.Humanize()} and I'll reconsider."
+                Message = $"You're a little too new around here! Rank up to **{minRank.Humanize()}** and I'll reconsider."
             };
         }
 
@@ -222,13 +276,20 @@ public class VerificationService(
             ?? throw new Exception("Failed to fetch titles from MouseHunt API");
     }
 
-    public async Task<bool> HasDiscordUserVerifiedBeforeAsync(uint mousehuntId, ulong guildId, ulong discordId, CancellationToken cancellationToken = default)
+    public async Task<bool> HasDiscordUserVerifiedWithMouseHuntIdBeforeAsync(uint mousehuntId, ulong guildId, ulong discordId, CancellationToken cancellationToken = default)
     {
         var discordIdHash = VerificationHistory.HashValue(discordId);
         var existingHistory = await dbContext.VerificationHistory
             .FirstOrDefaultAsync(vh => vh.GuildId == guildId && vh.DiscordIdHash == discordIdHash, cancellationToken);
 
         return existingHistory?.VerifyMouseHuntId(mousehuntId) ?? false;
+    }
+
+    public async Task<bool> HasDiscordUserVerifiedBeforeAsync(ulong guildId, ulong discordId, CancellationToken cancellationToken = default)
+    {
+        var discordIdHash = VerificationHistory.HashValue(discordId);
+        return await dbContext.VerificationHistory
+            .AnyAsync(vh => vh.GuildId == guildId && vh.DiscordIdHash == discordIdHash, cancellationToken);
     }
 
     public async Task<VerificationRemoveResult> RemoveVerifiedUser(ulong guildId, ulong discordId, CancellationToken cancellationToken = default)
