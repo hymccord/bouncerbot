@@ -2,9 +2,8 @@ using BouncerBot.Db;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-
+using Microsoft.Extensions.Options;
 using NetCord;
-using NetCord.Gateway;
 using NetCord.Rest;
 
 namespace BouncerBot.Services;
@@ -13,9 +12,9 @@ public interface IGuildLoggingService
 {
     Task<RestMessage?> LogAsync(ulong guildId, LogType logType, MessageProperties message, CancellationToken cancellationToken = default);
     Task LogAchievementAsync(ulong guildId, AchievementRole achievement, string content, CancellationToken cancellationToken = default);
-    //Task<RestMessage?> LogAsync(ulong guildId, LogType logType, string content, CancellationToken cancellationToken = default);
-    //Task<RestMessage?> LogAsync(ulong guildId, LogType logType, EmbedProperties embedProperties, CancellationToken cancellationToken = default);
-    //Task<RestMessage?> LogAsync(ulong guildId, LogType logType, MessageProperties message, CancellationToken cancellationToken = default)}
+    Task LogErrorAsync(ulong guildId, string title, string content, CancellationToken cancellationToken = default);
+    Task LogSuccessAsync(ulong guildId, string title, string content, CancellationToken cancellationToken = default);
+    Task LogWarningAsync(ulong guildId, string title, string content, CancellationToken cancellationToken = default);
 }
 
 public enum LogType
@@ -28,6 +27,7 @@ public enum LogType
 
 internal class GuildLoggingService(
     ILogger<GuildLoggingService> logger,
+    IOptions<BouncerBotOptions> options,
     BouncerBotDbContext dbContext,
     IDiscordGatewayClient gatewayClient) : IGuildLoggingService
 {
@@ -54,9 +54,18 @@ internal class GuildLoggingService(
             _ => logSetting.GeneralId
         } ?? logSetting.GeneralId ?? 0;
 
-        if (guild.Channels.TryGetValue(logChannelId, out var guildChannel) && guildChannel is TextChannel logChannel)
+        if (!guild.Channels.TryGetValue(logChannelId, out var guildChannel) || guildChannel is not TextChannel logChannel)
+        {
+            return null;
+        }
+
+        try
         {
             return await logChannel.SendMessageAsync(message, cancellationToken: cancellationToken);
+        }
+        catch (RestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
+        {
+            logger.LogInformation(ex, "Unable to log to channel {ChannelId} in guild {GuildId} due to permissions.", logChannel.Id, guildId);
         }
 
         return null;
@@ -118,4 +127,37 @@ internal class GuildLoggingService(
             logger.LogWarning(ex, "Failed to log achievement '{Achievement}' to channel {LogChannelId} in guild {GuildId}: {Message}", achievement, logChannelId.Value, guildId, content);
         }
     }
+
+    public Task LogErrorAsync(ulong guildId, string title, string content, CancellationToken cancellationToken = default)
+    {
+        var message = CreateV2Embed(title, content, options.Value.Colors.Error);
+        return LogAsync(guildId, LogType.General, message, cancellationToken);
+    }
+
+    public Task LogSuccessAsync(ulong guildId, string title, string content, CancellationToken cancellationToken = default)
+    {
+        var message = CreateV2Embed(title, content, options.Value.Colors.Success);
+        return LogAsync(guildId, LogType.General, message, cancellationToken);
+    }
+
+    public Task LogWarningAsync(ulong guildId, string title, string content, CancellationToken cancellationToken = default)
+    {
+        var message = CreateV2Embed(title, content, options.Value.Colors.Warning);
+        return LogAsync(guildId, LogType.General, message, cancellationToken);
+    }
+
+    private static MessageProperties CreateV2Embed(string title, string description, int color) => new()
+    {
+        Components = [
+                new ComponentContainerProperties()
+                    .WithAccentColor(new (color))
+                    .AddComponents(
+                        new TextDisplayProperties($"**{title}**"),
+                        new ComponentSeparatorProperties().WithSpacing(ComponentSeparatorSpacingSize.Small).WithDivider(true),
+                        new TextDisplayProperties(description)
+                    )
+                ],
+        AllowedMentions = AllowedMentionsProperties.None,
+        Flags = MessageFlags.IsComponentsV2
+    };
 }
