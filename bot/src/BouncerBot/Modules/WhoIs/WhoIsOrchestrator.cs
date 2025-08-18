@@ -26,7 +26,7 @@ public class WhoIsOrchestrator(IWhoIsService whoIsService) : IWhoIsOrchestrator
             return new WhoIsResult
             {
                 Success = true,
-                Message = $"<@{discordId}> is hunter **{verifiedUser.MouseHuntId}**\n<https://p.mshnt.ca/{verifiedUser.MouseHuntId}>",
+                Message = $"<@{discordId}> is hunter **[{verifiedUser.MouseHuntId}](<https://p.mshnt.ca/{verifiedUser.MouseHuntId}>)**.",
             };
         }
         catch (Exception ex)
@@ -34,7 +34,7 @@ public class WhoIsOrchestrator(IWhoIsService whoIsService) : IWhoIsOrchestrator
             return new WhoIsResult
             {
                 Success = false,
-                Message = $"An error occurred while looking up the user: {ex.Message}"
+                Message = $"An error occurred while looking up the user: {ex.Message}."
             };
         }
     }
@@ -50,14 +50,14 @@ public class WhoIsOrchestrator(IWhoIsService whoIsService) : IWhoIsOrchestrator
                 return new WhoIsResult
                 {
                     Success = false,
-                    Message = $"Hunter **{mouseHuntId}** is not verified.\n<https://p.mshnt.ca/{mouseHuntId}>"
+                    Message = $"Hunter **[{mouseHuntId}](<https://p.mshnt.ca/{mouseHuntId}>)** is not verified."
                 };
             }
 
             return new WhoIsResult
             {
                 Success = true,
-                Message = $"Hunter **{mouseHuntId}** is <@{verifiedUser.DiscordId}>\n<https://p.mshnt.ca/{mouseHuntId}>",
+                Message = $"Hunter **[{mouseHuntId}](<https://p.mshnt.ca/{mouseHuntId}>)** is <@{verifiedUser.DiscordId}>.",
             };
         }
         catch (Exception ex)
@@ -65,7 +65,7 @@ public class WhoIsOrchestrator(IWhoIsService whoIsService) : IWhoIsOrchestrator
             return new WhoIsResult
             {
                 Success = false,
-                Message = $"An error occurred while looking up the hunter: {ex.Message}"
+                Message = $"An error occurred while looking up the hunter: {ex.Message}."
             };
         }
     }

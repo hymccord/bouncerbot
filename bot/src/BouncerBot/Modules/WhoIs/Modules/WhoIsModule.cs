@@ -15,51 +15,66 @@ public class WhoIsModule(
     IOptionsSnapshot<BouncerBotOptions> options,
     IWhoIsOrchestrator whoIsOrchestrator) : ApplicationCommandModule<ApplicationCommandContext>
 {
+    private const int MessageTimeout = 5;
+
     [SubSlashCommand(WhoIsModuleMetadata.UserCommand.Name, WhoIsModuleMetadata.UserCommand.Description)]
     public async Task GetHunterIdAsync(
         [SlashCommandParameter(Description = "Discord user to look up")] User user)
     {
+
         await RespondAsync(InteractionCallback.DeferredMessage());
 
         var result = await whoIsOrchestrator.GetHunterIdAsync(Context.Guild!.Id, user.Id);
 
-        await ModifyResponseAsync(m =>
-        {
-            m.Embeds = [
-                new EmbedProperties
-                {
-                    Title = "Whois User",
-                    Author = new EmbedAuthorProperties
-                    {
-                        Name = user.Username,
-                        IconUrl = user.GetAvatarUrl()?.ToString() ?? user.DefaultAvatarUrl.ToString(),
-                    },
-                    Description = result.Message,
-                    Color = new (result.Success ? options.Value.Colors.Success : options.Value.Colors.Error)
-                }
-                ];
-            m.AllowedMentions = AllowedMentionsProperties.None;
-        });
+        await ModifyWhoIsReponse("Whois User", result);
+        await Task.Delay(TimeSpan.FromSeconds(MessageTimeout));
+        await TryDeleteResponseAsync();
     }
 
     [SubSlashCommand(WhoIsModuleMetadata.HunterCommand.Name, WhoIsModuleMetadata.HunterCommand.Description)]
     public async Task GetDiscordUserAsync(
-        [SlashCommandParameter(Description = "MouseHunt ID to look up")] uint hunterId)
+        [SlashCommandParameter(Description = "MouseHunt ID to look up")] uint mousehuntID)
     {
         await RespondAsync(InteractionCallback.DeferredMessage());
 
-        var result = await whoIsOrchestrator.GetUserIdAsync(Context.Guild!.Id, hunterId);
+        var result = await whoIsOrchestrator.GetUserIdAsync(Context.Guild!.Id, mousehuntID);
 
+        await ModifyWhoIsReponse("Whois Hunter", result);
+        await Task.Delay(TimeSpan.FromSeconds(MessageTimeout));
+        await TryDeleteResponseAsync();
+    }
+
+    private async Task ModifyWhoIsReponse(string title, WhoIsResult result)
+    {
         await ModifyResponseAsync(m =>
         {
-            m.Embeds = [
-                new EmbedProperties
-                {
-                    Title = "Whois Hunter",
-                    Description = result.Message,
-                    Color = new (result.Success ? options.Value.Colors.Success : options.Value.Colors.Error)
-                }
+            m.Components = [
+                new ComponentContainerProperties()
+                    .WithAccentColor(new (result.Success ? options.Value.Colors.Success : options.Value.Colors.Error))
+                    .AddComponents(
+                        new TextDisplayProperties($"**{title}**"),
+                        new ComponentSeparatorProperties().WithSpacing(ComponentSeparatorSpacingSize.Small).WithDivider(true),
+                        new TextDisplayProperties($"""
+                            {result.Message}
+
+                            -# This message will expire in <t:{DateTimeOffset.Now.ToUnixTimeSeconds() + MessageTimeout}:R>
+                            """)
+                    )
                 ];
+            m.Flags = MessageFlags.Ephemeral | MessageFlags.IsComponentsV2;
+            m.AllowedMentions = AllowedMentionsProperties.None;
         });
+    }
+
+    private async Task TryDeleteResponseAsync()
+    {
+        try
+        {
+            await DeleteResponseAsync();
+        }
+        catch (RestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            // Message was already deleted
+        }
     }
 }
