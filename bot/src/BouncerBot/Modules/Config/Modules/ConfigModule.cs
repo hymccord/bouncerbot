@@ -54,16 +54,6 @@ public partial class ConfigModule(
             }
         }
 
-        // Ensure permission to send messages in the channel
-        if (channel is IInteractionChannel interactionChannel && !interactionChannel.Permissions.HasFlag(Permissions.SendMessages))
-        {
-            await RespondAsync(InteractionCallback.Message(new()
-            {
-                Content = $"I don't have permission to send messages in <#{channel.Id}>.",
-                Flags = MessageFlags.Ephemeral
-            }));
-        }
-
         await configService.SetAchievementLogChannelAsync(Context.Guild!.Id, achievement, channel?.Id);
 
         if (channel is null)

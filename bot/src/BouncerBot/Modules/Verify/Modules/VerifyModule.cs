@@ -14,10 +14,12 @@ namespace BouncerBot.Modules.Verify.Modules;
 [RequireGuildContext<ApplicationCommandContext>]
 public class VerifyModule(
     IOptionsSnapshot<BouncerBotOptions> options,
+    ICommandMentionService commandMentionService,
     IRandomPhraseGenerator randomPhraseGenerator,
-    IVerificationService verificationService,
     IRoleService roleService,
-    ICommandMentionService commandMentionService): ApplicationCommandModule<ApplicationCommandContext>
+    IVerificationOrchestrator verificationOrchestrator,
+    IVerificationService verificationService
+): ApplicationCommandModule<ApplicationCommandContext>
 {
     [SlashCommand(VerifyModuleMetadata.VerifyCommand.Name, VerifyModuleMetadata.VerifyCommand.Description)]
     public async Task LinkAsync(
@@ -90,6 +92,13 @@ public class VerifyModule(
 
         if (await verificationService.HasDiscordUserVerifiedBeforeAsync(mousehuntID, Context.Guild.Id, Context.User.Id))
         {
+            await verificationOrchestrator.ProcessVerificationAsync(VerificationType.Add, new VerificationParameters
+            {
+                GuildId = Context.Guild.Id,
+                DiscordUserId = Context.User.Id,
+                MouseHuntId = mousehuntID,
+            });
+
             await ModifyResponseAsync(m =>
             {
                 m.Embeds = [
@@ -116,32 +125,31 @@ public class VerifyModule(
                 {
                     Title = "MouseHunt Account Verification",
                     Description = $"""
-                        This process will associate your current Discord account with your MouseHunt profile.
+                        :exclamation: View the privacy policy with the {commandMentionService.GetCommandMention(PrivacyModuleMetadata.PrivacyCommand.Name)} command. :exclamation:
+                        
+                        This process will associate your Discord account with a MouseHunt profile.
 
-                        Only **ONE (1)** Discord account can be associated with **ONE (1)** Hunter ID per server. You can use {commandMentionService.GetCommandMention(VerifyModuleMetadata.UnverifyCommand.Name)} to undo this at any time, but you will need to go through this process again to re-link your account. If you wish to use a different Hunter ID than one previously linked, you will have to contact the moderators.
-
-                        The moderators of this server will be able to access the linked user information at any time for moderation purposes.
-                        View the privacy policy with the {commandMentionService.GetCommandMention(PrivacyModuleMetadata.PrivacyCommand.Name)} command.
+                        Only **ONE (1)** Discord account can be associated with **ONE (1)** MouseHunt ID per server. You can use {commandMentionService.GetCommandMention(VerifyModuleMetadata.UnverifyCommand.Name)} to undo this at any time. If you wish to use a different MouseHunt ID than one previously linked, you will need to contact the moderators.
 
                         These are the details I have for you:
                         Discord: <@{Context.User.Id}> <-> MHID: {mousehuntID}
 
-                        If this is correct and you agree with the above terms, place the **entire** of the following phrase on your MouseHunt profile corkboard (everything in code block):
+                        If you agree with the above terms, place the **entirety** of this phrase on your MouseHunt profile corkboard (_everything_ in code block):
                         ```
                         {phrase}
                         ```
 
                         I will read your corkboard and verify it matches.
 
-                        Click 'Start!' to proceed, otherwise 'Cancel'.
+                        Press 'Verify' to proceed, otherwise 'Cancel'.
                         """,
                     Color = new(options.Value.Colors.Primary)
                 }
             ];
             x.AddComponents(
                 new ActionRowProperties()
-                    .AddButtons(new ButtonProperties($"link start:{mousehuntID}:{phrase}", "Start!", ButtonStyle.Success))
-                    .AddButtons(new ButtonProperties("link cancel", "Cancel", ButtonStyle.Danger))
+                    .AddButtons(new ButtonProperties($"link start:{mousehuntID}:{phrase}", "Verify", ButtonStyle.Danger))
+                    .AddButtons(new ButtonProperties("link cancel", "Cancel", ButtonStyle.Success))
                 );
             x.AllowedMentions = AllowedMentionsProperties.None;
         });
