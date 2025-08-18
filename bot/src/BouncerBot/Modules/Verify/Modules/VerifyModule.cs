@@ -22,7 +22,7 @@ public class VerifyModule(
 ): ApplicationCommandModule<ApplicationCommandContext>
 {
     [SlashCommand(VerifyModuleMetadata.VerifyCommand.Name, VerifyModuleMetadata.VerifyCommand.Description)]
-    public async Task LinkAsync(
+    public async Task VerifyAsync(
         [SlashCommandParameter(Description = "Your MouseHunt ID", MinValue = 1)]
         uint mousehuntID)
     {
@@ -157,11 +157,11 @@ public class VerifyModule(
 
     [SlashCommand(VerifyModuleMetadata.UnverifyCommand.Name, VerifyModuleMetadata.UnverifyCommand.Description)]
     [RequireVerificationStatus<ApplicationCommandContext>(VerificationStatus.Verified)]
-    public async Task UnlinkAsync()
+    public async Task UnverifyAsync()
     {
         await RespondAsync(InteractionCallback.DeferredEphemeralMessage());
         // This check is a sanity check, the precondition should ensure this is not called if the user is already verified.
-        if (await verificationService.IsDiscordUserVerifiedAsync(Context.Guild!.Id, Context.User.Id))
+        if (!await verificationService.IsDiscordUserVerifiedAsync(Context.Guild!.Id, Context.User.Id))
         {
             await ModifyResponseAsync(x =>
             {
