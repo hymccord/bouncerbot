@@ -40,28 +40,53 @@ internal class EphemeralApplicationCommandResultHandler<TContext>(
         else
             logger.LogDebug("Execution of an application command of name '{Name}' failed with '{Message}'", interaction.Data.Name, resultMessage);
 
+        var container = new ComponentContainerProperties()
+            .WithAccentColor(new(options.CurrentValue.Colors.Error));
+
         if (failResult is IExceptionResult { Exception: PuzzleException })
         {
-            resultMessage = """
-                Apologies, I'm a little busy trying to solve this King's Reward! It's difficult for me... 🤖
+                container.AddComponents(
+                    new TextDisplayProperties("""
+                        Apologies, I'm a little busy trying to solve this King's Reward! It's difficult for me... 🤖
                 
-                Please try again later.
-                """;
+                        Please try again later.
+                        """)
+                );
 
-            services.GetRequiredService<IPuzzleService>().TriggerPuzzle();
+            _ = services.GetRequiredService<IPuzzleService>().TriggerPuzzle();
+        }
+        else if (failResult is IExceptionResult { Exception: NetCord.Rest.RestException restException })
+        {
+            //if (restException.Error is NetCord.Rest.RestError restError && (restError.Code == 50001 || restError.Code == 50013))
+            //{
+            //    switch (restError.Code)
+            //    {
+            //        case 50001: // Missing Access
+            //            container.AddComponents(new TextDisplayProperties("I do not have access to the appropriate channel to send your achievement."));
+            //            break;
+            //        case 50013: // Lack permissions
+            //            message = "I do not have permission add the appropriate role. Please contact a server administrator.";
+            //            break;
+            //    }
+            //}
+            container.AddComponents(
+                new TextDisplayProperties($"""
+                    {resultMessage}
+
+                    -# Discord Error Code: `{restException.Error?.Code}`
+                    """)
+            );
+        }
+        else
+        {
+            container.AddComponents(
+                new TextDisplayProperties(resultMessage)
+            );
         }
 
         var message = new InteractionMessageProperties()
-        {
-            Components = new ComponentContainerProperties
-            {
-                AccentColor = new Color(options.CurrentValue.Colors.Error),
-                Components = [
-                    new TextDisplayProperties(resultMessage)
-                    ]
-            },
-            Flags = MessageFlags.Ephemeral | MessageFlags.IsComponentsV2
-        };
+            .AddComponents(container)
+            .WithFlags(MessageFlags.Ephemeral | MessageFlags.IsComponentsV2);
 
         if (failResult is PreconditionFailResult)
         {
@@ -91,29 +116,41 @@ internal class EphemeralComponentInteractionResultHandler<TContext>(
         else
             logger.LogDebug("Execution of an interaction of custom ID '{Id}' failed with '{Message}'", interaction.Data.CustomId, resultMessage);
 
-        
+        var container = new ComponentContainerProperties()
+            .WithAccentColor(new(options.CurrentValue.Colors.Error));
+
         if (failResult is IExceptionResult { Exception: PuzzleException })
         {
-            resultMessage = """
-                Apologies, I'm a little busy trying to solve this King's Reward! It's difficult for me... 🤖
+            container.AddComponents(
+                new TextDisplayProperties("""
+                        Apologies, I'm a little busy trying to solve this King's Reward! It's difficult for me... 🤖
                 
-                Please try again later.
-                """;
+                        Please try again later.
+                        """)
+            );
 
-            services.GetRequiredService<IPuzzleService>().TriggerPuzzle();
+            _ = services.GetRequiredService<IPuzzleService>().TriggerPuzzle();
+        }
+        else if (failResult is IExceptionResult { Exception: NetCord.Rest.RestException restException })
+        {
+            container.AddComponents(
+                new TextDisplayProperties($"""
+                    {resultMessage}
+
+                    -# Discord Error Code: `{restException.Error?.Code}`
+                    """)
+            );
+        }
+        else
+        {
+            container.AddComponents(
+                new TextDisplayProperties(resultMessage)
+            );
         }
 
         var message = new InteractionMessageProperties()
-        { 
-            Components = new ComponentContainerProperties
-            {
-                AccentColor = new Color(options.CurrentValue.Colors.Error),
-                Components = [
-                    new TextDisplayProperties(resultMessage)
-                    ]
-            },
-            Flags = MessageFlags.Ephemeral | MessageFlags.IsComponentsV2
-        };
+            .AddComponents(container)
+            .WithFlags(MessageFlags.Ephemeral | MessageFlags.IsComponentsV2);
 
         if (failResult is PreconditionFailResult)
         {
