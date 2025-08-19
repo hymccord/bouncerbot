@@ -20,7 +20,11 @@ public class BouncerBotDbContext(DbContextOptions<BouncerBotDbContext> options) 
     {
         modelBuilder.Entity<AchievementMessage>(am =>
         {
-            am.HasKey(am => am.GuildId);
+            am.HasKey(am => new
+            {
+                am.GuildId,
+                am.AchievementRole
+            });
         });
 
         modelBuilder.Entity<AchievementLogChannelOverride>(alo =>
