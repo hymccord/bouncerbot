@@ -61,6 +61,7 @@ builder.Services
     .AddTransient<IWhoIsService, WhoIsService>()
     .AddTransient<IWhoIsOrchestrator, WhoIsOrchestrator>()
     .AddTransient<ICommandMentionService, CommandMentionService>()
+    .AddTransient<IMouseHuntEmojiService, MouseHuntEmojiService>()
     .AddSingleton<IDiscordRestClient, DiscordRestClient>()
     .AddSingleton<IDiscordGatewayClient, DiscordGatewayClient>()
     .AddSingleton<IPuzzleService, PuzzleService>() // Singleton b/c of puzzle state capture

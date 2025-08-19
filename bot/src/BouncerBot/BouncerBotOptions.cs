@@ -40,6 +40,32 @@ public class EmojiOptions
     public required string Tactical { get; set; }
     [Required]
     public required string Multi { get; set; }
+
+    public TitleEmojis Titles { get; set; } = new TitleEmojis();
+
+    public class TitleEmojis
+    {
+        public string? Viceroy { get; set; }
+        public string? Archduke { get; set; }
+        public string? GrandDuke { get; set; }
+        public string? Duke { get; set; }
+        public string? Count { get; set; }
+        public string? Baron { get; set; }
+        public string? Lord { get; set; }
+        public string? Knight { get; set; }
+        public string? Hero { get; set; }
+        public string? Legendary { get; set; }
+        public string? Grandmaster { get; set; }
+        public string? Master { get; set; }
+        public string? Journeyman { get; set; }
+        public string? Initiate { get; set; }
+        public string? Apprentice { get; set; }
+        public string? Recruit { get; set; }
+        public string? Novice { get; set; }
+        public string? Fabled { get; set; }
+        public string? Sage { get; set; }
+        public string? Elder { get; set; }
+    }
 }
 
 public class ColorOptions
