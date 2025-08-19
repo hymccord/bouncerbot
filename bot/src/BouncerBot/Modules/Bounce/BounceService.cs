@@ -55,11 +55,16 @@ public class BounceService(BouncerBotDbContext dbContext) : IBounceService
         }
     }
 
-    public async Task RemoveAllBannedHuntersAsync(ulong guildId)
+    public async Task<uint[]> RemoveAllBannedHuntersAsync(ulong guildId)
     {
-        await dbContext.BannedHunters
+        var bannedHunters = await dbContext.BannedHunters
             .Where(bh => bh.GuildId == guildId)
-            .ExecuteDeleteAsync();;
+            .ToListAsync();
+
+        dbContext.BannedHunters.RemoveRange(bannedHunters);
+        await dbContext.SaveChangesAsync();
+
+        return [.. bannedHunters.Select(bh => bh.MouseHuntId)];
     }
 
     public async Task UpdateBannedHunterNoteAsync(uint mouseHuntId, ulong guildId, string? note)

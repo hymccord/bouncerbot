@@ -3,7 +3,7 @@ using BouncerBot.Modules.Verification;
 using BouncerBot.Services;
 
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.Extensions.Options;
 using NetCord;
 using NetCord.Rest;
 
@@ -19,6 +19,7 @@ public interface IBounceOrchestrator
 }
 
 public class BounceOrchestrator(
+    IOptions<BouncerBotOptions> options,
     IBounceService bounceService,
     IGuildLoggingService guildLoggingService,
     IVerificationOrchestrator verificationOrchestrator,
@@ -33,7 +34,7 @@ public class BounceOrchestrator(
                 return new BounceResult
                 {
                     Success = false,
-                    Message = $"Hunter ID {hunterId} is already banned."
+                    Message = $"Hunter ID {hunterId} is already on my bounce list."
                 };
             }
 
@@ -52,23 +53,27 @@ public class BounceOrchestrator(
             // Log the ban action
             await guildLoggingService.LogAsync(guildId, LogType.General, new MessageProperties
             {
-                Embeds = [
-                    new EmbedProperties() {
-                        Title = "Hunter Bounced",
-                        Color = new Color(0xdd5ee3),
-                        Timestamp = DateTime.UtcNow,
-                        Description = $"""
-                        **Hunter ID**: {hunterId}
-                        **Note**: {(note ?? "")}
-                        """
-                    }],
+                Components = [
+                    new ComponentContainerProperties()
+                        .WithAccentColor(new Color(options.Value.Colors.Primary))
+                        .AddComponents(
+                            new TextDisplayProperties("**ID bounce added**"),
+                            new ComponentSeparatorProperties().WithSpacing(ComponentSeparatorSpacingSize.Small).WithDivider(true),
+                            new TextDisplayProperties($"""
+                                Hunter ID {hunterId} has been banned.
+                                Note: {note ?? ""}
+                                """)
+                        )
+                    ],
+                AllowedMentions = AllowedMentionsProperties.None,
+                Flags = MessageFlags.IsComponentsV2
             });
 
             return new BounceResult
             {
                 Success = true,
                 Message = $"""
-                    ✅ Successfully banned Hunter ID {hunterId} from verifying.
+                    I've added Hunter ID {hunterId} to my ban list.
                     {(note != null ? $"Note: {note}" : "")}
                     """
             };
@@ -93,7 +98,7 @@ public class BounceOrchestrator(
                 return new BounceResult
                 {
                     Success = false,
-                    Message = $"Hunter ID {hunterId} is not currently banned."
+                    Message = $"Hunter ID {hunterId} is not currently on my bounce list."
                 };
             }
 
@@ -102,13 +107,22 @@ public class BounceOrchestrator(
             // Log the unban action
             await guildLoggingService.LogAsync(guildId, LogType.General, new MessageProperties
             {
-                Content = $"Hunter ID {hunterId} was unbanned and can now verify",
+                Components = [
+                    new ComponentContainerProperties()
+                        .WithAccentColor(new Color(options.Value.Colors.Primary))
+                        .AddComponents(
+                            new TextDisplayProperties("**ID bounce removed**"),
+                            new ComponentSeparatorProperties().WithSpacing(ComponentSeparatorSpacingSize.Small).WithDivider(true),
+                            new TextDisplayProperties($"Hunter ID {hunterId} has been unbanned and can now verify.")
+                        )
+                    ],
+                Flags = MessageFlags.IsComponentsV2,
             });
 
             return new BounceResult
             {
                 Success = true,
-                Message = $"✅ Successfully removed Hunter ID {hunterId} from the ban list."
+                Message = $"Removed Hunter ID {hunterId} from my bounce list."
             };
         }
         catch (Exception ex)
@@ -125,16 +139,29 @@ public class BounceOrchestrator(
     {
         try
         {
-            await bounceService.RemoveAllBannedHuntersAsync(guildId);
+            var bannedIds = await bounceService.RemoveAllBannedHuntersAsync(guildId);
             await guildLoggingService.LogAsync(guildId, LogType.General, new MessageProperties
             {
-                Content = $"All banned hunters have been removed from the ban list."
+                Components = [
+                    new ComponentContainerProperties()
+                        .WithAccentColor(new Color(options.Value.Colors.Primary))
+                        .AddComponents(
+                            new TextDisplayProperties("**All ID bounces removed**"),
+                            new ComponentSeparatorProperties().WithSpacing(ComponentSeparatorSpacingSize.Small).WithDivider(true),
+                            new TextDisplayProperties("All banned hunters have been removed from the ban list."),
+                            new ComponentSeparatorProperties().WithSpacing(ComponentSeparatorSpacingSize.Small).WithDivider(true),
+                            new TextDisplayProperties($"""
+                                -# IDs: {string.Join(", ", bannedIds)}
+                                """)
+                        )
+                    ],
+                Flags = MessageFlags.IsComponentsV2,
             });
 
             return new BounceResult
             {
                 Success = true,
-                Message = $"✅ Successfully removed all banned hunters from the ban list."
+                Message = $"I've removed all hunters from my bounce list."
             };
         }
         catch (Exception ex)
@@ -157,7 +184,7 @@ public class BounceOrchestrator(
                 return new BounceResult
                 {
                     Success = false,
-                    Message = $"Hunter ID {hunterId} is not currently banned."
+                    Message = $"Hunter ID {hunterId} is not currently on my bounce list."
                 };
             }
 
@@ -167,8 +194,8 @@ public class BounceOrchestrator(
             {
                 Success = true,
                 Message = string.IsNullOrWhiteSpace(note) 
-                    ? $"✅ Removed note for Hunter ID {hunterId}."
-                    : $"✅ Updated note for Hunter ID {hunterId}: {note}"
+                    ? $"Removed note for Hunter ID {hunterId}."
+                    : $"Updated note for Hunter ID {hunterId}: {note}"
             };
         }
         catch (Exception ex)
@@ -192,7 +219,7 @@ public class BounceOrchestrator(
                 return new BounceResult
                 {
                     Success = true,
-                    Message = $"✅ Hunter ID {hunterId} is **not banned** and can verify."
+                    Message = $"Hunter ID {hunterId} is **not banned** and can verify."
                 };
             }
 
@@ -200,7 +227,7 @@ public class BounceOrchestrator(
             {
                 Success = true,
                 Message = $"""
-                    ❌ Hunter ID {hunterId} is **banned** from verifying.
+                    Hunter ID {hunterId} is **banned** from verifying.
                     
                     Banned <t:{((DateTimeOffset)bannedHunter.CreatedAt).ToUnixTimeSeconds()}:F>
                     {(string.IsNullOrWhiteSpace(bannedHunter.Note) ? "" : $"Note: {bannedHunter.Note}")}

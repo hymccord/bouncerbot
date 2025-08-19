@@ -9,6 +9,6 @@ public interface IBounceService
     Task<IEnumerable<BannedHunter>> ListBannedHuntersAsync(ulong guildId, int page);
     Task AddBannedHunterAsync(uint mouseHuntId, ulong guildId, string? note = null);
     Task RemoveBannedHunterAsync(uint mouseHuntId, ulong guildId);
-    Task RemoveAllBannedHuntersAsync(ulong guildId);
+    Task<uint[]> RemoveAllBannedHuntersAsync(ulong guildId);
     Task UpdateBannedHunterNoteAsync(uint mouseHuntId, ulong guildId, string? note);
 }

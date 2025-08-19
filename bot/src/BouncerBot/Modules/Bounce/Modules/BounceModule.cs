@@ -1,5 +1,5 @@
 using BouncerBot.Attributes;
-
+using Microsoft.Extensions.Options;
 using NetCord;
 using NetCord.Rest;
 using NetCord.Services.ApplicationCommands;
@@ -9,7 +9,11 @@ namespace BouncerBot.Modules.Bounce.Modules;
 [SlashCommand(BounceModuleMetadata.ModuleName, BounceModuleMetadata.ModuleDescription)]
 [RequireManageRoles<ApplicationCommandContext>]
 [RequireGuildContext<ApplicationCommandContext>]
-public class BounceModule(IBounceOrchestrator bounceOrchestrator, IBounceService bounceService) : ApplicationCommandModule<ApplicationCommandContext>
+public class BounceModule(
+    IOptions<BouncerBotOptions> options,
+    IBounceOrchestrator bounceOrchestrator,
+    IBounceService bounceService
+) : ApplicationCommandModule<ApplicationCommandContext>
 {
     [SubSlashCommand(BounceModuleMetadata.AddCommand.Name, BounceModuleMetadata.AddCommand.Description)]
     public async Task AddBannedHunterAsync(
@@ -88,7 +92,14 @@ public class BounceModule(IBounceOrchestrator bounceOrchestrator, IBounceService
     {
         await ModifyResponseAsync(m =>
         {
-            m.Content = result.Message;
+            m.Components = [
+                new ComponentContainerProperties()
+                    .WithAccentColor(new (result.Success ? options.Value.Colors.Success : options.Value.Colors.Error))
+                    .AddComponents(
+                        new TextDisplayProperties(result.Message)
+                    )
+                ];
+            m.Flags = MessageFlags.IsComponentsV2;
             m.AllowedMentions = AllowedMentionsProperties.None;
         });
     }
