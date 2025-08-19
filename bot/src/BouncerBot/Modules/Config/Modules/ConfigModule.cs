@@ -13,7 +13,6 @@ using NetCord.Services.ApplicationCommands;
 namespace BouncerBot.Modules.Config.Modules;
 
 [SlashCommand(ConfigModuleMetadata.ModuleName, ConfigModuleMetadata.ModuleDescription)]
-[RequireUserPermissions<ApplicationCommandContext>(Permissions.ManageGuild)]
 [RequireGuildContext<ApplicationCommandContext>]
 public partial class ConfigModule(
     IOptionsSnapshot<BouncerBotOptions> options,
@@ -22,6 +21,7 @@ public partial class ConfigModule(
 {
 
     [SubSlashCommand(ConfigModuleMetadata.LogCommand.Name, ConfigModuleMetadata.LogCommand.Description)]
+    [RequireManageGuild<ApplicationCommandContext>()]
     public async Task SetLogChannelAsync(
         [SlashCommandParameter(Description = "Log type", Name = "type")] LogChannel logChannel,
         [SlashCommandParameter(Description = "Output channel")] TextChannel? channel = default)
@@ -32,6 +32,7 @@ public partial class ConfigModule(
     }
 
     [SubSlashCommand(ConfigModuleMetadata.LogAchievementCommand.Name, ConfigModuleMetadata.LogAchievementCommand.Description)]
+    [RequireManageGuild<ApplicationCommandContext>()]
     public async Task SetLogAchievementChannelAsync(
         [SlashCommandParameter(Description = "Achievement")] AchievementRole achievement,
         [SlashCommandParameter(Description = "Output channel")] TextChannel? channel = default)
@@ -67,6 +68,7 @@ public partial class ConfigModule(
     }
 
     [SubSlashCommand(ConfigModuleMetadata.RoleCommand.Name, ConfigModuleMetadata.RoleCommand.Description)]
+    [RequireManageGuild<ApplicationCommandContext>()]
     public async Task SetRoleAsync(
         [SlashCommandParameter(Description = "Role", Name = "role")] Role role,
         NetCord.Role selectedRole)
@@ -81,6 +83,7 @@ public partial class ConfigModule(
     }
 
     [SubSlashCommand(ConfigModuleMetadata.MessageCommand.Name, ConfigModuleMetadata.MessageCommand.Description)]
+    [RequireManageGuild<ApplicationCommandContext>()]
     public async Task SetMessageAsync(
         [SlashCommandParameter(Description = "Achievement type", Name = "achievement")] AchievementRole achievementRole,
         [SlashCommandParameter(Description = "Message to send. Use {mention} to mention the user.")] string message)
@@ -100,6 +103,7 @@ public partial class ConfigModule(
     }
 
     [SubSlashCommand(ConfigModuleMetadata.VerifyCommand.Name, ConfigModuleMetadata.VerifyCommand.Description)]
+    [RequireManageGuild<ApplicationCommandContext>()]
     public async Task SetVerifyRank(Rank minRank)
     {
         await configService.SetVerifyRankAsync(Context.Guild!.Id, minRank);

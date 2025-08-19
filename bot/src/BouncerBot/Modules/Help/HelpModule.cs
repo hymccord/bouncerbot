@@ -50,6 +50,7 @@ public class HelpModule(
                     Description = $"""
                     - {cms.GetSubCommandMention("achieve reset")} `<achievement>`: {AchieveModuleMetadata.ResetCommand.Description}
                     - {cms.GetSubCommandMention("achieve verify")} `<hunterId> <achievement>`: {AchieveModuleMetadata.VerifyCommand.Description}
+                    - {cms.GetSubCommandMention("config list")} `[setting]`: {ConfigModuleMetadata.ListCommand.Description}
                     - {cms.GetSubCommandMention("bounce add")} `<hunterId> [note]`: {BounceModuleMetadata.AddCommand.Description}
                     - {cms.GetSubCommandMention("bounce check")} `<hunterId>`: {BounceModuleMetadata.CheckCommand.Description}
                     - {cms.GetSubCommandMention("bounce list")}: {BounceModuleMetadata.ListCommand.Description}
@@ -70,7 +71,6 @@ public class HelpModule(
                 {
                     Title = "Administrator Commands (Has permission 'Manage Server')",
                     Description = $"""
-                    - {cms.GetSubCommandMention("config list")} `[setting]`: {ConfigModuleMetadata.ListCommand.Description}
                     - {cms.GetSubCommandMention("config log")} `<type> [channel]`: {ConfigModuleMetadata.LogCommand.Description}
                     - {cms.GetSubCommandMention("config message")} `<achievement> <message>`: {ConfigModuleMetadata.MessageCommand.Description}
                     - {cms.GetSubCommandMention("config role")} `<role> <selectedRole>`: {ConfigModuleMetadata.RoleCommand.Description}

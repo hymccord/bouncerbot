@@ -1,4 +1,5 @@
 using System.Text;
+using BouncerBot.Attributes;
 using Humanizer;
 using NetCord;
 using NetCord.Rest;
@@ -8,6 +9,7 @@ namespace BouncerBot.Modules.Config.Modules;
 public partial class ConfigModule
 {
     [SubSlashCommand(ConfigModuleMetadata.ListCommand.Name, ConfigModuleMetadata.ListCommand.Description)]
+    [RequireManageRoles<ApplicationCommandContext>()]
     public async Task ViewConfigAsync(SettingType? setting = SettingType.All, bool? ephemeral = true)
     {
         var guildId = Context.Guild!.Id;
