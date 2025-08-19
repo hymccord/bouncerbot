@@ -2,7 +2,7 @@ using BouncerBot.Attributes;
 using BouncerBot.Services;
 
 using Humanizer;
-
+using Microsoft.Extensions.Options;
 using NetCord;
 using NetCord.Rest;
 using NetCord.Services.ApplicationCommands;
@@ -12,6 +12,7 @@ namespace BouncerBot.Modules.Achieve.Modules;
 [SlashCommand(AchieveModuleMetadata.ModuleName, AchieveModuleMetadata.ModuleDescription)]
 [RequireGuildContext<ApplicationCommandContext>]
 public class AchieveModule(
+    IOptions<BouncerBotOptions> options,
     IAchievementService achievementService,
     IRoleService roleService) : ApplicationCommandModule<ApplicationCommandContext>
 {
@@ -31,16 +32,18 @@ public class AchieveModule(
             """;
         await ModifyResponseAsync(m =>
         {
-            m.Embeds = [
-                new EmbedProperties()
-                    .WithColor(Colors.Blue)
-                    .WithTitle("Achievement Status")
-                    .WithDescription(content)
-                ];
             m.Components = [
+                new ComponentContainerProperties()
+                    .WithAccentColor(new (options.Value.Colors.Primary))
+                    .AddComponents(
+                        new TextDisplayProperties("**Achievement Status**"),
+                        new ComponentSeparatorProperties().WithSpacing(ComponentSeparatorSpacingSize.Small).WithDivider(true),
+                        new TextDisplayProperties(content)
+                    ),
                 new ActionRowProperties()
                     .AddButtons(new ButtonProperties($"achieve verify share:{content}", "Publicize", ButtonStyle.Primary))
-            ];
+                ];
+            m.Flags = MessageFlags.Ephemeral | MessageFlags.IsComponentsV2;
         });
     }
 
@@ -57,32 +60,43 @@ public class AchieveModule(
 
             await ModifyResponseAsync(m =>
             {
-                m.Content = $"""
-                    Are you sure you want to reset all the roles for {achievement.Humanize()}?
-
-                    This will remove the role from {numUsers} users and grant the Achiever role to {numUsers - numAchievers} of them.
-                    """;
-
                 m.Components = [
+                    new ComponentContainerProperties()
+                        .WithAccentColor(new Color(options.Value.Colors.Warning))
+                        .AddComponents(
+                            new TextDisplayProperties($"""
+                                Are you sure you want to reset all the roles for {achievement.Humanize()}?
+
+                                This will remove the role from {numUsers} users and grant the Achiever role to {numUsers - numAchievers} of them.
+                                """
+                            )
+                        ),
                     new ActionRowProperties()
                         .AddButtons(new ButtonProperties($"achieve reset confirm:{(int)achievement}", "Confirm", ButtonStyle.Danger))
                         .AddButtons(new ButtonProperties("achieve reset cancel", "Cancel", ButtonStyle.Secondary))
                 ];
+                m.Flags = MessageFlags.IsComponentsV2;
             });
         }
         catch (Exception ex)
         {
             await ModifyResponseAsync(m =>
             {
-                m.Content = $"""
-                    An error occurred while preparing the reset:
+                m.Components = [
+                    new ComponentContainerProperties()
+                        .WithAccentColor(new Color(options.Value.Colors.Error))
+                        .AddComponents(
+                            new TextDisplayProperties($"""
+                                An error occurred while preparing the reset:
 
-                    ```
-                    {ex.Message}
-                    ```
-                    """;
-                
-                m.Components = [];
+                                ```
+                                {ex.Message}
+                                ```
+                                """
+                            )
+                        ),
+                ];
+                m.Flags = MessageFlags.IsComponentsV2;
             });
         }
     }

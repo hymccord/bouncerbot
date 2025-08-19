@@ -19,12 +19,16 @@ public class AchieveButtonInteractions(
 
         _ = Context.Channel.SendMessageAsync(new MessageProperties
         {
-            Embeds = [
-                new EmbedProperties()
-                    .WithColor(new (options.Value.Colors.Primary))
-                    .WithTitle("Achievement Status")
-                    .WithDescription(content)
-                ]
+            Components = [
+                new ComponentContainerProperties()
+                    .WithAccentColor(new Color(options.Value.Colors.Primary))
+                    .AddComponents(
+                        new TextDisplayProperties("**Achievement Status**"),
+                        new ComponentSeparatorProperties().WithSpacing(ComponentSeparatorSpacingSize.Small).WithDivider(true),
+                        new TextDisplayProperties(content)
+                    )
+            ],
+            Flags = MessageFlags.IsComponentsV2
         });
     }
 
@@ -35,8 +39,14 @@ public class AchieveButtonInteractions(
 
         await ModifyResponseAsync(m =>
         {
-            m.Content = "Preparing...";
-            m.Components = [];
+            m.Components = [
+                new ComponentContainerProperties()
+                    .WithAccentColor(new Color(options.Value.Colors.Primary))
+                    .AddComponents(
+                        new TextDisplayProperties("Preparing...")
+                    )
+                ];
+            m.Flags = MessageFlags.IsComponentsV2;
         });
 
         try
@@ -44,26 +54,49 @@ public class AchieveButtonInteractions(
             await achievementRoleOrchestrator.ResetAchievementAsync(Context.Guild!.Id, achievement, async (current, total) =>
             {
                 await ModifyResponseAsync(m =>
-                    m.Content = $"""
-                        Resetting achievement... {current}/{total} users processed.
-                        Please wait, this may take a while.
-                        """
+                {
+                    m.Components = [
+                        new ComponentContainerProperties()
+                            .WithAccentColor(new Color(options.Value.Colors.Primary))
+                            .AddComponents(
+                                new TextDisplayProperties($"""
+                                    Resetting achievement... {current}/{total} users processed.
+                                    Please wait, this may take a while.
+                                    """)
+                            )
+                        ];
+                    m.Flags = MessageFlags.IsComponentsV2;
+                }
                 );
             });
 
             await ModifyResponseAsync(m =>
             {
-                m.Content = "Achievement reset completed successfully!";
+                m.Components = [
+                    new ComponentContainerProperties()
+                    .WithAccentColor(new Color(options.Value.Colors.Success))
+                    .AddComponents(
+                        new TextDisplayProperties("Achievement reset completed successfully!")
+                    )
+                ];
+                m.Flags = MessageFlags.IsComponentsV2;
             });
         }
         catch (Exception ex)
         {
             await ModifyResponseAsync(m =>
             {
-                m.Content = $"""
-                    An error occurred while resetting achievements. Please try again later.
-                    Error: `{ex.Message}`
-                    """;
+                m.Components = [
+                    new ComponentContainerProperties()
+                    .WithAccentColor(new Color(options.Value.Colors.Error))
+                    .AddComponents(
+                        new TextDisplayProperties($"""
+                            An error occurred while resetting achievements. Please try again later.
+                            Error: `{ex.Message}`
+                            """)
+                    )
+                ];
+                m.Flags = MessageFlags.IsComponentsV2;
             });
         }
     }

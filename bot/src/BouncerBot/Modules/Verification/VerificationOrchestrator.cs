@@ -69,14 +69,12 @@ public class VerificationOrchestrator(
 
         if (phraseMatch && !snuidMatch)
         {
-            await guildLoggingService.LogAsync(parameters.GuildId, LogType.General, new()
-            {
-                Content = $"""
-                <@{parameters.DiscordUserId}> attempted to use `/verify` on a profile that isn't theirs.
+            await guildLoggingService.LogWarningAsync(parameters.GuildId,
+                title: "Verification Blocked",
+                content: $"""
+                :warning: <@{parameters.DiscordUserId}> wrote a verification phrase on a profile that isn't theirs. :warning:
                 Profile SnuId: {snuid.SnUserId}, Corkboard Author SnuId: {latestMessage?.SnUserId}",
-                """,
-                AllowedMentions = AllowedMentionsProperties.None,
-            }, cancellationToken);
+                """, cancellationToken);
         }
 
         return new VerificationResult
