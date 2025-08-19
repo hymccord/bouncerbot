@@ -8,16 +8,24 @@ public interface IMouseRipService
     Task<MouseRipMouse[]?> GetAllMiceAsync();
 }
 
-public class MouseRipService(HttpClient httpClient) : IMouseRipService
+public class MouseRipService : IMouseRipService
 {
     private static readonly JsonSerializerOptions s_jsonSerializerOptions = new JsonSerializerOptions
     {
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
     };
 
+    private readonly HttpClient _httpClient;
+
+    public MouseRipService(HttpClient httpClient)
+    {
+        _httpClient = httpClient;
+        _httpClient.BaseAddress = new Uri("https://api.mouse.rip/");
+    }
+
     public async Task<MouseRipMouse[]?> GetAllMiceAsync()
     {
-        var mice = await httpClient.GetFromJsonAsync<MouseRipMouse[]>("mice", s_jsonSerializerOptions);
+        var mice = await _httpClient.GetFromJsonAsync<MouseRipMouse[]>("mice", s_jsonSerializerOptions);
 
         return mice;
     }
