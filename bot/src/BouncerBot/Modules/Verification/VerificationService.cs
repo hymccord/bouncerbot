@@ -139,7 +139,7 @@ public class VerificationService(
         if (!rankCheck.CanVerify)
         {
             _ = guildLoggingService.LogWarningAsync(guildId, "Verification Blocked", $"""
-                <@{discordId}> attempted to verify with a MouseHunt ID that does not meet the rank requirement: [{mouseHuntId}](<https://p.mshnt.ca/{mouseHuntId}>).
+                <@{discordId}> attempted to verify with a MouseHunt ID ([{mouseHuntId}](<https://p.mshnt.ca/{mouseHuntId}>)) that does not meet the rank requirement.
                 """, default);
             return rankCheck;
         }
