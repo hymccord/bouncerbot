@@ -119,7 +119,14 @@ internal class GuildLoggingService(
         {
             await textChannel.SendMessageAsync(new MessageProperties
             {
-                Content = content
+                Components = [
+                    new ComponentContainerProperties()
+                        .WithAccentColor(new Color(options.Value.Colors.Success))
+                        .AddComponents(
+                        new TextDisplayProperties(content))
+                    ],
+                Flags = MessageFlags.IsComponentsV2,
+                AllowedMentions = AllowedMentionsProperties.None,
             }, cancellationToken: cancellationToken);
         }
         catch (RestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
