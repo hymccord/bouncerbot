@@ -72,6 +72,7 @@ public class HelpModule(
                     Title = "Administrator Commands (Has permission 'Manage Server')",
                     Description = $"""
                     - {cms.GetSubCommandMention("config log")} `<type> [channel]`: {ConfigModuleMetadata.LogCommand.Description}
+                    - {cms.GetSubCommandMention("config log-achievement")} `<type> [channel]`: {ConfigModuleMetadata.LogAchievementCommand.Description}
                     - {cms.GetSubCommandMention("config message")} `<achievement> <message>`: {ConfigModuleMetadata.MessageCommand.Description}
                     - {cms.GetSubCommandMention("config role")} `<role> <selectedRole>`: {ConfigModuleMetadata.RoleCommand.Description}
                     - {cms.GetSubCommandMention("config verify")} `<min_rank>`: {ConfigModuleMetadata.VerifyCommand.Description}
