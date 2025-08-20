@@ -15,7 +15,6 @@ using NetCord.Services.ApplicationCommands;
 
 namespace BouncerBot.Modules.Help;
 
-
 public class HelpModule(
     ICommandMentionService cms
     ) : ApplicationCommandModule<ApplicationCommandContext>
@@ -37,7 +36,7 @@ public class HelpModule(
                 - {cms.GetCommandMention(ClaimModuleMetadata.ClaimCommand.Name)} `<achievement> [private]`: {ClaimModuleMetadata.ClaimCommand.Description}
                 - {cms.GetCommandMention(HelpModuleMetadata.HelpCommand.Name)}: {HelpModuleMetadata.HelpCommand.Description}
                 - {cms.GetCommandMention(PrivacyModuleMetadata.PrivacyCommand.Name)}: {PrivacyModuleMetadata.PrivacyCommand.Description}
-                - {cms.GetCommandMention(VerifyModuleMetadata.UnverifyCommand.Name)}: {VerifyModuleMetadata.UnverifyCommand.Name}
+                - {cms.GetCommandMention(VerifyModuleMetadata.UnverifyCommand.Name)}: {VerifyModuleMetadata.UnverifyCommand.Description}
                 - {cms.GetCommandMention(VerifyModuleMetadata.VerifyCommand.Name)} `<hunterId>`: {VerifyModuleMetadata.VerifyCommand.Description}
                 """
             });
@@ -50,13 +49,13 @@ public class HelpModule(
                     Description = $"""
                     - {cms.GetSubCommandMention("achieve reset")} `<achievement>`: {AchieveModuleMetadata.ResetCommand.Description}
                     - {cms.GetSubCommandMention("achieve verify")} `<hunterId> <achievement>`: {AchieveModuleMetadata.VerifyCommand.Description}
-                    - {cms.GetSubCommandMention("config list")} `[setting]`: {ConfigModuleMetadata.ListCommand.Description}
                     - {cms.GetSubCommandMention("bounce add")} `<hunterId> [note]`: {BounceModuleMetadata.AddCommand.Description}
                     - {cms.GetSubCommandMention("bounce check")} `<hunterId>`: {BounceModuleMetadata.CheckCommand.Description}
                     - {cms.GetSubCommandMention("bounce list")}: {BounceModuleMetadata.ListCommand.Description}
                     - {cms.GetSubCommandMention("bounce note")} `<hunterId> [note]`: {BounceModuleMetadata.NoteCommand.Description}
                     - {cms.GetSubCommandMention("bounce remove")} `<hunterId>`: {BounceModuleMetadata.RemoveCommand.Description}
                     - {cms.GetSubCommandMention("bounce remove-all")}: {BounceModuleMetadata.RemoveAllCommand.Description}
+                    - {cms.GetSubCommandMention("config list")} `[setting]`: {ConfigModuleMetadata.ListCommand.Description}
                     - {cms.GetSubCommandMention("verification remove user")}: {VerificationModuleMetadata.RemoveCommand.UserCommand.Description}
                     - {cms.GetSubCommandMention("verification remove history")}: {VerificationModuleMetadata.RemoveCommand.HistoryCommand.Description}
                     - {cms.GetSubCommandMention("whois user")} `<user>`: {WhoIsModuleMetadata.UserCommand.Description}
