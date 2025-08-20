@@ -1,6 +1,5 @@
 using BouncerBot;
 using BouncerBot.Attributes;
-
 using Humanizer;
 
 using Microsoft.Extensions.Options;
@@ -26,9 +25,12 @@ public partial class ConfigModule(
         [SlashCommandParameter(Description = "Log type", Name = "type")] LogChannel logChannel,
         [SlashCommandParameter(Description = "Output channel")] TextChannel? channel = default)
     {
+        await RespondAsync(InteractionCallback.DeferredMessage());
         await configService.SetLogChannelSettingAsync(Context.Guild!.Id, logChannel, channel?.Id);
-
-        await RespondAsync(InteractionCallback.Message($"Set {logChannel.Humanize()} channel to {(channel is null ? "none" : $"<#{channel.Id}>")}"));
+        await ModifyResponseAsync(m => new ComponentContainerProperties()
+            .WithAccentColor(new(options.Value.Colors.Primary))
+            .AddTextDisplay(channel is null? "Unset log channel." : $"Set {logChannel.Humanize()} log channel to <#{channel.Id}>")
+            .Build(m));
     }
 
     [SubSlashCommand(ConfigModuleMetadata.LogAchievementCommand.Name, ConfigModuleMetadata.LogAchievementCommand.Description)]
@@ -55,16 +57,14 @@ public partial class ConfigModule(
             }
         }
 
+        await RespondAsync(InteractionCallback.DeferredMessage());
         await configService.SetAchievementLogChannelAsync(Context.Guild!.Id, achievement, channel?.Id);
-
-        if (channel is null)
-        {
-            await RespondAsync(InteractionCallback.Message($"Unset override. {achievement.Humanize()} achievement will log to the default achievement channel."));
-        }
-        else
-        {
-            await RespondAsync(InteractionCallback.Message($"Overrode {achievement.Humanize()} achievement to log channel to <#{channel.Id}>"));
-        }
+        await ModifyResponseAsync(m => new ComponentContainerProperties()
+            .WithAccentColor(new(options.Value.Colors.Primary))
+            .AddTextDisplay(channel is null
+                ? $"Unset override. {achievement.Humanize()} achievement will log to the default achievement channel."
+                : $"Set {achievement.Humanize()} achievement log channel to <#{channel.Id}>")
+            .Build(m));
     }
 
     [SubSlashCommand(ConfigModuleMetadata.RoleCommand.Name, ConfigModuleMetadata.RoleCommand.Description)]
@@ -73,13 +73,12 @@ public partial class ConfigModule(
         [SlashCommandParameter(Description = "Role", Name = "role")] Role role,
         NetCord.Role selectedRole)
     {
+        await RespondAsync(InteractionCallback.DeferredMessage());
         await configService.SetRoleIdAsync(Context.Guild!.Id, role, selectedRole.Id);
-
-        await RespondAsync(InteractionCallback.Message(new()
-        {
-            Content = $"Set {role.Humanize()} role to <@&{selectedRole.Id}>",
-            AllowedMentions = AllowedMentionsProperties.None
-        }));
+        await ModifyResponseAsync(m => new ComponentContainerProperties()
+            .WithAccentColor(new (options.Value.Colors.Primary))
+            .AddTextDisplay($"Set {role.Humanize()} role to <@&{selectedRole.Id}>")
+            .Build(m));
     }
 
     [SubSlashCommand(ConfigModuleMetadata.MessageCommand.Name, ConfigModuleMetadata.MessageCommand.Description)]
@@ -88,31 +87,28 @@ public partial class ConfigModule(
         [SlashCommandParameter(Description = "Achievement type", Name = "achievement")] AchievementRole achievementRole,
         [SlashCommandParameter(Description = "Message to send. Use {mention} to mention the user.")] string message)
     {
+        await RespondAsync(InteractionCallback.DeferredMessage());
         await configService.SetAchievementMessageAsync(Context.Guild!.Id, achievementRole, message);
-
-        await RespondAsync(InteractionCallback.Message(new()
-        {
-            Content = $"Set {achievementRole.Humanize()} message to:",
-            Embeds = [
-                new EmbedProperties()
-                {
-                    Description = message,
-                }
-            ]
-        }));
+        await ModifyResponseAsync(m =>
+            new ComponentContainerProperties()
+                .WithAccentColor(new(options.Value.Colors.Primary))
+                .AddTextDisplay($"""Set {achievementRole.Humanize()} message""")
+                .AddSeparator()
+                .AddTextDisplay(message)
+                .Build(m)
+        );
     }
 
     [SubSlashCommand(ConfigModuleMetadata.VerifyCommand.Name, ConfigModuleMetadata.VerifyCommand.Description)]
     [RequireManageGuild<ApplicationCommandContext>()]
     public async Task SetVerifyRank(Rank minRank)
     {
+        await RespondAsync(InteractionCallback.DeferredMessage());
         await configService.SetVerifyRankAsync(Context.Guild!.Id, minRank);
-
-        await RespondAsync(InteractionCallback.Message(new()
-        {
-            Content = $"Set minimum verification rank to {minRank.Humanize()}",
-            AllowedMentions = AllowedMentionsProperties.None
-        }));
+        await ModifyResponseAsync(m => new ComponentContainerProperties()
+            .WithAccentColor(new(options.Value.Colors.Primary))
+            .AddTextDisplay($"Set minimum verification rank to {minRank.Humanize()}")
+            .Build(m));
     }
 
     [Flags]

@@ -35,4 +35,19 @@ internal static class NetCordExtensions
             return permissions;
         }
     }
+
+    extension(ComponentContainerProperties container)
+    {
+        public ComponentContainerProperties AddTextDisplay(string content)
+            => container.AddComponents(new TextDisplayProperties(content));
+
+        public ComponentContainerProperties AddSeparator(ComponentSeparatorSpacingSize size = ComponentSeparatorSpacingSize.Small, bool divider = true)
+            => container.AddComponents(new ComponentSeparatorProperties().WithSpacing(size).WithDivider(divider));
+
+        public void Build(MessageOptions message)
+        {
+            message.Components = [container];
+            message.Flags = MessageFlags.IsComponentsV2;
+        }
+    }
 }
