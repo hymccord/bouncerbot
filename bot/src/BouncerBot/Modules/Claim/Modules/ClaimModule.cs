@@ -7,6 +7,7 @@ using BouncerBot.Rest;
 using BouncerBot.Services;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NetCord;
@@ -21,6 +22,7 @@ public class ClaimModule(
     IOptions<BouncerBotOptions> options,
     IAchievementRoleOrchestrator achievementRoleOrchestrator,
     ICommandMentionService commandMentionService,
+    IMemoryCache memoryCache,
     BouncerBotDbContext dbContext) : ApplicationCommandModule<ApplicationCommandContext>
 {
     private static readonly string[] s_rejectionPhrases = [
@@ -34,6 +36,7 @@ public class ClaimModule(
         "Denied. This club is for qualified hunters only!",
         "Hah! You think you can outsmart me by not completing all the requirements? Not today!",
     ];
+    private const string CacheKey = "ClaimCooldown";
 
     [SlashCommand(ClaimModuleMetadata.ClaimCommand.Name, ClaimModuleMetadata.ClaimCommand.Description)]
     [RequireVerificationStatus<ApplicationCommandContext>(VerificationStatus.Verified)]
@@ -67,6 +70,23 @@ public class ClaimModule(
             return;
         }
 
+        // Check if the user is on cooldown
+        if (memoryCache.TryGetValue($"{CacheKey}-{Context.User.Id}", out DateTimeOffset resetTime) && resetTime > DateTimeOffset.UtcNow)
+        {
+            await ModifyResponseAsync(m => new ComponentContainerProperties()
+                .WithAccentColor(new Color(options.Value.Colors.Warning))
+                .AddTextDisplay($"""
+                Slow down there hunter, I just checked my list and you're already back? Back of the line!
+
+                -# Hint: You're on cooldown. Try again in <t:{resetTime.ToUnixTimeSeconds()}:R>.
+                """)
+                .Build(m)
+            );
+
+            return;
+        }
+        memoryCache.Set($"{CacheKey}-{Context.User.Id}", DateTimeOffset.UtcNow.AddMinutes(1), TimeSpan.FromMinutes(1));
+
         try
         {
             var achieved = await ((@private ?? false)
@@ -81,14 +101,14 @@ public class ClaimModule(
                         await ModifyResponseAsync(m =>
                         {
                             m.Components = [container
-                                .WithAccentColor(new(options.Value.Colors.Error))
-                                .AddComponents(
-                                new TextDisplayProperties($"""
-                                {randomRejectionPhrase}
+                            .WithAccentColor(new(options.Value.Colors.Error))
+                            .AddComponents(
+                            new TextDisplayProperties($"""
+                            {randomRejectionPhrase}
 
-                                -# Hint: You are missing some requirements to claim this achievement. Make sure you have completed all the necessary tasks before trying again.
-                                """
-                            ))];
+                            -# Hint: You are missing some requirements to claim this achievement. Make sure you have completed all the necessary tasks before trying again.
+                            """
+                        ))];
                             m.Flags = MessageFlags.Ephemeral | MessageFlags.IsComponentsV2;
                         });
                         break;
@@ -99,14 +119,14 @@ public class ClaimModule(
                         await ModifyResponseAsync(m =>
                         {
                             m.Components = [container
-                                .WithAccentColor(new(options.Value.Colors.Warning))
-                                .AddComponents(
-                                new TextDisplayProperties($"""
-                                You've already claimed this achievement! No need to do it again.
+                            .WithAccentColor(new(options.Value.Colors.Warning))
+                            .AddComponents(
+                            new TextDisplayProperties($"""
+                            You've already claimed this achievement! No need to do it again.
 
-                                -# {(@private ?? false ? "And don't worry, I won't tell anyone you tried!" : "Glad to see you're proud of your achievements!")}
-                                """
-                            ))];
+                            -# {(@private ?? false ? "And don't worry, I won't tell anyone you tried!" : "Glad to see you're proud of your achievements!")}
+                            """
+                        ))];
                             m.Flags = MessageFlags.Ephemeral | MessageFlags.IsComponentsV2;
                         });
                         break;
@@ -116,14 +136,14 @@ public class ClaimModule(
                         await ModifyResponseAsync(m =>
                         {
                             m.Components = [container
-                                .WithAccentColor(new(options.Value.Colors.Success))
-                                .AddComponents(
-                                new TextDisplayProperties($"""
-                                    Congratulations! I've checked your profile and you meet the requirements.
+                            .WithAccentColor(new(options.Value.Colors.Success))
+                            .AddComponents(
+                            new TextDisplayProperties($"""
+                                Congratulations! I've checked your profile and you meet the requirements.
 
-                                    I've awarded the role and {(@private ?? false ? "kept it our little secret!" : "shared it with everyone!")}
-                                    """
-                            ))];
+                                I've awarded the role and {(@private ?? false ? "kept it our little secret!" : "shared it with everyone!")}
+                                """
+                        ))];
                             m.Flags = MessageFlags.Ephemeral | MessageFlags.IsComponentsV2;
                         });
                         break;
@@ -139,10 +159,10 @@ public class ClaimModule(
             await ModifyResponseAsync(m =>
             {
                 m.Content = $"""
-                    The role for this achievement has not been configured.
+                The role for this achievement has not been configured.
 
-                    Contact the server moderators to resolve this issue.
-                    """;
+                Contact the server moderators to resolve this issue.
+                """;
                 m.Flags = MessageFlags.Ephemeral;
             });
         }
@@ -153,10 +173,10 @@ public class ClaimModule(
             await ModifyResponseAsync(m =>
             {
                 m.Content = $"""
-                    The message for this achievement is not configured properly, but the role has been assigned successfully.
+                The message for this achievement is not configured properly, but the role has been assigned successfully.
 
-                    Contact the server moderators to resolve this issue.
-                    """;
+                Contact the server moderators to resolve this issue.
+                """;
                 m.Flags = MessageFlags.Ephemeral;
             });
         }
@@ -169,10 +189,10 @@ public class ClaimModule(
             await ModifyResponseAsync(m =>
             {
                 m.Content = $"""
-                    An error occurred while processing your achievement. Please try again later.
+                An error occurred while processing your achievement. Please try again later.
 
-                    -# Error: {ex.Message}
-                    """;
+                -# Error: {ex.Message}
+                """;
                 m.Flags = MessageFlags.Ephemeral;
             });
         }
