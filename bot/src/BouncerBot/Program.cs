@@ -41,6 +41,7 @@ if (!string.IsNullOrEmpty(builder.Configuration["Sentry:Dsn"]))
     builder.Logging.AddSentry();
 }
 
+// BouncerBot services
 builder.Services
     .AddDbContextFactory<BouncerBotDbContext>(options =>
     {
@@ -75,11 +76,9 @@ builder.Services
 
 builder.Services
     .AddTransient<IMouseRipService, MouseRipService>()
-    .AddHttpClient<MouseRipService>((sp, httpClient) =>
-    {
-        httpClient.BaseAddress = new Uri("https://api.mouse.rip/");
-        httpClient.DefaultRequestHeaders.Add("User-Agent", "BouncerBot/1.0 (Discord: Xellis)");
-    });
+    .AddHttpClient<MouseRipService>();
+
+builder.Services.AddMemoryCache();
 
 // NetCord services
 builder.Services
