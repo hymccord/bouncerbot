@@ -16,6 +16,13 @@ public class BouncerBotDbContext(DbContextOptions<BouncerBotDbContext> options) 
     public DbSet<VerifySetting> VerifySettings { get; set; } = null!;
     public DbSet<VerifiedUser> VerifiedUsers { get; set; } = null!;
 
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        base.ConfigureConventions(configurationBuilder);
+
+        configurationBuilder.Properties<Enum>().HaveConversion<string>();
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AchievementMessage>(am =>
