@@ -7,6 +7,7 @@ using BouncerBot.Db;
 using BouncerBot.Rest.Models;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -41,6 +42,7 @@ public partial class MouseHuntRestClient : IMouseHuntRestClient
     private readonly IOptions<BouncerBotOptions> _bouncerBotOptions;
     private readonly RestRequestHandler _requestHandler;
     private readonly IDbContextFactory<BouncerBotDbContext> _dbContextFactory;
+    private readonly IMemoryCache _memoryCache;
 
     private List<KeyValuePair<string, string>> _defaultFormData = [
         new ("sn", "Hitgrab"),
@@ -51,13 +53,14 @@ public partial class MouseHuntRestClient : IMouseHuntRestClient
         ILogger<MouseHuntRestClient> logger,
         IOptions<MouseHuntRestClientOptions> options,
         IOptions<BouncerBotOptions> bouncerBotOptions,
-        IDbContextFactory<BouncerBotDbContext> dbContextFactory)
+        IDbContextFactory<BouncerBotDbContext> dbContextFactory,
+        IMemoryCache memoryCache)
     {
         _logger = logger;
         _options = options;
         _bouncerBotOptions = bouncerBotOptions;
         _dbContextFactory = dbContextFactory;
-
+        _memoryCache = memoryCache;
         _requestHandler = new RestRequestHandler(bouncerBotOptions);
     }
 

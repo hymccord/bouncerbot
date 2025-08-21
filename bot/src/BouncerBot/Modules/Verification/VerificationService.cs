@@ -34,7 +34,6 @@ public class VerificationService(
     IMouseHuntRestClient mouseHuntRestClient,
     IBounceService bounceService) : IVerificationService
 {
-    private Title[]? _cachedTitles;
 
     public async Task<VerificationAddResult> AddVerifiedUserAsync(uint mouseHuntId, ulong guildId, ulong discordId, CancellationToken cancellationToken = default)
     {
@@ -262,18 +261,13 @@ public class VerificationService(
 
     private async Task<Rank> GetUserRankAsync(uint mouseHuntId, CancellationToken cancellationToken)
     {
-        await EnsureTitlesCachedAsync(cancellationToken);
+        var titles = await mouseHuntRestClient.GetTitlesAsync(cancellationToken)
+            ?? throw new Exception("Failed to fetch titles from MouseHunt API");
 
         var userTitle = await mouseHuntRestClient.GetUserTitleAsync(mouseHuntId, cancellationToken)
             ?? throw new Exception("Failed to fetch user title from MouseHunt API");
 
-        return _cachedTitles!.Single(t => t.TitleId == userTitle.TitleId).Name;
-    }
-
-    private async Task EnsureTitlesCachedAsync(CancellationToken cancellationToken)
-    {
-        _cachedTitles ??= await mouseHuntRestClient.GetTitlesAsync(cancellationToken)
-            ?? throw new Exception("Failed to fetch titles from MouseHunt API");
+        return titles.Single(t => t.TitleId == userTitle.TitleId).Name;
     }
 
     public async Task<bool> HasDiscordUserVerifiedWithMouseHuntIdBeforeAsync(uint mousehuntId, ulong guildId, ulong discordId, CancellationToken cancellationToken = default)
