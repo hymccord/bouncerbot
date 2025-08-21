@@ -8,7 +8,7 @@ using BouncerBot.Modules.Puzzle;
 using BouncerBot.Modules.Verification;
 using BouncerBot.Modules.WhoIs;
 using BouncerBot.Services;
-
+using BouncerBot.TypeReaders;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -85,6 +85,10 @@ builder.Services
     .AddSingleton<IdApplicationCommandServiceStorage<ApplicationCommandContext>>()
     .AddApplicationCommands((options, services) =>
     {
+        // Custom type readers so emojis options on slash commands can be searched by name or emoji
+        options.TypeReaders.Add(typeof(AchievementRole), new HumanizedEnumTypeReader<AchievementRole>());
+        options.TypeReaders.Add(typeof(BouncerBot.Role), new HumanizedEnumTypeReader<BouncerBot.Role>());
+
         options.Storage = services.GetRequiredService<IdApplicationCommandServiceStorage<ApplicationCommandContext>>();
         options.ResultHandler = new EphemeralApplicationCommandResultHandler<ApplicationCommandContext>(services.GetRequiredService<IOptionsMonitor<BouncerBotOptions>>());
     })
