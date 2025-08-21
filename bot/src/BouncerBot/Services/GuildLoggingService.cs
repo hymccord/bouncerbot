@@ -1,9 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
 using BouncerBot.Db;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NetCord;
+using NetCord.Gateway;
 using NetCord.Rest;
 
 namespace BouncerBot.Services;
@@ -39,8 +41,7 @@ internal class GuildLoggingService(
             return null;
         }
 
-        var logSetting = await dbContext.LogSettings.FindAsync([guildId], cancellationToken: cancellationToken);
-
+        var logSetting = await dbContext.LogSettings.FirstOrDefaultAsync(e => e.GuildId == guildId, cancellationToken: cancellationToken);
         if (logSetting is null)
         {
             return null;
@@ -54,18 +55,18 @@ internal class GuildLoggingService(
             _ => logSetting.GeneralId
         } ?? logSetting.GeneralId ?? 0;
 
-        if (!guild.Channels.TryGetValue(logChannelId, out var guildChannel) || guildChannel is not TextChannel logChannel)
+        if (!TryGetGuildChannel<TextChannel>(guild, logChannelId, out var guildChannel))
         {
             return null;
         }
 
         try
         {
-            return await logChannel.SendMessageAsync(message, cancellationToken: cancellationToken);
+            return await guildChannel.SendMessageAsync(message, cancellationToken: cancellationToken);
         }
         catch (RestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
         {
-            logger.LogInformation(ex, "Unable to log to channel {ChannelId} in guild {GuildId} due to permissions.", logChannel.Id, guildId);
+            logger.LogInformation(ex, "Unable to log to channel {ChannelId} in guild {GuildId} due to permissions.", guildChannel.Id, guildId);
         }
 
         return null;
@@ -79,7 +80,7 @@ internal class GuildLoggingService(
             return;
         }
 
-        var logSetting = await dbContext.LogSettings.FindAsync(new object?[] { guildId }, cancellationToken: cancellationToken);
+        var logSetting = await dbContext.LogSettings.FindAsync([guildId], cancellationToken: cancellationToken);
         if (logSetting is null)
         {
             return;
@@ -100,16 +101,9 @@ internal class GuildLoggingService(
             return;
         }
 
-        guild.Channels.TryGetValue(logChannelId.Value, out var guildChannel);
-        if (guildChannel is null)
+        if (!TryGetGuildChannel<TextChannel>(guild, logChannelId.Value, out var guildChannel))
         {
             logger.LogWarning("Log channel {LogChannelId} not found in guild {GuildId}. Trying to send '{Message}'", logChannelId.Value, guildId, content);
-            return;
-        }
-
-        if (guildChannel is not TextChannel textChannel)
-        {
-            logger.LogWarning("Log channel {LogChannelId} in guild {GuildId} is not a text channel. Trying to send '{Message}'", logChannelId.Value, guildId, content);
             return;
         }
 
@@ -117,7 +111,7 @@ internal class GuildLoggingService(
 
         try
         {
-            await textChannel.SendMessageAsync(new MessageProperties
+            await guildChannel.SendMessageAsync(new MessageProperties
             {
                 Components = [
                     new ComponentContainerProperties()
@@ -167,4 +161,21 @@ internal class GuildLoggingService(
         AllowedMentions = AllowedMentionsProperties.None,
         Flags = MessageFlags.IsComponentsV2
     };
+
+    private static bool TryGetGuildChannel<T>(Guild guild, ulong channelId, [NotNullWhen(true)] out T? guildChannel)
+    {
+        if (guild.Channels.TryGetValue(channelId, out var channel) && channel is T typedChannel)
+        {
+            guildChannel = typedChannel;
+            return true;
+        }
+        if (guild.ActiveThreads.TryGetValue(channelId, out var thread) && thread is T threadChannel)
+        {
+            guildChannel = threadChannel;
+            return true;
+        }
+
+        guildChannel = default;
+        return false;
+    }
 }
