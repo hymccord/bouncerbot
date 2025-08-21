@@ -70,6 +70,7 @@ public partial class ConfigModule
                     - :white_check_mark:: {await GetRoleMentionAsync(Role.Checkmark)}
                     - :egg:: {await GetRoleMentionAsync(Role.EggMaster)}
                     - :cookie:: {await GetRoleMentionAsync(Role.Achiever)}
+                    - {options.Value.Emojis.Titles.Fabled}: {await GetRoleMentionAsync(Role.Fabled)}
                     """),
 
                 new ComponentSeparatorProperties()
@@ -107,6 +108,7 @@ public partial class ConfigModule
                         - :crown:: {(await GetAchievementMessageAsync(AchievementRole.Crown))}
                         - :white_check_mark:: {(await GetAchievementMessageAsync(AchievementRole.Checkmark))}
                         - :egg:: {(await GetAchievementMessageAsync(AchievementRole.EggMaster))}
+                        - {options.Value.Emojis.Titles.Fabled}: {await GetAchievementMessageAsync(AchievementRole.Fabled)}
                         """),
                         new ComponentSeparatorProperties()
                             .WithDivider()

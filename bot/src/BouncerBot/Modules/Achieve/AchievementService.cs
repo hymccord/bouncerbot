@@ -1,5 +1,6 @@
 using BouncerBot.Rest;
 using BouncerBot.Services;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
 namespace BouncerBot.Modules.Achieve;
@@ -33,6 +34,7 @@ public class AchievementService(
             AchievementRole.EggMaster => await HasEggMasterAsync(mhId, cancellationToken),
             AchievementRole.Crown => await HasCrownAsync(mhId, cancellationToken),
             AchievementRole.Star => await HasStarAsync(mhId, cancellationToken),
+            AchievementRole.Fabled => await HasFabledRank(mhId, cancellationToken),
             AchievementRole.ArcaneMaster => await HasPowerTypeMastery(mhId, PowerType.Arcane, cancellationToken),
             AchievementRole.DraconicMaster => await HasPowerTypeMastery(mhId, PowerType.Draconic, cancellationToken),
             AchievementRole.ForgottenMaster => await HasPowerTypeMastery(mhId, PowerType.Forgotten, cancellationToken),
@@ -43,7 +45,7 @@ public class AchievementService(
             AchievementRole.ShadowMaster => await HasPowerTypeMastery(mhId, PowerType.Shadow, cancellationToken),
             AchievementRole.TacticalMaster => await HasPowerTypeMastery(mhId, PowerType.Tactical, cancellationToken),
             AchievementRole.MultiMaster => await HasPowerTypeMastery(mhId, PowerType.Multi, cancellationToken),
-            _ => throw new ArgumentOutOfRangeException(nameof(achievement), achievement, null)
+            _ => throw new NotImplementedException($"I don't know what that achievement is yet!")
         };
     }
 
@@ -78,6 +80,17 @@ public class AchievementService(
         var data = await mouseHuntClient.GetUserLocationStatsAsync(mhId, cancellationToken);
 
         return data.Categories.All(c => c.IsComplete ?? false);
+    }
+
+    private async Task<bool> HasFabledRank(uint mhId, CancellationToken cancellationToken = default)
+    {
+        var titles = await mouseHuntClient.GetTitlesAsync(cancellationToken)
+            ?? throw new Exception("Failed to fetch titles from MouseHunt API");
+
+        var userTitle = await mouseHuntClient.GetUserTitleAsync(mhId, cancellationToken)
+            ?? throw new Exception("Failed to fetch user title from MouseHunt API");
+
+        return titles.Single(t => t.TitleId == userTitle.TitleId).Name == Rank.Fabled;
     }
 
     // Every mouse of given powertype has 100 catches

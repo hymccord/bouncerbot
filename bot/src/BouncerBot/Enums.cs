@@ -20,6 +20,7 @@ public enum Role
     [SlashCommandChoice(Name = "🥚")]
     [Display(Name = "🥚")]
     EggMaster,
+    Fabled,
     [SlashCommandChoice(Name = "Achiever 🍪")]
     Achiever,
     [SlashCommandChoice(Name = "Arcane Master")]
@@ -56,63 +57,63 @@ public enum Role
 
 public enum AchievementRole : uint
 {
-    // Regular Achievements start at 1
     [SlashCommandChoice(Name = "⭐")]
     [Display(Name = "⭐")]
-    Star = 1,
+    Star,
     
     [SlashCommandChoice(Name = "👑")]
     [Display(Name = "👑")]
-    Crown = 2,
+    Crown,
     
     [SlashCommandChoice(Name = "✅")]
     [Display(Name = "✅")]
-    Checkmark = 3,
+    Checkmark,
     
     [SlashCommandChoice(Name = "🥚")]
     [Display(Name = "🥚")]
-    EggMaster = 4,
+    EggMaster,
 
-    // Mastery Achievements: start at 11 to leave room for future regular achievements
+    Fabled,
+
     [SlashCommandChoice(Name = "Arcane Master")]
     [Display(Name = "Arcane Master")]
-    ArcaneMaster = 11,
+    ArcaneMaster,
     
     [SlashCommandChoice(Name = "Draconic Master")]
     [Display(Name = "Draconic Master")]
-    DraconicMaster = 12,
+    DraconicMaster,
     
     [SlashCommandChoice(Name = "Forgotten Master")]
     [Display(Name = "Forgotten Master")]
-    ForgottenMaster = 13,
+    ForgottenMaster,
     
     [SlashCommandChoice(Name = "Hydro Master")]
     [Display(Name = "Hydro Master")]
-    HydroMaster = 14,
+    HydroMaster,
     
     [SlashCommandChoice(Name = "Law Master")]
     [Display(Name = "Law Master")]
-    LawMaster = 15,
+    LawMaster,
     
     [SlashCommandChoice(Name = "Physical Master")]
     [Display(Name = "Physical Master")]
-    PhysicalMaster = 16,
+    PhysicalMaster,
     
     [SlashCommandChoice(Name = "Rift Master")]
     [Display(Name = "Rift Master")]
-    RiftMaster = 17,
+    RiftMaster,
     
     [SlashCommandChoice(Name = "Shadow Master")]
     [Display(Name = "Shadow Master")]
-    ShadowMaster = 18,
+    ShadowMaster,
     
     [SlashCommandChoice(Name = "Tactical Master")]
     [Display(Name = "Tactical Master")]
-    TacticalMaster = 19,
+    TacticalMaster,
     
     [SlashCommandChoice(Name = "Multi Master")]
     [Display(Name = "Multi Master")]
-    MultiMaster = 20,
+    MultiMaster,
 }
 
 public enum PowerType
@@ -156,47 +157,43 @@ public enum Rank
 
 public static class EnumUtils
 {
-    public static Role ToRole(AchievementRole achievementRole)
+    public static Role ToRole(AchievementRole achievementRole) => achievementRole switch
     {
-        return achievementRole switch
-        {
-            AchievementRole.Star => Role.Star,
-            AchievementRole.Crown => Role.Crown,
-            AchievementRole.Checkmark => Role.Checkmark,
-            AchievementRole.EggMaster => Role.EggMaster,
-            AchievementRole.ArcaneMaster => Role.ArcaneMaster,
-            AchievementRole.DraconicMaster => Role.DraconicMaster,
-            AchievementRole.ForgottenMaster => Role.ForgottenMaster,
-            AchievementRole.HydroMaster => Role.HydroMaster,
-            AchievementRole.LawMaster => Role.LawMaster,
-            AchievementRole.PhysicalMaster => Role.PhysicalMaster,
-            AchievementRole.RiftMaster => Role.RiftMaster,
-            AchievementRole.ShadowMaster => Role.ShadowMaster,
-            AchievementRole.TacticalMaster => Role.TacticalMaster,
-            AchievementRole.MultiMaster => Role.MultiMaster,
-            _ => throw new ArgumentOutOfRangeException(nameof(achievementRole), achievementRole, null),
-        };
-    }
+        AchievementRole.Star => Role.Star,
+        AchievementRole.Crown => Role.Crown,
+        AchievementRole.Checkmark => Role.Checkmark,
+        AchievementRole.EggMaster => Role.EggMaster,
+        AchievementRole.Fabled => Role.Fabled,
+        AchievementRole.ArcaneMaster => Role.ArcaneMaster,
+        AchievementRole.DraconicMaster => Role.DraconicMaster,
+        AchievementRole.ForgottenMaster => Role.ForgottenMaster,
+        AchievementRole.HydroMaster => Role.HydroMaster,
+        AchievementRole.LawMaster => Role.LawMaster,
+        AchievementRole.PhysicalMaster => Role.PhysicalMaster,
+        AchievementRole.RiftMaster => Role.RiftMaster,
+        AchievementRole.ShadowMaster => Role.ShadowMaster,
+        AchievementRole.TacticalMaster => Role.TacticalMaster,
+        AchievementRole.MultiMaster => Role.MultiMaster,
+        _ => throw new ArgumentOutOfRangeException(nameof(achievementRole), achievementRole, null),
+    };
 
-    public static AchievementRole ToAchievementRole(Role role)
+    public static AchievementRole ToAchievementRole(Role role) => role switch
     {
-        return role switch
-        {
-            Role.Star => AchievementRole.Star,
-            Role.Crown => AchievementRole.Crown,
-            Role.Checkmark => AchievementRole.Checkmark,
-            Role.EggMaster => AchievementRole.EggMaster,
-            Role.ArcaneMaster => AchievementRole.ArcaneMaster,
-            Role.DraconicMaster => AchievementRole.DraconicMaster,
-            Role.ForgottenMaster => AchievementRole.ForgottenMaster,
-            Role.HydroMaster => AchievementRole.HydroMaster,
-            Role.LawMaster => AchievementRole.LawMaster,
-            Role.PhysicalMaster => AchievementRole.PhysicalMaster,
-            Role.RiftMaster => AchievementRole.RiftMaster,
-            Role.ShadowMaster => AchievementRole.ShadowMaster,
-            Role.TacticalMaster => AchievementRole.TacticalMaster,
-            Role.MultiMaster => AchievementRole.MultiMaster,
-            _ => throw new ArgumentOutOfRangeException(nameof(role), role, null),
-        };
-    }
+        Role.Star => AchievementRole.Star,
+        Role.Crown => AchievementRole.Crown,
+        Role.Checkmark => AchievementRole.Checkmark,
+        Role.EggMaster => AchievementRole.EggMaster,
+        Role.Fabled => AchievementRole.Fabled,
+        Role.ArcaneMaster => AchievementRole.ArcaneMaster,
+        Role.DraconicMaster => AchievementRole.DraconicMaster,
+        Role.ForgottenMaster => AchievementRole.ForgottenMaster,
+        Role.HydroMaster => AchievementRole.HydroMaster,
+        Role.LawMaster => AchievementRole.LawMaster,
+        Role.PhysicalMaster => AchievementRole.PhysicalMaster,
+        Role.RiftMaster => AchievementRole.RiftMaster,
+        Role.ShadowMaster => AchievementRole.ShadowMaster,
+        Role.TacticalMaster => AchievementRole.TacticalMaster,
+        Role.MultiMaster => AchievementRole.MultiMaster,
+        _ => throw new ArgumentOutOfRangeException(nameof(role), role, null),
+    };
 }
