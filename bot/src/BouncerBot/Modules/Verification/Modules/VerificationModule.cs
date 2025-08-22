@@ -22,19 +22,18 @@ public class VerificationModule() : ApplicationCommandModule<ApplicationCommandC
     {
         await RespondAsync(InteractionCallback.Message(new InteractionMessageProperties()
         {
-            Content = $"""
-                Are you sure you want to verify <@{user.Id}> as Hunter ID {hunterId}?
-                <https://p.mshnt.ca/{hunterId}>
-                """,
-
-            Components =
-        [
-            new ActionRowProperties()
-                    .AddButtons(new ButtonProperties($"{VerificationInteractionIds.VerifyUserConfirm}:{hunterId}:{user.Id}", "Confirm", ButtonStyle.Success))
-                    .AddButtons(new ButtonProperties(VerificationInteractionIds.VerifyUserCancel, "Cancel", ButtonStyle.Danger))
+            Components  = [
+                new ComponentContainerProperties()
+                    .AddTextDisplay($"""
+                    Are you sure you want to verify <@{user.Id}> as Hunter ID {hunterId}?
+                    <https://p.mshnt.ca/{hunterId}>
+                    """),
+                new ActionRowProperties()
+                        .AddButtons(new ButtonProperties($"{VerificationInteractionIds.VerifyUserConfirm}:{hunterId}:{user.Id}", "Confirm", ButtonStyle.Success))
+                        .AddButtons(new ButtonProperties(VerificationInteractionIds.VerifyUserCancel, "Cancel", ButtonStyle.Danger))
             ],
             AllowedMentions = AllowedMentionsProperties.None,
-            Flags = MessageFlags.Ephemeral
+            Flags = MessageFlags.Ephemeral | MessageFlags.IsComponentsV2
         }));
     }
 #endif

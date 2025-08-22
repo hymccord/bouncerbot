@@ -54,7 +54,8 @@ public class VerificationButtonInteractions(
         {
             new ComponentContainerProperties()
                 .WithAccentColor(new Color(options.Value.Colors.Success))
-                .AddTextDisplay(result.Message);
+                .AddTextDisplay(result.Message)
+                .Build(x);
         });
     }
 
