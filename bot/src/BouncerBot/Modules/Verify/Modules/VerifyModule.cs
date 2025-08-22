@@ -190,7 +190,6 @@ public class VerifyModule(
     }
 
     [SlashCommand(VerifyModuleMetadata.UnverifyCommand.Name, VerifyModuleMetadata.UnverifyCommand.Description)]
-    [RequireVerificationStatus<ApplicationCommandContext>(VerificationStatus.Verified)]
     public async Task UnverifyAsync()
     {
         await RespondAsync(InteractionCallback.DeferredEphemeralMessage());
@@ -199,14 +198,11 @@ public class VerifyModule(
         {
             await ModifyResponseAsync(x =>
             {
-                x.Embeds = [
-                    new EmbedProperties()
-                    {
-                        Title = "Error",
-                        Description = "You are already unverified!",
-                        Color = new(options.Value.Colors.Warning)
-                    }];
-                x.Flags = MessageFlags.Ephemeral;
+                new ComponentContainerProperties()
+                    .WithAccentColor(new Color(options.Value.Colors.Warning))
+                    .AddTextDisplay("You are already unverified!")
+                    .Build(x);
+                x.Flags |= MessageFlags.Ephemeral;
             });
 
             return;
@@ -215,18 +211,14 @@ public class VerifyModule(
         await verificationService.RemoveVerifiedUser(Context.Guild!.Id, Context.User.Id);
         await ModifyResponseAsync(x =>
         {
-            x.Components = [
-                new ComponentContainerProperties()
-                    .WithAccentColor(new Color(options.Value.Colors.Success))
-                    .AddComponents(
-                        new TextDisplayProperties("""
-                            You have been unverified!
-
-                            I have removed your Discord ID and MouseHunt ID from my records.
-                            """)
-                    )
-            ];
-            x.Flags = MessageFlags.Ephemeral | MessageFlags.IsComponentsV2;
+            new ComponentContainerProperties()
+                .WithAccentColor(new Color(options.Value.Colors.Success))
+                .AddTextDisplay("""
+                    You have been unverified!
+                    I have removed your Discord ID and MouseHunt ID from my records.
+                    """)
+                .Build(x);
+            x.Flags |= MessageFlags.Ephemeral;
         });
     }
 }
