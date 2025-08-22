@@ -12,7 +12,7 @@ namespace BouncerBot.Services;
 
 public interface IGuildLoggingService
 {
-    Task<RestMessage?> LogAsync(ulong guildId, LogType logType, MessageProperties message, CancellationToken cancellationToken = default);
+    Task<(ulong ChannelId, ulong Id)?> LogAsync(ulong guildId, LogType logType, MessageProperties message, CancellationToken cancellationToken = default);
     Task LogAchievementAsync(ulong guildId, AchievementRole achievement, string content, CancellationToken cancellationToken = default);
     Task LogErrorAsync(ulong guildId, string title, string content, CancellationToken cancellationToken = default);
     Task LogSuccessAsync(ulong guildId, string title, string content, CancellationToken cancellationToken = default);
@@ -33,7 +33,7 @@ internal class GuildLoggingService(
     BouncerBotDbContext dbContext,
     IDiscordGatewayClient gatewayClient) : IGuildLoggingService
 {
-    public async Task<RestMessage?> LogAsync(ulong guildId, LogType logType, MessageProperties message, CancellationToken cancellationToken = default)
+    public async Task<(ulong ChannelId, ulong Id)?> LogAsync(ulong guildId, LogType logType, MessageProperties message, CancellationToken cancellationToken = default)
     {
         // no guild, no log
         if (!gatewayClient.Cache.Guilds.TryGetValue(guildId, out var guild))
@@ -62,7 +62,8 @@ internal class GuildLoggingService(
 
         try
         {
-            return await guildChannel.SendMessageAsync(message, cancellationToken: cancellationToken);
+            var restMessage = await guildChannel.SendMessageAsync(message, cancellationToken: cancellationToken);
+            return (restMessage.ChannelId, restMessage.Id);
         }
         catch (RestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
         {

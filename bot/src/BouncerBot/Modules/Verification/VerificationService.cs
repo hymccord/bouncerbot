@@ -4,7 +4,6 @@ using BouncerBot.Db.Models;
 using BouncerBot.Modules.Bounce;
 using BouncerBot.Modules.Privacy.Modules;
 using BouncerBot.Rest;
-using BouncerBot.Rest.Models;
 using BouncerBot.Services;
 using Humanizer;
 

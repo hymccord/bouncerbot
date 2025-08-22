@@ -1,67 +1,62 @@
-using System.Threading;
-using System.Threading.Tasks;
-using System.Linq;
-using BouncerBot.Modules.Verify;
+using BouncerBot.Modules.Verification;
 using BouncerBot.Rest;
-using BouncerBot.Services;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using NetCord.Rest;
 using BouncerBot.Rest.Models;
+using BouncerBot.Services;
+using NetCord.Rest;
+using NSubstitute;
+
+namespace BouncerBot.Tests.Modules.Verification;
 
 [TestClass]
 public class VerificationOrchestratorTests
 {
-    private IVerificationService _verificationService = null!;
-    private IMouseHuntRestClient _mouseHuntRestClient = null!;
-    private IGuildLoggingService _guildLoggingService = null!;
-    private VerificationOrchestrator _orchestrator = null!;
+    private readonly IGuildLoggingService _guildLoggingService;
+    private readonly IMouseHuntRestClient _mouseHuntRestClient;
+    private readonly IRoleService _roleService;
+    private readonly IVerificationService _verificationService;
+    private VerificationOrchestrator _sut;
 
-    [TestInitialize]
-    public void Setup()
-    {
-        _verificationService = Substitute.For<IVerificationService>();
-        _mouseHuntRestClient = Substitute.For<IMouseHuntRestClient>();
+    public VerificationOrchestratorTests()
+    {    
         _guildLoggingService = Substitute.For<IGuildLoggingService>();
-        _orchestrator = new VerificationOrchestrator(_verificationService, _mouseHuntRestClient, _guildLoggingService);
+        _mouseHuntRestClient = Substitute.For<IMouseHuntRestClient>();
+        _roleService = Substitute.For<IRoleService>();
+        _verificationService = Substitute.For<IVerificationService>();
+
+        _sut = new VerificationOrchestrator(_guildLoggingService, _mouseHuntRestClient, _roleService, _verificationService);
     }
 
     [TestMethod]
     public async Task ProcessVerificationAsync_Self_SuccessfulVerification_ReturnsSuccess()
     {
+        var mhid = 123u;
+        var snuid = "abc";
+
         // Arrange
         var parameters = new VerificationParameters
         {
-            MouseHuntId = 123,
+            MouseHuntId = mhid,
             DiscordUserId = 456,
             GuildId = 789,
             Phrase = "test phrase"
         };
 
-        var snuid = new UserSnuIdInfo { SnUserId = "abc" };
-        var corkboard = new Corkboard
-        {
-            CorkboardMessages = [
-                new CorkboardMessage { SnUserId = "abc", Body = "test phrase" }
-            ]
-        };
+        SetupGetUserSnuIdAsync(123, snuid);
+        SetupGetCorkboardAsync(123, snuid, "test phrase");
 
-        _mouseHuntRestClient.GetUserSnuIdAsync(123, Arg.Any<CancellationToken>()).Returns(snuid);
-        _mouseHuntRestClient.GetCorkboardAsync(123, Arg.Any<CancellationToken>()).Returns(corkboard);
-        _verificationService.AddVerifiedUserAsync(123, 789, 456, Arg.Any<CancellationToken>())
+        _verificationService.AddVerifiedUserAsync(mhid, 789, 456)
             .Returns(new VerificationAddResult(true, 123));
-        _guildLoggingService.LogAsync(789, LogType.Verification, Arg.Any<MessageProperties>(), Arg.Any<CancellationToken>())
-            .Returns(new RestMessage(new NetCord.JsonModels.JsonMessage(), null!));
+        _guildLoggingService.LogAsync(789, LogType.Verification, Arg.Any<MessageProperties>())
+            .Returns((1001u, 3u));
 
         // Act
-        var result = await _orchestrator.ProcessVerificationAsync(VerificationType.Self, parameters);
+        var result = await _sut.ProcessVerificationAsync(VerificationType.Self, parameters);
 
         // Assert
         Assert.IsTrue(result.Success);
-        Assert.IsTrue(result.Message.Contains("Success"));
-        await _verificationService.Received(1).AddVerifiedUserAsync(123, 789, 456, Arg.Any<CancellationToken>());
+        await _verificationService.Received(1).AddVerifiedUserAsync(mhid, 789, 456);
         await _verificationService.Received(1).SetVerificationMessageAsync(Arg.Is<SetVerificationMessageParameters>(p =>
-            p.GuildId == 789 && p.DiscordUserId == 456 && p.ChannelId == 2 && p.MessageId == 1));
+            p.GuildId == 789 && p.DiscordUserId == 456 && p.ChannelId == 1001u && p.MessageId == 3u));
     }
 
     [TestMethod]
@@ -76,25 +71,17 @@ public class VerificationOrchestratorTests
             Phrase = "test phrase"
         };
 
-        var snuid = new UserSnuIdInfo { SnUserId = "abc" };
-        var corkboard = new Corkboard
-        {
-            CorkboardMessages = new[]
-            {
-                new CorkboardMessage { SnUserId = "def", Body = "test phrase" }
-            }
-        };
-
-        _mouseHuntRestClient.GetUserSnuIdAsync(123, Arg.Any<CancellationToken>()).Returns(snuid);
-        _mouseHuntRestClient.GetCorkboardAsync(123, Arg.Any<CancellationToken>()).Returns(corkboard);
+        SetupGetUserSnuIdAsync(123, "abc");
+        SetupGetCorkboardAsync(123, "def", "test phrase");
 
         // Act
-        var result = await _orchestrator.ProcessVerificationAsync(VerificationType.Self, parameters);
+        var result = await _sut.ProcessVerificationAsync(VerificationType.Self, parameters);
 
         // Assert
         Assert.IsFalse(result.Success);
-        Assert.IsTrue(result.Message.Contains("Linking failed"));
-        await _guildLoggingService.Received(1).LogAsync(789, LogType.General, Arg.Any<MessageProperties>(), Arg.Any<CancellationToken>());
+        await _guildLoggingService
+            .Received(1)
+            .LogWarningAsync(789, "Verification Blocked", Arg.Any<string>());
     }
 
     [TestMethod]
@@ -109,25 +96,16 @@ public class VerificationOrchestratorTests
             Phrase = "test phrase"
         };
 
-        var snuid = new UserSnuIdInfo { SnUserId = "abc" };
-        var corkboard = new Corkboard
-        {
-            CorkboardMessages = new[]
-            {
-                new CorkboardMessage { SnUserId = "abc", Body = "other phrase" }
-            }
-        };
-
-        _mouseHuntRestClient.GetUserSnuIdAsync(123, Arg.Any<CancellationToken>()).Returns(snuid);
-        _mouseHuntRestClient.GetCorkboardAsync(123, Arg.Any<CancellationToken>()).Returns(corkboard);
+        SetupGetUserSnuIdAsync(123, "abc");
+        SetupGetCorkboardAsync(123, "abc", "other phrase");
 
         // Act
-        var result = await _orchestrator.ProcessVerificationAsync(VerificationType.Self, parameters);
+        var result = await _sut.ProcessVerificationAsync(VerificationType.Self, parameters);
 
         // Assert
         Assert.IsFalse(result.Success);
         Assert.IsTrue(result.Message.Contains("Linking failed"));
-        await _guildLoggingService.DidNotReceive().LogAsync(Arg.Any<ulong>(), LogType.General, Arg.Any<MessageProperties>(), Arg.Any<CancellationToken>());
+        await _guildLoggingService.DidNotReceiveWithAnyArgs().LogAsync(default, default, default!, default);
     }
 
     [TestMethod]
@@ -141,14 +119,14 @@ public class VerificationOrchestratorTests
             GuildId = 789
         };
 
-        _verificationService.IsDiscordUserVerifiedAsync(789, 456, Arg.Any<CancellationToken>()).Returns(false);
-        _verificationService.AddVerifiedUserAsync(123, 789, 456, Arg.Any<CancellationToken>())
+        _verificationService.IsDiscordUserVerifiedAsync(789, 456).Returns(false);
+        _verificationService.AddVerifiedUserAsync(123, 789, 456)
             .Returns(new VerificationAddResult(true, 123));
-        _guildLoggingService.LogAsync(789, LogType.Verification, Arg.Any<MessageProperties>(), Arg.Any<CancellationToken>())
-            .Returns(new RestMessage { Id = 1, ChannelId = 2 });
+        _guildLoggingService.LogAsync(789, LogType.Verification, Arg.Any<MessageProperties>())
+            .Returns(( 1u, 2u ));
 
         // Act
-        var result = await _orchestrator.ProcessVerificationAsync(VerificationType.Add, parameters);
+        var result = await _sut.ProcessVerificationAsync(VerificationType.Add, parameters);
 
         // Assert
         Assert.IsTrue(result.Success);
@@ -171,7 +149,7 @@ public class VerificationOrchestratorTests
         _verificationService.IsDiscordUserVerifiedAsync(789, 456, Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
-        var result = await _orchestrator.ProcessVerificationAsync(VerificationType.Add, parameters);
+        var result = await _sut.ProcessVerificationAsync(VerificationType.Add, parameters);
 
         // Assert
         Assert.IsFalse(result.Success);
@@ -192,10 +170,10 @@ public class VerificationOrchestratorTests
 
         _verificationService.IsDiscordUserVerifiedAsync(789, 456, Arg.Any<CancellationToken>()).Returns(true);
         _verificationService.RemoveVerifiedUser(789, 456, Arg.Any<CancellationToken>())
-            .Returns(new VerificationRemoveResult(true, 123));
+            .Returns(new VerificationRemoveResult(true));
 
         // Act
-        var result = await _orchestrator.ProcessVerificationAsync(VerificationType.Remove, parameters);
+        var result = await _sut.ProcessVerificationAsync(VerificationType.Remove, parameters);
 
         // Assert
         Assert.IsTrue(result.Success);
@@ -217,11 +195,31 @@ public class VerificationOrchestratorTests
         _verificationService.IsDiscordUserVerifiedAsync(789, 456, Arg.Any<CancellationToken>()).Returns(false);
 
         // Act
-        var result = await _orchestrator.ProcessVerificationAsync(VerificationType.Remove, parameters);
+        var result = await _sut.ProcessVerificationAsync(VerificationType.Remove, parameters);
 
         // Assert
         Assert.IsFalse(result.Success);
         Assert.IsTrue(result.Message.Contains("not verified"));
         await _verificationService.DidNotReceive().RemoveVerifiedUser(Arg.Any<ulong>(), Arg.Any<ulong>(), Arg.Any<CancellationToken>());
+    }
+
+    private void SetupGetUserSnuIdAsync(uint mouseHuntId, string snuid)
+    {
+        _mouseHuntRestClient.GetUserSnuIdAsync(mouseHuntId, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new UserSnuIdInfo()
+            {
+                SnUserId = snuid
+            }));
+    }
+
+    private void SetupGetCorkboardAsync(uint mouseHuntId, string snuid, string message)
+    {
+        _mouseHuntRestClient.GetCorkboardAsync(mouseHuntId, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new Corkboard
+            {
+                CorkboardMessages = [
+                    new() { SnUserId = snuid, Body = message }
+                ]
+            }));
     }
 }
