@@ -58,11 +58,9 @@ public class GuildUserRoleMonitor(
             logger.LogInformation("Removing invalid verified role from Discord User {DiscordUserId} in Guild {GuildId}", guildUser.Id, guildUser.GuildId);
 
             await guildUser.RemoveRoleAsync(verifiedRoleId);
-            await guildLoggingService.LogAsync(guildUser.GuildId, LogType.General, new MessageProperties
-            {
-                Content = $"<@&{verifiedRoleId}> role added to unverified user <@{guildUser.Id}>. Removing role.",
-                AllowedMentions = AllowedMentionsProperties.None,
-            });
+            await guildLoggingService.LogWarningAsync(guildUser.GuildId,
+                "Role Monitor",
+                $"<@&{verifiedRoleId}> role added to unverified user <@{guildUser.Id}>. Removing role.");
         }
     }
 
