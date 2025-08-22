@@ -88,10 +88,6 @@ public class VerificationService(
         };
     }
 
-    public async Task<bool> IsDiscordUserVerifiedAsync(ulong guildId, ulong discordId, CancellationToken cancellationToken = default)
-        => await dbContext.VerifiedUsers
-            .AnyAsync(vu => vu.DiscordId == discordId && vu.GuildId == guildId, cancellationToken: cancellationToken);
-
     public async Task<CanUserVerifyResult> CanUserVerifyAsync(uint mouseHuntId, ulong guildId, ulong discordId, CancellationToken cancellationToken = default)
     {
         // Check verification restrictions in priority order
@@ -147,126 +143,126 @@ public class VerificationService(
             CanVerify = true,
             Message = "",
         };
-    }
 
-    private async Task<CanUserVerifyResult> CheckHunterIdBanned(uint mouseHuntId, ulong guildId, CancellationToken cancellationToken)
-    {
-        var bannedHunter = await bounceService.GetBannedHunterAsync(mouseHuntId, guildId);
-        if (bannedHunter != null)
+        async Task<CanUserVerifyResult> CheckHunterIdBanned(uint mouseHuntId, ulong guildId, CancellationToken cancellationToken)
         {
-            return new CanUserVerifyResult
+            var bannedHunter = await bounceService.GetBannedHunterAsync(mouseHuntId, guildId);
+            if (bannedHunter != null)
             {
-                CanVerify = false,
-                Message = """
-                Sorry, an internal error occurred. Try again later.
+                return new CanUserVerifyResult
+                {
+                    CanVerify = false,
+                    Message = """
+                    Sorry, an internal error occurred. Try again later.
 
-                Please contact the moderators with error code: `VF-2156-B3`.
-                """
-            };
+                    Please contact the moderators with error code: `VF-2156-B3`.
+                    """
+                };
+            }
+
+            return new CanUserVerifyResult { CanVerify = true, Message = "" };
         }
 
-        return new CanUserVerifyResult { CanVerify = true, Message = "" };
-    }
-
-    private async Task<CanUserVerifyResult> CheckHunterInUseAsync(uint mouseHuntId, ulong guildId, ulong discordId, CancellationToken cancellationToken)
-    {
-        var existingUser = await dbContext.VerifiedUsers
-            .FirstOrDefaultAsync(vu => vu.GuildId == guildId && vu.MouseHuntId == mouseHuntId && vu.DiscordId != discordId, cancellationToken);
-
-        if (existingUser is not null)
+        async Task<CanUserVerifyResult> CheckHunterInUseAsync(uint mouseHuntId, ulong guildId, ulong discordId, CancellationToken cancellationToken)
         {
-            return new CanUserVerifyResult
-            {
-                CanVerify = false,
-                Message = """
-                Sorry, an internal error occured. Try again later.
+            var existingUser = await dbContext.VerifiedUsers
+                .FirstOrDefaultAsync(vu => vu.GuildId == guildId && vu.MouseHuntId == mouseHuntId && vu.DiscordId != discordId, cancellationToken);
 
-                Please contact the moderators with error code: `VF-8429-A7`.
-                """
-            };
+            if (existingUser is not null)
+            {
+                return new CanUserVerifyResult
+                {
+                    CanVerify = false,
+                    Message = """
+                    Sorry, an internal error occured. Try again later.
+
+                    Please contact the moderators with error code: `VF-8429-A7`.
+                    """
+                };
+            }
+
+            return new CanUserVerifyResult { CanVerify = true, Message = "" };
         }
 
-        return new CanUserVerifyResult { CanVerify = true, Message = "" };
-    }
-
-    private async Task<CanUserVerifyResult> CheckUserVerificationHistoryAsync(uint mouseHuntId, ulong guildId, ulong discordId, CancellationToken cancellationToken)
-    {
-        var discordIdHash = VerificationHistory.HashValue(discordId);
-        var previousVerification = await dbContext.VerificationHistory
-            .FirstOrDefaultAsync(vh => vh.GuildId == guildId && vh.DiscordIdHash == discordIdHash, cancellationToken);
-
-        if (previousVerification is not null && !previousVerification.VerifyMouseHuntId(mouseHuntId))
+        async Task<CanUserVerifyResult> CheckUserVerificationHistoryAsync(uint mouseHuntId, ulong guildId, ulong discordId, CancellationToken cancellationToken)
         {
-            return new CanUserVerifyResult
+            var discordIdHash = VerificationHistory.HashValue(discordId);
+            var previousVerification = await dbContext.VerificationHistory
+                .FirstOrDefaultAsync(vh => vh.GuildId == guildId && vh.DiscordIdHash == discordIdHash, cancellationToken);
+
+            if (previousVerification is not null && !previousVerification.VerifyMouseHuntId(mouseHuntId))
             {
-                CanVerify = false,
-                Message = $"""
-                You previously verified a different MouseHunt ID in this server.
+                return new CanUserVerifyResult
+                {
+                    CanVerify = false,
+                    Message = $"""
+                    You previously verified a different MouseHunt ID in this server.
 
-                Please contact the moderators if you think this is an error or to explain why a change is required.
+                    Please contact the moderators if you think this is an error or to explain why a change is required.
 
-                -# To learn how I know this, use the {commandMentionService.GetCommandMention(PrivacyModuleMetadata.PrivacyCommand.Name)} command.
-                """
-            };
+                    -# To learn how I know this, use the {commandMentionService.GetCommandMention(PrivacyModuleMetadata.PrivacyCommand.Name)} command.
+                    """
+                };
+            }
+
+            return new CanUserVerifyResult { CanVerify = true, Message = "" };
         }
 
-        return new CanUserVerifyResult { CanVerify = true, Message = "" };
-    }
-
-    private async Task<CanUserVerifyResult> CheckMouseHuntIdVerificationHistoryAsync(uint mouseHuntId, ulong guildId, ulong discordId, CancellationToken cancellationToken)
-    {
-        var mhIdHash = VerificationHistory.HashValue(mouseHuntId);
-        var previousVerification = await dbContext.VerificationHistory
-            .FirstOrDefaultAsync(vh => vh.GuildId == guildId && vh.MouseHuntIdHash == mhIdHash, cancellationToken);
-        if (previousVerification is not null && !previousVerification.VerifyDiscordId(discordId))
+        async Task<CanUserVerifyResult> CheckMouseHuntIdVerificationHistoryAsync(uint mouseHuntId, ulong guildId, ulong discordId, CancellationToken cancellationToken)
         {
-            return new CanUserVerifyResult
+            var mhIdHash = VerificationHistory.HashValue(mouseHuntId);
+            var previousVerification = await dbContext.VerificationHistory
+                .FirstOrDefaultAsync(vh => vh.GuildId == guildId && vh.MouseHuntIdHash == mhIdHash, cancellationToken);
+            if (previousVerification is not null && !previousVerification.VerifyDiscordId(discordId))
             {
-                CanVerify = false,
-                Message = $"""
-                Sorry, an internal error occurred. Try again later.
+                return new CanUserVerifyResult
+                {
+                    CanVerify = false,
+                    Message = $"""
+                    Sorry, an internal error occurred. Try again later.
 
-                Please contact the moderators with error code: `VF-9518-C3`.
-                """
-            };
-        }
-        return new CanUserVerifyResult { CanVerify = true, Message = "" };
-    }
-
-    private async Task<CanUserVerifyResult> CheckUserRankRequirementAsync(uint mouseHuntId, ulong guildId, CancellationToken cancellationToken)
-    {
-        var minRank = await GetMinimumRankForGuildAsync(guildId, cancellationToken);
-        var userRank = await GetUserRankAsync(mouseHuntId, cancellationToken);
-
-        if (userRank < minRank)
-        {
-            return new CanUserVerifyResult
-            {
-                CanVerify = false,
-                Message = $"You're a little too new around here! Rank up to **{minRank.Humanize()}** and I'll reconsider."
-            };
+                    Please contact the moderators with error code: `VF-9518-C3`.
+                    """
+                };
+            }
+            return new CanUserVerifyResult { CanVerify = true, Message = "" };
         }
 
-        return new CanUserVerifyResult { CanVerify = true, Message = "" };
-    }
+        async Task<CanUserVerifyResult> CheckUserRankRequirementAsync(uint mouseHuntId, ulong guildId, CancellationToken cancellationToken)
+        {
+            var minRank = await GetMinimumRankForGuildAsync(guildId, cancellationToken);
+            var userRank = await GetUserRankAsync(mouseHuntId, cancellationToken);
 
-    private async Task<Rank> GetMinimumRankForGuildAsync(ulong guildId, CancellationToken cancellationToken)
-    {
-        return await dbContext.VerifySettings
-            .Where(vs => vs.GuildId == guildId)
-            .Select(vs => vs.MinimumRank)
-            .FirstOrDefaultAsync(cancellationToken);
-    }
+            if (userRank < minRank)
+            {
+                return new CanUserVerifyResult
+                {
+                    CanVerify = false,
+                    Message = $"You're a little too new around here! Rank up to **{minRank.Humanize()}** and I'll reconsider."
+                };
+            }
 
-    private async Task<Rank> GetUserRankAsync(uint mouseHuntId, CancellationToken cancellationToken)
-    {
-        var titles = await mouseHuntRestClient.GetTitlesAsync(cancellationToken)
-            ?? throw new Exception("Failed to fetch titles from MouseHunt API");
+            return new CanUserVerifyResult { CanVerify = true, Message = "" };
+        }
 
-        var userTitle = await mouseHuntRestClient.GetUserTitleAsync(mouseHuntId, cancellationToken)
-            ?? throw new Exception("Failed to fetch user title from MouseHunt API");
+        async Task<Rank> GetMinimumRankForGuildAsync(ulong guildId, CancellationToken cancellationToken)
+        {
+            return await dbContext.VerifySettings
+                .Where(vs => vs.GuildId == guildId)
+                .Select(vs => vs.MinimumRank)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
 
-        return titles.Single(t => t.TitleId == userTitle.TitleId).Name;
+        async Task<Rank> GetUserRankAsync(uint mouseHuntId, CancellationToken cancellationToken)
+        {
+            var titles = await mouseHuntRestClient.GetTitlesAsync(cancellationToken)
+                ?? throw new Exception("Failed to fetch titles from MouseHunt API");
+
+            var userTitle = await mouseHuntRestClient.GetUserTitleAsync(mouseHuntId, cancellationToken)
+                ?? throw new Exception("Failed to fetch user title from MouseHunt API");
+
+            return titles.Single(t => t.TitleId == userTitle.TitleId).Name;
+        }
     }
 
     public async Task<bool> HasDiscordUserVerifiedWithMouseHuntIdBeforeAsync(uint mousehuntId, ulong guildId, ulong discordId, CancellationToken cancellationToken = default)
@@ -284,6 +280,10 @@ public class VerificationService(
         return await dbContext.VerificationHistory
             .AnyAsync(vh => vh.GuildId == guildId && vh.DiscordIdHash == discordIdHash, cancellationToken);
     }
+
+    public async Task<bool> IsDiscordUserVerifiedAsync(ulong guildId, ulong discordId, CancellationToken cancellationToken = default)
+        => await dbContext.VerifiedUsers
+            .AnyAsync(vu => vu.DiscordId == discordId && vu.GuildId == guildId, cancellationToken: cancellationToken);
 
     public async Task<VerificationRemoveResult> RemoveVerifiedUser(ulong guildId, ulong discordId, CancellationToken cancellationToken = default)
     {
