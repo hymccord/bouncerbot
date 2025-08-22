@@ -23,6 +23,7 @@ public class VerificationServiceTests
     private readonly BouncerBotDbContext _dbContext;
     private readonly ICommandMentionService _mockCommandMentionService;
     private readonly IDiscordRestClient _mockRestClient;
+    private readonly IHashService _mockHashingService;
     private readonly IGuildLoggingService _mockGuildLoggingService;
     private readonly IMouseHuntRestClient _mockMouseHuntRestClient;
     private readonly IBounceService _mockBounceService;
@@ -33,6 +34,8 @@ public class VerificationServiceTests
     private const uint TestMouseHuntId = 12345u;
     private const ulong TestGuildId = 67890ul;
     private const ulong TestDiscordId = 11111ul;
+    private const string TestDiscordIdHash = "test-discord-hash";
+    private const string TestMouseHuntIdHash = "test-mousehunt-hash";
     private const string TestCommandMention = "</privacy:123>";
 
     public VerificationServiceTests()
@@ -41,6 +44,7 @@ public class VerificationServiceTests
         _logger = new FakeLogger<VerificationService>();
         _mockCommandMentionService = Substitute.For<ICommandMentionService>();
         _mockRestClient = Substitute.For<IDiscordRestClient>();
+        _mockHashingService = Substitute.For<IHashService>();
         _mockGuildLoggingService = Substitute.For<IGuildLoggingService>();
         _mockMouseHuntRestClient = Substitute.For<IMouseHuntRestClient>();
         _mockBounceService = Substitute.For<IBounceService>();
@@ -56,12 +60,17 @@ public class VerificationServiceTests
 
         // Setup common mock returns
         _mockCommandMentionService.GetCommandMention(Arg.Any<string>()).Returns(TestCommandMention);
+        _mockHashingService.HashValue(TestDiscordId).Returns(TestDiscordIdHash);
+        _mockHashingService.HashValue(TestMouseHuntId).Returns(TestMouseHuntIdHash);
+        _mockHashingService.VerifyHash(TestDiscordIdHash, TestDiscordId).Returns(true);
+        _mockHashingService.VerifyHash(TestMouseHuntIdHash, TestMouseHuntId).Returns(true);
 
         _service = new VerificationService(
             _logger,
             _dbContext,
             _mockCommandMentionService,
             _mockRestClient,
+            _mockHashingService,
             _mockGuildLoggingService,
             _mockMouseHuntRestClient,
             _mockBounceService);
@@ -95,8 +104,8 @@ public class VerificationServiceTests
         var history = await _dbContext.VerificationHistory.FirstOrDefaultAsync();
         Assert.IsNotNull(history);
         Assert.AreEqual(TestGuildId, history.GuildId);
-        Assert.AreEqual(VerificationHistory.HashValue(TestDiscordId), history.DiscordIdHash);
-        Assert.AreEqual(VerificationHistory.HashValue(TestMouseHuntId), history.MouseHuntIdHash);
+        Assert.AreEqual(TestDiscordIdHash, history.DiscordIdHash);
+        Assert.AreEqual(TestMouseHuntIdHash, history.MouseHuntIdHash);
     }
 
     [TestMethod]
@@ -127,7 +136,7 @@ public class VerificationServiceTests
         await _dbContext.VerificationHistory.AddAsync(new VerificationHistory
         {
             GuildId = TestGuildId,
-            DiscordIdHash = VerificationHistory.HashValue(TestDiscordId),
+            DiscordIdHash = TestDiscordIdHash,
             MouseHuntIdHash = differentHash
         });
         await _dbContext.SaveChangesAsync();
@@ -144,8 +153,8 @@ public class VerificationServiceTests
         await _dbContext.VerificationHistory.AddAsync(new VerificationHistory
         {
             GuildId = TestGuildId,
-            DiscordIdHash = VerificationHistory.HashValue(TestDiscordId),
-            MouseHuntIdHash = VerificationHistory.HashValue(TestMouseHuntId)
+            DiscordIdHash = TestDiscordIdHash,
+            MouseHuntIdHash = TestMouseHuntIdHash
         });
         await _dbContext.SaveChangesAsync();
 
@@ -229,7 +238,7 @@ public class VerificationServiceTests
         await _dbContext.VerificationHistory.AddAsync(new VerificationHistory
         {
             GuildId = TestGuildId,
-            DiscordIdHash = VerificationHistory.HashValue(TestDiscordId),
+            DiscordIdHash = TestDiscordIdHash,
             MouseHuntIdHash = "different-hash"
         });
         await _dbContext.SaveChangesAsync();
@@ -255,7 +264,7 @@ public class VerificationServiceTests
         {
             GuildId = TestGuildId,
             DiscordIdHash = "different-discord-hash",
-            MouseHuntIdHash = VerificationHistory.HashValue(TestMouseHuntId)
+            MouseHuntIdHash = TestMouseHuntIdHash
         });
         await _dbContext.SaveChangesAsync();
 
@@ -357,8 +366,8 @@ public class VerificationServiceTests
         await _dbContext.VerificationHistory.AddAsync(new VerificationHistory
         {
             GuildId = TestGuildId,
-            DiscordIdHash = VerificationHistory.HashValue(TestDiscordId),
-            MouseHuntIdHash = VerificationHistory.HashValue(TestMouseHuntId)
+            DiscordIdHash = TestDiscordIdHash,
+            MouseHuntIdHash = TestMouseHuntIdHash
         });
         await _dbContext.SaveChangesAsync();
 
@@ -378,7 +387,7 @@ public class VerificationServiceTests
         await _dbContext.VerificationHistory.AddAsync(new VerificationHistory
         {
             GuildId = TestGuildId,
-            DiscordIdHash = VerificationHistory.HashValue(TestDiscordId),
+            DiscordIdHash = TestDiscordIdHash,
             MouseHuntIdHash = "different-hash"
         });
         await _dbContext.SaveChangesAsync();
@@ -411,8 +420,8 @@ public class VerificationServiceTests
         await _dbContext.VerificationHistory.AddAsync(new VerificationHistory
         {
             GuildId = TestGuildId,
-            DiscordIdHash = VerificationHistory.HashValue(TestDiscordId),
-            MouseHuntIdHash = VerificationHistory.HashValue(TestMouseHuntId)
+            DiscordIdHash = TestDiscordIdHash,
+            MouseHuntIdHash = TestMouseHuntIdHash
         });
         await _dbContext.SaveChangesAsync();
 
@@ -581,8 +590,8 @@ public class VerificationServiceTests
         await _dbContext.VerificationHistory.AddAsync(new VerificationHistory
         {
             GuildId = TestGuildId,
-            DiscordIdHash = VerificationHistory.HashValue(TestDiscordId),
-            MouseHuntIdHash = VerificationHistory.HashValue(TestMouseHuntId)
+            DiscordIdHash = TestDiscordIdHash,
+            MouseHuntIdHash = TestMouseHuntIdHash
         });
         await _dbContext.SaveChangesAsync();
 

@@ -29,6 +29,7 @@ public class VerificationService(
     BouncerBotDbContext dbContext,
     ICommandMentionService commandMentionService,
     IDiscordRestClient restClient,
+    IHashService hashingService,
     IGuildLoggingService guildLoggingService,
     IMouseHuntRestClient mouseHuntRestClient,
     IBounceService bounceService) : IVerificationService
@@ -48,8 +49,8 @@ public class VerificationService(
             }, cancellationToken);
 
             // Add to verification history
-            var mhIdHash = VerificationHistory.HashValue(mouseHuntId);
-            var discordIdHash = VerificationHistory.HashValue(discordId);
+            var mhIdHash = hashingService.HashValue(mouseHuntId);
+            var discordIdHash = hashingService.HashValue(discordId);
             var existingHistory = await dbContext.VerificationHistory
                 .FirstOrDefaultAsync(vh => vh.GuildId == guildId && vh.DiscordIdHash == discordIdHash, cancellationToken);
 
@@ -186,11 +187,11 @@ public class VerificationService(
 
         async Task<CanUserVerifyResult> CheckUserVerificationHistoryAsync(uint mouseHuntId, ulong guildId, ulong discordId, CancellationToken cancellationToken)
         {
-            var discordIdHash = VerificationHistory.HashValue(discordId);
+            var discordIdHash = hashingService.HashValue(discordId);
             var previousVerification = await dbContext.VerificationHistory
                 .FirstOrDefaultAsync(vh => vh.GuildId == guildId && vh.DiscordIdHash == discordIdHash, cancellationToken);
 
-            if (previousVerification is not null && !previousVerification.VerifyMouseHuntId(mouseHuntId))
+            if (previousVerification is not null && !hashingService.VerifyHash(previousVerification.MouseHuntIdHash, mouseHuntId))
             {
                 return new CanUserVerifyResult
                 {
@@ -210,10 +211,10 @@ public class VerificationService(
 
         async Task<CanUserVerifyResult> CheckMouseHuntIdVerificationHistoryAsync(uint mouseHuntId, ulong guildId, ulong discordId, CancellationToken cancellationToken)
         {
-            var mhIdHash = VerificationHistory.HashValue(mouseHuntId);
+            var mhIdHash = hashingService.HashValue(mouseHuntId);
             var previousVerification = await dbContext.VerificationHistory
                 .FirstOrDefaultAsync(vh => vh.GuildId == guildId && vh.MouseHuntIdHash == mhIdHash, cancellationToken);
-            if (previousVerification is not null && !previousVerification.VerifyDiscordId(discordId))
+            if (previousVerification is not null && !hashingService.VerifyHash(previousVerification.DiscordIdHash, discordId))
             {
                 return new CanUserVerifyResult
                 {
@@ -267,16 +268,21 @@ public class VerificationService(
 
     public async Task<bool> HasDiscordUserVerifiedWithMouseHuntIdBeforeAsync(uint mousehuntId, ulong guildId, ulong discordId, CancellationToken cancellationToken = default)
     {
-        var discordIdHash = VerificationHistory.HashValue(discordId);
+        var discordIdHash = hashingService.HashValue(discordId);
         var existingHistory = await dbContext.VerificationHistory
             .FirstOrDefaultAsync(vh => vh.GuildId == guildId && vh.DiscordIdHash == discordIdHash, cancellationToken);
 
-        return existingHistory?.VerifyMouseHuntId(mousehuntId) ?? false;
+        if (existingHistory is null)
+        {
+            return false;
+        }
+
+        return hashingService.VerifyHash(existingHistory.MouseHuntIdHash, mousehuntId);
     }
 
     public async Task<bool> HasDiscordUserVerifiedBeforeAsync(ulong guildId, ulong discordId, CancellationToken cancellationToken = default)
     {
-        var discordIdHash = VerificationHistory.HashValue(discordId);
+        var discordIdHash = hashingService.HashValue(discordId);
         return await dbContext.VerificationHistory
             .AnyAsync(vh => vh.GuildId == guildId && vh.DiscordIdHash == discordIdHash, cancellationToken);
     }
@@ -329,7 +335,7 @@ public class VerificationService(
 
     public async Task<VerificationRemoveResult> RemoveVerificationHistoryAsync(ulong guildId, ulong discordId, CancellationToken cancellationToken = default)
     {
-        var discordIdHash = VerificationHistory.HashValue(discordId);
+        var discordIdHash = hashingService.HashValue(discordId);
         var existingHistory = await dbContext.VerificationHistory
             .FirstOrDefaultAsync(vh => vh.GuildId == guildId && vh.DiscordIdHash == discordIdHash, cancellationToken);
         if (existingHistory is not null)

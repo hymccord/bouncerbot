@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using BouncerBot;
 using BouncerBot.Db;
@@ -63,6 +64,7 @@ builder.Services
     .AddTransient<IWhoIsOrchestrator, WhoIsOrchestrator>()
     .AddTransient<ICommandMentionService, CommandMentionService>()
     .AddTransient<IMouseHuntEmojiService, MouseHuntEmojiService>()
+    .AddTransient<IHashService, HMACSHA3HashService>()
     .AddSingleton<IDiscordRestClient, DiscordRestClient>()
     .AddSingleton<IDiscordGatewayClient, DiscordGatewayClient>()
     .AddSingleton<IPuzzleService, PuzzleService>() // Singleton b/c of puzzle state capture
@@ -122,6 +124,36 @@ var dbContextFactory = host.Services.GetRequiredService<IDbContextFactory<Bounce
 using (var dbContext = dbContextFactory.CreateDbContext())
 {
     await dbContext.Database.MigrateAsync();
+
+    var hashingService = host.Services.GetRequiredService<IHashService>();
+    foreach (var user in dbContext.VerifiedUsers)
+    {
+        var oldDiscordIdHash = HashValue(user.DiscordId);
+        var oldMouseHuntIdHash = HashValue(user.MouseHuntId);
+        var mhIdHash = hashingService.HashValue(user.MouseHuntId);
+        var discordIdHash = hashingService.HashValue(user.DiscordId);
+
+        foreach (var verification in dbContext.VerificationHistory.Where(vh => vh.DiscordIdHash == oldDiscordIdHash))
+        {
+            dbContext.VerificationHistory.Remove(verification);
+
+            dbContext.VerificationHistory.Add(new BouncerBot.Db.Models.VerificationHistory
+            {
+                MouseHuntIdHash = mhIdHash,
+                DiscordIdHash = discordIdHash,
+                GuildId = verification.GuildId,
+                CreatedAt = verification.CreatedAt,
+            });
+        }
+    }
+
+    await dbContext.SaveChangesAsync();
+
+    static string HashValue(ulong value)
+    {
+        var bytes = SHA512.HashData(BitConverter.GetBytes(value));
+        return Convert.ToBase64String(bytes);
+    }
 }
 
 await host.RunAsync();

@@ -4,6 +4,9 @@ namespace BouncerBot;
 public class BouncerBotOptions
 {
     [Required]
+    public required string HmacKey { get; set; }
+
+    [Required]
     public required EmojiOptions Emojis { get; set; }
 
     [Required]
