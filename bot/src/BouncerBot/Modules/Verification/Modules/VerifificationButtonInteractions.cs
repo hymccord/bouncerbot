@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Options;
 using NetCord;
 using NetCord.Rest;
 using NetCord.Services.ComponentInteractions;
@@ -5,6 +6,7 @@ using NetCord.Services.ComponentInteractions;
 namespace BouncerBot.Modules.Verification.Modules;
 
 public class VerificationButtonInteractions(
+    IOptions<BouncerBotOptions> options,
     IVerificationService verificationService,
     IVerificationOrchestrator verificationOrchestrator)
     : ComponentInteractionModule<ButtonInteractionContext>
@@ -24,9 +26,10 @@ public class VerificationButtonInteractions(
 
         await ModifyResponseAsync(x =>
         {
-            x.Content = result.Message;
-            x.Flags = MessageFlags.Ephemeral;
-            x.Components = [];
+            new ComponentContainerProperties()
+                .AddTextDisplay(result.Message)
+                .Build(x);
+            x.Flags |= MessageFlags.Ephemeral;
         });
     }
 
@@ -49,9 +52,9 @@ public class VerificationButtonInteractions(
 
         await ModifyResponseAsync(x =>
         {
-            x.Content = result.Message;
-            x.Flags = MessageFlags.Ephemeral;
-            x.Components = [];
+            new ComponentContainerProperties()
+                .WithAccentColor(new Color(options.Value.Colors.Success))
+                .AddTextDisplay(result.Message);
         });
     }
 
@@ -76,9 +79,12 @@ public class VerificationButtonInteractions(
 
         await ModifyResponseAsync(x =>
         {
-            x.Content = result.WasRemoved ? "User MouseHunt ID history removed!" : "Sorry, I couldn't remove their history. It doesn't exist.";
-            x.Flags = MessageFlags.Ephemeral;
-            x.Components = [];
+            new ComponentContainerProperties()
+                .WithAccentColor(new Color(result.WasRemoved ? options.Value.Colors.Success : options.Value.Colors.Warning))
+                .AddTextDisplay(result.WasRemoved
+                    ? "I've removed that user's MHID history. They can now register with any MHID!"
+                    : "Sorry, I couldn't remove their history. It doesn't exist.")
+                .Build(x);
         });
     }
 

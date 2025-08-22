@@ -1,5 +1,7 @@
 using BouncerBot.Attributes;
+using BouncerBot.Db;
 using BouncerBot.Services;
+using Microsoft.Extensions.Options;
 using NetCord;
 using NetCord.Rest;
 using NetCord.Services.ApplicationCommands;
@@ -41,22 +43,26 @@ public class VerificationModule() : ApplicationCommandModule<ApplicationCommandC
     [RequireGuildContext<ApplicationCommandContext>]
     [RequireManageRoles<ApplicationCommandContext>]
     public class VerifyRemoveModule(
+        IOptions<BouncerBotOptions> options,
         IRoleService roleService,
         IVerificationService verificationService
-        ) : ApplicationCommandModule<ApplicationCommandContext>
+    ) : ApplicationCommandModule<ApplicationCommandContext>
     {
         [SubSlashCommand(VerificationModuleMetadata.RemoveCommand.UserCommand.Name, VerificationModuleMetadata.RemoveCommand.UserCommand.Description)]
         public async Task RemoveVerification(
-        [SlashCommandParameter(Description = "A verified Discord user")] User user
+            [SlashCommandParameter(Description = "A verified Discord user")] User user
         )
         {
             await RespondAsync(InteractionCallback.DeferredMessage());
 
             if (!await verificationService.IsDiscordUserVerifiedAsync(Context.Guild!.Id, Context.User.Id))
             {
-                await ModifyResponseAsync(x =>
+                await ModifyResponseAsync(x => 
                 {
-                    x.Content = "That user is not verified";
+                    new ComponentContainerProperties()
+                        .WithAccentColor(new Color(options.Value.Colors.Warning))
+                        .AddTextDisplay("That user is not verified")
+                        .Build(x);
                 });
             }
             else
@@ -64,18 +70,21 @@ public class VerificationModule() : ApplicationCommandModule<ApplicationCommandC
                 var verifiedRoleId = await roleService.GetRoleIdAsync(Context.Guild!.Id, Role.Verified);
                 await ModifyResponseAsync(x =>
                 {
-                    x.Content = $"""
-                        Are you sure you want to remove verification for <@{user.Id}>?
+                    x.Components = [
+                        new ComponentContainerProperties()
+                            .WithAccentColor(new Color(options.Value.Colors.Warning))
+                            .AddTextDisplay("Unverify user")
+                            .AddSeparator()
+                            .AddTextDisplay($"""
+                            Are you sure you want to remove verification for <@{user.Id}>?
 
-                        -# Hint: This command has the same effect as removing the <@&{verifiedRoleId}> role manually from the user.
-                        """;
-                    
-                    x.AddComponents(
+                            -# Hint: This command has the same effect as removing the <@&{verifiedRoleId}> role manually from the user.
+                            """),
                         new ActionRowProperties()
                             .AddButtons(new ButtonProperties($"{VerificationInteractionIds.VerifyRemoveConfirm}:{user.Id}", "Confirm", ButtonStyle.Danger))
                             .AddButtons(new ButtonProperties(VerificationInteractionIds.VerifyRemoveCancel, "Cancel", ButtonStyle.Secondary))
-                    );
-
+                        ];
+                    x.Flags = MessageFlags.IsComponentsV2;
                     x.AllowedMentions = AllowedMentionsProperties.None;
                 });
             }
@@ -92,18 +101,26 @@ public class VerificationModule() : ApplicationCommandModule<ApplicationCommandC
             {
                 await ModifyResponseAsync(x =>
                 {
-                    x.Content = "That user has never been verified.";
+                    new ComponentContainerProperties()
+                        .WithAccentColor(new Color(options.Value.Colors.Warning))
+                        .AddTextDisplay("That user has never been verified.")
+                        .Build(x);
                 });
             }
             else
             {
                 await ModifyResponseAsync(x =>
                 {
-                    x.Content = $"""
-                    Are you sure you want to remove historical verification for <@{user.Id}>?
+                    new ComponentContainerProperties()
+                        .WithAccentColor(new Color(options.Value.Colors.Warning))
+                        .AddTextDisplay("MHID History Removal")
+                        .AddSeparator()
+                        .AddTextDisplay($"""
+                            Are you sure you want to remove the MHID history for <@{user.Id}>?
 
-                    This will allow them to verify with a different MouseHunt ID.
-                    """;
+                            This will allow them to verify with a different MouseHunt ID.
+                            """)
+                        .Build(x);
                     
                     x.AddComponents(
                         new ActionRowProperties()
