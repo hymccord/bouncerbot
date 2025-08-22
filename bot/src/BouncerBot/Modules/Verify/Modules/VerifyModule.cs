@@ -23,8 +23,8 @@ public class VerifyModule(
 {
     [SlashCommand(VerifyModuleMetadata.VerifyCommand.Name, VerifyModuleMetadata.VerifyCommand.Description)]
     public async Task VerifyAsync(
-        [SlashCommandParameter(Description = "Your MouseHunt ID", MinValue = 1)]
-        uint mousehuntID)
+        [SlashCommandParameter(Description = "Your MouseHunt ID", MinValue = 1)]uint mousehuntID,
+        [SlashCommandParameter(Description = "Use DMs to communicate with me? (If having trouble with ephemeral messages)")]bool? dm = false)
     {
         await RespondAsync(InteractionCallback.DeferredEphemeralMessage());
 
@@ -120,42 +120,73 @@ public class VerifyModule(
         }
 
         var phrase = $"BouncerBot Verification: {randomPhraseGenerator.Generate()}";
-        await ModifyResponseAsync(x =>
-        {
-            x.Components = [
-                new ComponentContainerProperties()
-                    .WithAccentColor(new Color(options.Value.Colors.Warning))
-                    .AddComponents(
-                        new TextDisplayProperties("## MouseHunt Profile Verification"),
-                        new ComponentSeparatorProperties()
-                                .WithSpacing(ComponentSeparatorSpacingSize.Large)
-                                .WithDivider(true),
-                        new TextDisplayProperties($"""
-                            :exclamation: View the privacy policy with the {commandMentionService.GetCommandMention(PrivacyModuleMetadata.PrivacyCommand.Name)} command. :exclamation:
+
+        IEnumerable<IComponentProperties> messageComponent = [
+            new ComponentContainerProperties()
+            .WithAccentColor(new Color(options.Value.Colors.Warning))
+            .AddComponents(
+                new TextDisplayProperties("## MouseHunt Profile Verification"),
+                new ComponentSeparatorProperties()
+                        .WithSpacing(ComponentSeparatorSpacingSize.Large)
+                        .WithDivider(true),
+                new TextDisplayProperties($"""
+                    :exclamation: View the privacy policy with the {commandMentionService.GetCommandMention(PrivacyModuleMetadata.PrivacyCommand.Name)} command. :exclamation:
                         
-                            This process will associate your Discord account with a MouseHunt profile.
+                    This process will associate your Discord account with a MouseHunt profile.
 
-                            Only **ONE (1)** Discord account can be associated with **ONE (1)** MouseHunt ID per server. You can use {commandMentionService.GetCommandMention(VerifyModuleMetadata.UnverifyCommand.Name)} to undo this at any time. If you wish to use a different MouseHunt ID than one previously linked, you will need to contact the moderators.
+                    Only **ONE (1)** Discord account can be associated with **ONE (1)** MouseHunt ID per server. You can use {commandMentionService.GetCommandMention(VerifyModuleMetadata.UnverifyCommand.Name)} to undo this at any time. If you wish to use a different MouseHunt ID than one previously linked, you will need to contact the moderators.
 
-                            These are the details I have for you:
-                            Discord: <@{Context.User.Id}> <-> MHID: {mousehuntID}
+                    These are the details I have for you:
+                    Discord: <@{Context.User.Id}> <-> MHID: {mousehuntID}
 
-                            If you agree with the above terms, place the **entirety** of this phrase on your MouseHunt profile corkboard (_everything_ in code block). I will read your corkboard and verify it matches.
-                            ```
-                            {phrase}
-                            ```
-                            Press 'Verify' to proceed, otherwise 'Cancel'.
-                            """),
-                        new ComponentSeparatorProperties()
-                            .WithSpacing(ComponentSeparatorSpacingSize.Large)
-                            .WithDivider(true),
-                        new ActionRowProperties()
-                            .AddButtons(new ButtonProperties($"link start:{mousehuntID}:{phrase}", "Verify", ButtonStyle.Danger))
-                            .AddButtons(new ButtonProperties("link cancel", "Cancel", ButtonStyle.Success))
-                    )
-            ];
-            x.Flags = MessageFlags.Ephemeral | MessageFlags.IsComponentsV2;
-        });
+                    If you agree with the above terms, place the **entirety** of this phrase on your MouseHunt profile corkboard (_everything_ in code block). I will read your corkboard and verify it matches.
+                    ```
+                    {phrase}
+                    ```
+                    Press 'Verify' to proceed, otherwise 'Cancel'.
+                    """),
+                new ComponentSeparatorProperties()
+                    .WithSpacing(ComponentSeparatorSpacingSize.Large)
+                    .WithDivider(true),
+                new ActionRowProperties()
+                    .AddButtons(new ButtonProperties($"link start:{Context.Guild!.Id}:{mousehuntID}:{phrase}", "Verify", ButtonStyle.Secondary))
+                    .AddButtons(new ButtonProperties("link cancel", "Cancel", ButtonStyle.Success))
+            )
+        ];
+
+        if (dm ?? false)
+        {
+            // User reported issues with ephemeral messages disappearing on Android, so offer to DM them instead.
+            var dmChannel = await Context.User.GetDMChannelAsync();
+            var sentMessage = await dmChannel.SendMessageAsync(new()
+            {
+                Components = messageComponent,
+                Flags = MessageFlags.IsComponentsV2,
+                AllowedMentions = AllowedMentionsProperties.None,
+            });
+
+            await ModifyResponseAsync(x =>
+            {
+                x.Components = [
+                    new ComponentContainerProperties()
+                        .WithAccentColor(new Color(options.Value.Colors.Primary))
+                        .AddComponents(
+                            new TextDisplayProperties($"""
+                                I've sent you a DM to continue the verification process. If you don't see it, check your privacy settings.
+                                """)
+                        )
+                ];
+                x.Flags = MessageFlags.Ephemeral | MessageFlags.IsComponentsV2;
+            });
+        }
+        else
+        {
+            await ModifyResponseAsync(x =>
+            {
+                x.Components = messageComponent;
+                x.Flags = MessageFlags.Ephemeral | MessageFlags.IsComponentsV2;
+            });
+        }
     }
 
     [SlashCommand(VerifyModuleMetadata.UnverifyCommand.Name, VerifyModuleMetadata.UnverifyCommand.Description)]

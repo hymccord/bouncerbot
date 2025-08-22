@@ -12,7 +12,7 @@ public class VerifyButtonInteractions(
     IVerificationOrchestrator verificationOrchestrator) : ComponentInteractionModule<ButtonInteractionContext>
 {
     [ComponentInteraction("link start")]
-    public async Task VerifyMe(uint mouseHuntId, string phrase)
+    public async Task VerifyMe(ulong guildId, uint mouseHuntId, string phrase)
     {
         await RespondAsync(InteractionCallback.DeferredModifyMessage);
 
@@ -32,7 +32,7 @@ public class VerifyButtonInteractions(
         {
             MouseHuntId = mouseHuntId,
             DiscordUserId = Context.User.Id,
-            GuildId = Context.Guild!.Id,
+            GuildId = guildId,
             Phrase = phrase,
         };
 
@@ -58,7 +58,7 @@ public class VerifyButtonInteractions(
             switch (error.Code)
             {
                 case 50001: // Missing Access
-                    message = "I do not have access to the appropriate channel to send your achievement, but I have awarde the role.";
+                    message = "I do not have access to the appropriate channel to send your achievement, but I have awarded the role.";
                     break;
                 case 50013: // Lack permissions
                     message = "I do not have permission add the appropriate role. Please contact a server administrator.";
