@@ -4,6 +4,13 @@ using NetCord.Services.ApplicationCommands;
 
 namespace BouncerBot;
 
+public enum LogChannel
+{
+    General,
+    Achievement,
+    Verification,
+}
+
 // An public-ish enum seen by Discord Administrators and Role Managers
 public enum Role
 {
