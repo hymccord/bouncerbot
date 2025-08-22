@@ -22,7 +22,11 @@ public class GuildCreateGatewayHandler(
             return default;
         }
 
-        logger.LogInformation("Encountered GUILD_CREATE for large guild. Requesting all users in {GuildName} ({GuildId})", guild.Name, guild.Id);
+        logger.LogInformation("""
+            Encountered GUILD_CREATE for large guild. Requesting all users (Qty: {UserCount}) in {GuildName} ({GuildId}).
+
+            {CachedUsers} users are cached.
+            """, guild.UserCount, guild.Name, guild.Id, guild.Users.Count);
 
         return gatewayClient.RequestGuildUsersAsync(new GuildUsersRequestProperties(arg.GuildId));
     }
