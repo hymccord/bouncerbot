@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -50,6 +51,7 @@ public sealed partial class MouseHuntRestClient : IMouseHuntRestClient, IDisposa
         ];
 
     public MouseHuntRestClient(
+        IMeterFactory meterFactory,
         ILogger<MouseHuntRestClient> logger,
         IOptions<MouseHuntRestClientOptions> options,
         IOptions<BouncerBotOptions> bouncerBotOptions,
@@ -94,9 +96,13 @@ public sealed partial class MouseHuntRestClient : IMouseHuntRestClient, IDisposa
 
             return;
         }
-        catch (RestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized || ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
+        catch (RestException ex) when (
+            ex.StatusCode == System.Net.HttpStatusCode.BadRequest ||
+            ex.StatusCode == System.Net.HttpStatusCode.Unauthorized ||
+            ex.StatusCode == System.Net.HttpStatusCode.Forbidden
+        )
         {
-            // If we get a 401 or 403, we need to re-login
+            // If we get a 400, need to login. 401 and 403 just in case.
             _logger.LogInformation(ex, "Unauthorized or forbidden access to MouseHunt API. Status code: {StatusCode}. Attempting to re-login.", ex.StatusCode);
         }
         catch (Exception ex)
