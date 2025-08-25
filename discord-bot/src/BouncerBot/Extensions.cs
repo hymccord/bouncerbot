@@ -1,11 +1,16 @@
+using Azure.Monitor.OpenTelemetry.Exporter;
 using BouncerBot.Rest;
-
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using NetCord;
 using NetCord.Hosting.Services.ComponentInteractions;
 using NetCord.Services.ComponentInteractions;
+using OpenTelemetry;
+using OpenTelemetry.Logs;
 
 namespace BouncerBot;
 public static class Extensions
@@ -35,6 +40,47 @@ public static class Extensions
             });
 
             return services;
+        }
+
+    }
+
+    extension(IHostApplicationBuilder builder)
+    {
+        public IHostApplicationBuilder ConfigureOpenTelemetry()
+        {
+            builder.Services.AddOpenTelemetry()
+                .WithMetrics(b =>
+                {
+                    b.AddMeter("BouncerBot");
+                });
+
+            builder.AddOpenTelemetryExporters();
+
+            return builder;
+        }
+
+        public IHostApplicationBuilder AddOpenTelemetryExporters()
+        {
+            var useAzureMonitor = !string.IsNullOrEmpty(builder.Configuration["AzureMonitorExporter:ConnectionString"]);
+            if (useAzureMonitor)
+            {
+                builder.Services.AddOpenTelemetry().UseAzureMonitorExporter();
+            }
+            
+            return builder;
+        }
+
+        public IHostApplicationBuilder ConfigureSentry()
+        {
+            var useSentry = !string.IsNullOrEmpty(builder.Configuration["Sentry:Dsn"]);
+
+            if (useSentry)
+            {
+                builder.Logging.AddConfiguration(builder.Configuration);
+                builder.Logging.AddSentry();
+            }
+
+            return builder;
         }
     }
 }

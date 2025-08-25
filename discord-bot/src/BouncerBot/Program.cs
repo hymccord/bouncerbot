@@ -30,17 +30,8 @@ var builder = Host.CreateApplicationBuilder(args);
 
 builder.Configuration.AddUserSecrets<Program>(optional: true);
 
-// Diagnostics and monitoring
-if (!string.IsNullOrEmpty(builder.Configuration["AzureMonitorExporter:ConnectionString"]))
-{
-    // Adds an IHostedService that needs to be started first
-    builder.Services.AddOpenTelemetry().UseAzureMonitorExporter();
-}
-if (!string.IsNullOrEmpty(builder.Configuration["Sentry:Dsn"]))
-{
-    builder.Logging.AddConfiguration(builder.Configuration);
-    builder.Logging.AddSentry();
-}
+builder.ConfigureOpenTelemetry();
+builder.ConfigureSentry();
 
 // BouncerBot services
 builder.Services
