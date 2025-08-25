@@ -10,6 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Builders\ComponentsV2Builder.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Azure.Monitor.OpenTelemetry.Exporter" />
     <PackageReference Include="CrypticWizard.RandomWordGenerator" />
     <PackageReference Include="Humanizer.Core" />
@@ -31,6 +35,10 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="$(AssemblyName).Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Builders\ComponentsV2Builder.cs" />
   </ItemGroup>
 
   <ItemGroup>
