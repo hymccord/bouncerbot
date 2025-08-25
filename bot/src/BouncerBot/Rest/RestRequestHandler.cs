@@ -2,14 +2,17 @@ using System.Net;
 using Microsoft.Extensions.Options;
 
 namespace BouncerBot.Rest;
-internal class RestRequestHandler
+internal sealed class RestRequestHandler : IDisposable
 {
-    private readonly CookieContainer _cookieContainer;
+    private readonly TimeSpan _minTimeBetweenRequests = TimeSpan.FromMilliseconds(250);
+    private readonly SemaphoreSlim _rateLimitSemaphore = new(1, 1);
+    private readonly CookieContainer _cookieContainer = new();
     private readonly HttpClient _httpClient;
+
+    private DateTime _lastRequestTime = DateTime.MinValue;
 
     public RestRequestHandler(IOptions<BouncerBotOptions> options)
     {
-        _cookieContainer = new CookieContainer();
         var socketHandler = new SocketsHttpHandler()
         {
             CookieContainer = _cookieContainer,
@@ -26,10 +29,39 @@ internal class RestRequestHandler
         _httpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
     }
 
-    public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) => _httpClient.SendAsync(request, cancellationToken);
+    public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        await _rateLimitSemaphore.WaitAsync(cancellationToken);
+        try
+        {
+            var timeSinceLastRequest = DateTime.UtcNow - _lastRequestTime;
+            var delayNeeded = _minTimeBetweenRequests - timeSinceLastRequest;
+
+            if (delayNeeded > TimeSpan.Zero)
+            {
+                await Task.Delay(delayNeeded, cancellationToken);
+            }
+
+            var response = await _httpClient.SendAsync(request, cancellationToken);
+            
+            _lastRequestTime = DateTime.UtcNow;
+            
+            return response;
+        }
+        finally
+        {
+            _rateLimitSemaphore.Release();
+        }
+    }
 
     public void AddDefaultHeader(string name, params IEnumerable<string> values)
     {
         _httpClient.DefaultRequestHeaders.Add(name, values);
+    }
+
+    public void Dispose()
+    {
+        _rateLimitSemaphore?.Dispose();
+        _httpClient?.Dispose();
     }
 }

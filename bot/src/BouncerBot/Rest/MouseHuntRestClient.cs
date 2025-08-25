@@ -30,7 +30,7 @@ public interface IMouseHuntRestClient
     Task StopAsync(CancellationToken cancellationToken);
 }
 
-public partial class MouseHuntRestClient : IMouseHuntRestClient
+public sealed partial class MouseHuntRestClient : IMouseHuntRestClient, IDisposable
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
     {
@@ -144,7 +144,8 @@ public partial class MouseHuntRestClient : IMouseHuntRestClient
             {
                 var data = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken).ConfigureAwait(false);
 
-                var hgResponse = data.Deserialize<HgResponse>(_jsonSerializerOptions);
+                var hgResponse = data.Deserialize<HgResponse>(_jsonSerializerOptions)
+                    ?? throw new InvalidOperationException("Response content was null.");
 
                 if (hgResponse.User.HasPuzzle)
                 {
@@ -161,7 +162,8 @@ public partial class MouseHuntRestClient : IMouseHuntRestClient
                     continue;
                 }
 
-                return data.Deserialize<T>(_jsonSerializerOptions);
+                return data.Deserialize<T>(_jsonSerializerOptions)
+                    ?? throw new InvalidOperationException("Response content was null.");
             }
         }
 
@@ -205,7 +207,9 @@ public partial class MouseHuntRestClient : IMouseHuntRestClient
 
         if (response.IsSuccessStatusCode)
         {
-            return await response.Content.ReadFromJsonAsync<T>(_jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
+            var result = await response.Content.ReadFromJsonAsync<T>(_jsonSerializerOptions, cancellationToken).ConfigureAwait(false)
+                ?? throw new InvalidOperationException("Response content was null.");
+            return result;
         }
 
         var content = response.Content;
@@ -266,4 +270,6 @@ public partial class MouseHuntRestClient : IMouseHuntRestClient
             // The token is still valid in memory for this session
         }
     }
+
+    void IDisposable.Dispose() => _requestHandler.Dispose();
 }
