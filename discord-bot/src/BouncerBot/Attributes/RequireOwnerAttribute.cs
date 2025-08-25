@@ -10,7 +10,7 @@ internal sealed class RequireOwnerAttribute<TContext> : PreconditionAttribute<TC
         var application = await context.Client.Rest.GetCurrentApplicationAsync();
         var userId = context.User.Id;
 
-        if (application.Owner.Id == userId)
+        if (application.Owner!.Id == userId)
         {
             return PreconditionResult.Success;
         }

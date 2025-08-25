@@ -11,7 +11,7 @@ internal static class HelperExtensions
     {
         public void SetContext(TContext context)
         {
-            MethodInfo method = typeof(BaseApplicationCommandModule<TContext>)
+            var method = typeof(BaseApplicationCommandModule<TContext>)
                 .GetMethod("SetContext", BindingFlags.NonPublic | BindingFlags.Instance)!;
             method.MakeGenericMethod(typeof(TContext))
                 .Invoke(commandModule, [context]);

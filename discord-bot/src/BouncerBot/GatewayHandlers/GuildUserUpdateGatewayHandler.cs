@@ -1,7 +1,6 @@
 using BouncerBot.Services;
 
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 using NetCord;
 using NetCord.Gateway;
@@ -9,7 +8,10 @@ using NetCord.Hosting.Gateway;
 
 namespace BouncerBot.GatewayHandlers;
 
-public class GuildUserUpdateGatewayHandler(ILogger<GuildUserUpdateGatewayHandler> logger, GatewayClient client, IServiceScopeFactory scopeFactory) : IGuildUserUpdateGatewayHandler
+public class GuildUserUpdateGatewayHandler(
+    GatewayClient client,
+    IServiceScopeFactory scopeFactory
+) : IGuildUserUpdateGatewayHandler
 {
     public async ValueTask HandleAsync(GuildUser guildUser)
     {

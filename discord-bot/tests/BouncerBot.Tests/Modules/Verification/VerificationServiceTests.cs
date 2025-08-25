@@ -668,10 +668,10 @@ public class VerificationServiceTests
     {
         // Arrange
         SetupSuccessfulCanVerifyMocks();
-        _mockMouseHuntRestClient.GetTitlesAsync(Arg.Any<CancellationToken>()).Returns((Title[]?)null);
+        _mockMouseHuntRestClient.GetTitlesAsync(default)!.Returns((Title[]?)null);
 
         // Act & Assert
-        await Assert.ThrowsExceptionAsync<Exception>(
+        await Assert.ThrowsExactlyAsync<Exception>(
             () => _service.CanUserVerifyAsync(TestMouseHuntId, TestGuildId, TestDiscordId));
     }
 
@@ -682,10 +682,10 @@ public class VerificationServiceTests
         SetupSuccessfulCanVerifyMocks();
         var titles = new[] { new Title { TitleId = 1, Name = Rank.Master } };
         _mockMouseHuntRestClient.GetTitlesAsync(Arg.Any<CancellationToken>()).Returns(titles);
-        _mockMouseHuntRestClient.GetUserTitleAsync(TestMouseHuntId, Arg.Any<CancellationToken>()).Returns((UserTitle)null);
+        _mockMouseHuntRestClient.GetUserTitleAsync(TestMouseHuntId, default)!.Returns((UserTitle?)null);
 
         // Act & Assert
-        await Assert.ThrowsExceptionAsync<Exception>(
+        await Assert.ThrowsExactlyAsync<Exception>(
             () => _service.CanUserVerifyAsync(TestMouseHuntId, TestGuildId, TestDiscordId));
     }
 
