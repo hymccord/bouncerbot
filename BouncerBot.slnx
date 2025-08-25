@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/.github/">
+    <File Path=".github/workflows/dotnet.yml" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path="discord-bot/.editorconfig" />
+    <File Path="discord-bot/Directory.Packages.props" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="discord-bot/src/BouncerBot/BouncerBot.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="discord-bot/tests/BouncerBot.Tests/BouncerBot.Tests.csproj" />
+  </Folder>
+</Solution>

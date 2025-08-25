@@ -174,3 +174,6 @@ dist
 
 # Sentry Config File
 .sentryclirc
+
+# Visual Studio 2015/2017 cache/options directory
+.vs/
