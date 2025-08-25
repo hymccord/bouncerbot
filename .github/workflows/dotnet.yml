@@ -39,6 +39,7 @@ jobs:
 
       - name: Upload test results
         uses: dorny/test-reporter@v2
+        if: ${{ !cancelled() }}
         with:
           name: MSTest Tests
           path: discord-bot/**/TestResults/*.trx
