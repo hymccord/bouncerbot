@@ -35,13 +35,14 @@ jobs:
         run: dotnet build -c Release
 
       - name: Test
-        run: dotnet test -c Release --no-build -p:TestingPlatformCommandLineArguments="--report-trx"
+        run: dotnet test -c Release --no-build -- --report-trx
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: dorny/test-reporter@v2
         with:
-          name: test-results
+          name: MSTest Tests
           path: discord-bot/**/TestResults/*.trx
+          reporter: dotnet-trx
 
       - name: Publish
         run: dotnet publish discord-bot/src/BouncerBot/ -c Release --output ./publish --self-contained -r linux-x64 -p:PublishSingleFile=true
