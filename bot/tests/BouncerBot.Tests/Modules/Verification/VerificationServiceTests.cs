@@ -6,12 +6,10 @@ using BouncerBot.Modules.Verification;
 using BouncerBot.Rest;
 using BouncerBot.Rest.Models;
 using BouncerBot.Services;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Testing;
 using NetCord;
-using NetCord.Gateway;
 using NSubstitute;
 
 namespace BouncerBot.Tests.Modules.Verification;
@@ -28,7 +26,6 @@ public class VerificationServiceTests
     private readonly IMouseHuntRestClient _mockMouseHuntRestClient;
     private readonly IBounceService _mockBounceService;
     private readonly VerificationService _service;
-    private readonly SqliteConnection _connection;
 
     // Test constants
     private const uint TestMouseHuntId = 12345u;
@@ -50,13 +47,7 @@ public class VerificationServiceTests
         _mockBounceService = Substitute.For<IBounceService>();
 
         // Setup in-memory database
-        _connection = new SqliteConnection("Data Source=:memory:");
-        _connection.Open();
-        var options = new DbContextOptionsBuilder<BouncerBotDbContext>()
-            .UseSqlite(_connection)
-            .Options;
-        _dbContext = new BouncerBotDbContext(options);
-        _dbContext.Database.EnsureCreated();
+        _dbContext = SqliteHelper.CreateInMemoryDatabase();
 
         // Setup common mock returns
         _mockCommandMentionService.GetCommandMention(Arg.Any<string>()).Returns(TestCommandMention);
@@ -79,7 +70,6 @@ public class VerificationServiceTests
     [TestCleanup]
     public void Cleanup()
     {
-        _connection?.Dispose();
         _dbContext?.Dispose();
     }
 

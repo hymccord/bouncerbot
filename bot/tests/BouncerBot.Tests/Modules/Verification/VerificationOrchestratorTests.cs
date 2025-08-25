@@ -14,7 +14,7 @@ public class VerificationOrchestratorTests
     private readonly IMouseHuntRestClient _mouseHuntRestClient;
     private readonly IRoleService _roleService;
     private readonly IVerificationService _verificationService;
-    private VerificationOrchestrator _sut;
+    private readonly VerificationOrchestrator _sut;
 
     public VerificationOrchestratorTests()
     {    
