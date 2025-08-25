@@ -41,7 +41,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: ./TestResults
+          path: ./**/TestResults/*.log
 
       - name: Publish
         run: dotnet publish discord-bot/src/BouncerBot/ -c Release --output ./publish --self-contained -r linux-x64 -p:PublishSingleFile=true
