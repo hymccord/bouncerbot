@@ -5,6 +5,7 @@ using NetCord.Rest;
 namespace NetCord;
 #pragma warning restore IDE0130 // Namespace does not match folder structure
 
+#pragma warning disable CA1822
 internal static class NetCordExtensions
 {
     extension(InteractionCallback)
@@ -51,3 +52,4 @@ internal static class NetCordExtensions
         }
     }
 }
+#pragma warning restore 

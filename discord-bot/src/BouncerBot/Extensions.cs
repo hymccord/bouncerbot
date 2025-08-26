@@ -10,9 +10,9 @@ using NetCord;
 using NetCord.Hosting.Services.ComponentInteractions;
 using NetCord.Services.ComponentInteractions;
 
-#pragma warning disable CA1822
-
 namespace BouncerBot;
+
+#pragma warning disable CA1822
 public static class Extensions
 {
     extension(IServiceCollection services)
