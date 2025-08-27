@@ -9,8 +9,8 @@ using Microsoft.Extensions.Options;
 using NetCord;
 using NetCord.Hosting.Services.ComponentInteractions;
 using NetCord.Services.ComponentInteractions;
-using OpenTelemetry;
-using OpenTelemetry.Logs;
+
+#pragma warning disable CA1822
 
 namespace BouncerBot;
 public static class Extensions
@@ -84,3 +84,5 @@ public static class Extensions
         }
     }
 }
+
+#pragma warning restore

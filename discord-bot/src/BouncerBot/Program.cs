@@ -1,4 +1,3 @@
-using System.Security.Cryptography;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using BouncerBot;
 using BouncerBot.Db;
@@ -24,7 +23,6 @@ using NetCord.Hosting.Services;
 using NetCord.Hosting.Services.ApplicationCommands;
 using NetCord.Services.ApplicationCommands;
 using NetCord.Services.ComponentInteractions;
-using Sentry.Extensions.Logging.Extensions.DependencyInjection;
 
 var builder = Host.CreateApplicationBuilder(args);
 
