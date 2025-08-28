@@ -57,7 +57,7 @@ public partial class MouseHuntRestClient
             .GetProperty("mice")
             .GetProperty("subtabs")[1]
             .GetProperty("mouse_list")
-            .Deserialize<UserItemCategoryCompletion>(_jsonSerializerOptions) ?? new UserItemCategoryCompletion();
+            .Deserialize<UserItemCategoryCompletion>(s_jsonSerializerOptions) ?? new UserItemCategoryCompletion();
 
         return result;
     }
@@ -90,7 +90,7 @@ public partial class MouseHuntRestClient
             .GetProperty("items")
             .GetProperty("subtabs")[0]
             .GetProperty("items")
-            .Deserialize<UserItemCategoryCompletion>(_jsonSerializerOptions) ?? new UserItemCategoryCompletion();
+            .Deserialize<UserItemCategoryCompletion>(s_jsonSerializerOptions) ?? new UserItemCategoryCompletion();
 
         return result;
     }

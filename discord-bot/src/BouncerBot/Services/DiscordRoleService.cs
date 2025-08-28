@@ -9,7 +9,7 @@ public interface IRoleService
     Task AddRoleAsync(ulong userId, ulong guildId, Role role, CancellationToken cancellationToken = default);
     Task<int> GetRoleUserCount(ulong guildId, Role role);
     Task<ulong?> GetRoleIdAsync(ulong guildId, Role role);
-    Task<bool> HasRoleAsync(ulong userId, ulong guildId, Role Role);
+    Task<bool> HasRoleAsync(ulong userId, ulong guildId, Role role);
     Task RemoveRoleAsync(ulong userId, ulong guildId, Role role, CancellationToken cancellationToken = default);
 }
 

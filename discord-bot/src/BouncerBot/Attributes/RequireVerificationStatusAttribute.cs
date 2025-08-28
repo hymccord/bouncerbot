@@ -9,16 +9,10 @@ using Microsoft.Extensions.DependencyInjection;
 using NetCord.Services;
 
 namespace BouncerBot.Attributes;
-internal class RequireVerificationStatusAttribute<TContext> : RequireContextAttribute<TContext>
+internal class RequireVerificationStatusAttribute<TContext>(VerificationStatus verificationStatus) : RequireContextAttribute<TContext>(RequiredContext.Guild)
     where TContext : IUserContext, IGuildContext
 {
-    private readonly VerificationStatus _shouldBe;
-
-    public RequireVerificationStatusAttribute(VerificationStatus verificationStatus)
-        : base(RequiredContext.Guild)
-    {
-        _shouldBe = verificationStatus;
-    }
+    private readonly VerificationStatus _shouldBe = verificationStatus;
 
     public override async ValueTask<PreconditionResult> EnsureCanExecuteAsync(TContext context, IServiceProvider? serviceProvider)
     {

@@ -31,40 +31,29 @@ public interface IMouseHuntRestClient
     Task StopAsync(CancellationToken cancellationToken);
 }
 
-public sealed partial class MouseHuntRestClient : IMouseHuntRestClient, IDisposable
+public sealed partial class MouseHuntRestClient(
+    ILogger<MouseHuntRestClient> logger,
+    IOptions<MouseHuntRestClientOptions> options,
+    IOptions<BouncerBotOptions> bouncerBotOptions,
+    IDbContextFactory<BouncerBotDbContext> dbContextFactory,
+    IMemoryCache memoryCache) : IMouseHuntRestClient, IDisposable
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
+    private static readonly JsonSerializerOptions s_jsonSerializerOptions = new()
     {
         NumberHandling = JsonNumberHandling.AllowReadingFromString,
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
     };
-    private readonly ILogger<MouseHuntRestClient> _logger;
-    private readonly IOptions<MouseHuntRestClientOptions> _options;
-    private readonly IOptions<BouncerBotOptions> _bouncerBotOptions;
-    private readonly RestRequestHandler _requestHandler;
-    private readonly IDbContextFactory<BouncerBotDbContext> _dbContextFactory;
-    private readonly IMemoryCache _memoryCache;
+    private readonly ILogger<MouseHuntRestClient> _logger = logger;
+    private readonly IOptions<MouseHuntRestClientOptions> _options = options;
+    private readonly IOptions<BouncerBotOptions> _bouncerBotOptions = bouncerBotOptions;
+    private readonly RestRequestHandler _requestHandler = new(bouncerBotOptions);
+    private readonly IDbContextFactory<BouncerBotDbContext> _dbContextFactory = dbContextFactory;
+    private readonly IMemoryCache _memoryCache = memoryCache;
 
-    private List<KeyValuePair<string, string>> _defaultFormData = [
+    private readonly List<KeyValuePair<string, string>> _defaultFormData = [
         new ("sn", "Hitgrab"),
         new ("hg_is_ajax", "1"),
         ];
-
-    public MouseHuntRestClient(
-        IMeterFactory meterFactory,
-        ILogger<MouseHuntRestClient> logger,
-        IOptions<MouseHuntRestClientOptions> options,
-        IOptions<BouncerBotOptions> bouncerBotOptions,
-        IDbContextFactory<BouncerBotDbContext> dbContextFactory,
-        IMemoryCache memoryCache)
-    {
-        _logger = logger;
-        _options = options;
-        _bouncerBotOptions = bouncerBotOptions;
-        _dbContextFactory = dbContextFactory;
-        _memoryCache = memoryCache;
-        _requestHandler = new RestRequestHandler(bouncerBotOptions);
-    }
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
@@ -150,7 +139,7 @@ public sealed partial class MouseHuntRestClient : IMouseHuntRestClient, IDisposa
             {
                 var data = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken).ConfigureAwait(false);
 
-                var hgResponse = data.Deserialize<HgResponse>(_jsonSerializerOptions)
+                var hgResponse = data.Deserialize<HgResponse>(s_jsonSerializerOptions)
                     ?? throw new InvalidOperationException("Response content was null.");
 
                 if (hgResponse.User.HasPuzzle)
@@ -168,7 +157,7 @@ public sealed partial class MouseHuntRestClient : IMouseHuntRestClient, IDisposa
                     continue;
                 }
 
-                return data.Deserialize<T>(_jsonSerializerOptions)
+                return data.Deserialize<T>(s_jsonSerializerOptions)
                     ?? throw new InvalidOperationException("Response content was null.");
             }
         }
@@ -213,7 +202,7 @@ public sealed partial class MouseHuntRestClient : IMouseHuntRestClient, IDisposa
 
         if (response.IsSuccessStatusCode)
         {
-            var result = await response.Content.ReadFromJsonAsync<T>(_jsonSerializerOptions, cancellationToken).ConfigureAwait(false)
+            var result = await response.Content.ReadFromJsonAsync<T>(s_jsonSerializerOptions, cancellationToken).ConfigureAwait(false)
                 ?? throw new InvalidOperationException("Response content was null.");
             return result;
         }

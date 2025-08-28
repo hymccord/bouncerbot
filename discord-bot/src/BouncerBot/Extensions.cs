@@ -12,7 +12,9 @@ using NetCord.Services.ComponentInteractions;
 
 namespace BouncerBot;
 
+#pragma warning disable IDE0079
 #pragma warning disable CA1822
+
 public static class Extensions
 {
     extension(IServiceCollection services)

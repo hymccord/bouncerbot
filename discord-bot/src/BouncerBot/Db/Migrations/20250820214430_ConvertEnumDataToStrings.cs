@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
+#pragma warning disable
 
 namespace BouncerBot.Db.Migrations
 {

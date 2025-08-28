@@ -3,8 +3,8 @@ using NetCord.Rest;
 
 #pragma warning disable IDE0130 // Namespace does not match folder structure
 namespace NetCord;
-#pragma warning restore IDE0130 // Namespace does not match folder structure
 
+#pragma warning disable IDE0079
 #pragma warning disable CA1822
 internal static class NetCordExtensions
 {

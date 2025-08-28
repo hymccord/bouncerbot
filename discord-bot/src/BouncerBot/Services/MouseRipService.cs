@@ -11,7 +11,7 @@ public interface IMouseRipService
 
 public class MouseRipService : IMouseRipService
 {
-    private static readonly JsonSerializerOptions s_jsonSerializerOptions = new JsonSerializerOptions
+    private static readonly JsonSerializerOptions s_jsonSerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
     };
@@ -52,10 +52,10 @@ public class MouseRipMouse
     public uint Id { get; set; }
     public string Name { get; set; } = null!;
     public string Group { get; set; } = null!;
-    public Dictionary<MouseRipEffectivenesses, double> Effectivenesses { get; set; } = null!;
+    public Dictionary<MouseRipEffectiveness, double> Effectivenesses { get; set; } = null!;
 }
 
-public enum MouseRipEffectivenesses
+public enum MouseRipEffectiveness
 {
     Power, // ignore this
     Arcane,

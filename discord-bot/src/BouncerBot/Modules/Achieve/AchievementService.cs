@@ -123,7 +123,7 @@ public class AchievementService(
                 continue;
             }
 
-            mouse.Effectivenesses.Remove(MouseRipEffectivenesses.Power);
+            mouse.Effectivenesses.Remove(MouseRipEffectiveness.Power);
 
             var maxEff = mouse.Effectivenesses.Values.Max();
             var keysWithHighestValue = mouse.Effectivenesses.Keys
@@ -138,15 +138,15 @@ public class AchievementService(
             {
                 mice[mouse.Id] = keysWithHighestValue.Single() switch
                 {
-                    MouseRipEffectivenesses.Arcane => PowerType.Arcane,
-                    MouseRipEffectivenesses.Draconic => PowerType.Draconic,
-                    MouseRipEffectivenesses.Forgotten => PowerType.Forgotten,
-                    MouseRipEffectivenesses.Hydro => PowerType.Hydro,
-                    MouseRipEffectivenesses.Law => PowerType.Law,
-                    MouseRipEffectivenesses.Physical => PowerType.Physical,
-                    MouseRipEffectivenesses.Rift => PowerType.Rift,
-                    MouseRipEffectivenesses.Shadow => PowerType.Shadow,
-                    MouseRipEffectivenesses.Tactical => PowerType.Tactical,
+                    MouseRipEffectiveness.Arcane => PowerType.Arcane,
+                    MouseRipEffectiveness.Draconic => PowerType.Draconic,
+                    MouseRipEffectiveness.Forgotten => PowerType.Forgotten,
+                    MouseRipEffectiveness.Hydro => PowerType.Hydro,
+                    MouseRipEffectiveness.Law => PowerType.Law,
+                    MouseRipEffectiveness.Physical => PowerType.Physical,
+                    MouseRipEffectiveness.Rift => PowerType.Rift,
+                    MouseRipEffectiveness.Shadow => PowerType.Shadow,
+                    MouseRipEffectiveness.Tactical => PowerType.Tactical,
                     _ => throw new ArgumentOutOfRangeException($"Unknown effectiveness: {keysWithHighestValue.Single()} for mouse {mouse.Id} ({mouse.Name})"),
                 };
             }
