@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Reflection;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using BouncerBot.Rest;
@@ -97,6 +96,14 @@ public static class Extensions
                     {
                         config.ExporterSettings = exporter;
                     });
+
+                builder.Logging.AddOpenTelemetry(options =>
+                {
+                    options.UseGrafana(config =>
+                    {
+                        config.ExporterSettings = exporter;
+                    });
+                });
             }
 
             return builder;
