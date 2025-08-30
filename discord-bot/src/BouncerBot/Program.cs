@@ -1,4 +1,3 @@
-using Azure.Monitor.OpenTelemetry.Exporter;
 using BouncerBot;
 using BouncerBot.Db;
 using BouncerBot.Modules.Achieve;
@@ -13,7 +12,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using NetCord;
@@ -28,8 +26,7 @@ var builder = Host.CreateApplicationBuilder(args);
 
 builder.Configuration.AddUserSecrets<Program>(optional: true);
 
-builder.ConfigureOpenTelemetry();
-builder.ConfigureSentry();
+builder.ConfigureMetrics();
 
 // BouncerBot services
 builder.Services
@@ -57,6 +54,7 @@ builder.Services
     .AddSingleton<IDiscordRestClient, DiscordRestClient>()
     .AddSingleton<IDiscordGatewayClient, DiscordGatewayClient>()
     .AddSingleton<IPuzzleService, PuzzleService>() // Singleton b/c of puzzle state capture
+    .AddSingleton<IBouncerBotMetrics, BouncerBotMetrics>()
     .AddMouseHuntClient()
     ;
 

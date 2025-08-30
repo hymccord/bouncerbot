@@ -23,7 +23,8 @@ public class ClaimModule(
     IAchievementRoleOrchestrator achievementRoleOrchestrator,
     ICommandMentionService commandMentionService,
     IMemoryCache memoryCache,
-    BouncerBotDbContext dbContext) : ApplicationCommandModule<ApplicationCommandContext>
+    BouncerBotDbContext dbContext,
+    IBouncerBotMetrics metrics) : ApplicationCommandModule<ApplicationCommandContext>
 {
     private static readonly string[] s_rejectionPhrases = [
         "Hah, trying to pull a fast one on me!? Scram!",
@@ -43,6 +44,8 @@ public class ClaimModule(
     public async Task ClaimAsync(AchievementRole achievement,
         [SlashCommandParameter(Description = "Keep private? (Don't send announcement)")]bool? @private = false)
     {
+        metrics.RecordCommand(ClaimModuleMetadata.ClaimCommand.Name);
+
         await RespondAsync(InteractionCallback.DeferredEphemeralMessage());
 
         var mhId = (await dbContext.VerifiedUsers

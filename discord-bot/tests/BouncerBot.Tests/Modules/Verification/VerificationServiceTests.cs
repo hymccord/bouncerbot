@@ -122,12 +122,12 @@ public class VerificationServiceTests
     public async Task AddVerifiedUserAsync_ExistingHistoryWithDifferentHash_ThrowsException()
     {
         // Arrange
-        const string differentHash = "different-hash";
+        const string DifferentHash = "different-hash";
         await _dbContext.VerificationHistory.AddAsync(new VerificationHistory
         {
             GuildId = TestGuildId,
             DiscordIdHash = TestDiscordIdHash,
-            MouseHuntIdHash = differentHash
+            MouseHuntIdHash = DifferentHash
         });
         await _dbContext.SaveChangesAsync();
 
@@ -319,11 +319,11 @@ public class VerificationServiceTests
     public async Task IsDiscordUserVerifiedAsync_UserExistsInDifferentGuild_ReturnsFalse()
     {
         // Arrange
-        const ulong differentGuildId = 99999ul;
+        const ulong DifferentGuildId = 99999ul;
         await _dbContext.VerifiedUsers.AddAsync(new VerifiedUser
         {
             MouseHuntId = TestMouseHuntId,
-            GuildId = differentGuildId,
+            GuildId = DifferentGuildId,
             DiscordId = TestDiscordId
         });
         await _dbContext.SaveChangesAsync();

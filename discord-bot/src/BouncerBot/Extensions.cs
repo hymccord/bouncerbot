@@ -1,5 +1,8 @@
+using System.Diagnostics;
+using System.Reflection;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using BouncerBot.Rest;
+using Grafana.OpenTelemetry;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -9,6 +12,7 @@ using Microsoft.Extensions.Options;
 using NetCord;
 using NetCord.Hosting.Services.ComponentInteractions;
 using NetCord.Services.ComponentInteractions;
+using OpenTelemetry.Resources;
 
 namespace BouncerBot;
 
@@ -48,9 +52,24 @@ public static class Extensions
 
     extension(IHostApplicationBuilder builder)
     {
+        public IHostApplicationBuilder ConfigureMetrics()
+        {
+            builder.ConfigureOpenTelemetry();
+            builder.ConfigureSentry();
+
+            return builder;
+        }
+
         public IHostApplicationBuilder ConfigureOpenTelemetry()
         {
+            // Build a resource configuration action to set service information.
+            void ConfigureResource(ResourceBuilder r) => r.AddService(
+                serviceName: builder.Configuration.GetValue("ServiceName", defaultValue: "BouncerBot")!,
+                serviceVersion: typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion ?? "unknown",
+                serviceInstanceId: Environment.MachineName);
+
             builder.Services.AddOpenTelemetry()
+                .ConfigureResource(ConfigureResource)
                 .WithMetrics(b =>
                 {
                     b.AddMeter("BouncerBot");
@@ -66,9 +85,20 @@ public static class Extensions
             var useAzureMonitor = !string.IsNullOrEmpty(builder.Configuration["AzureMonitorExporter:ConnectionString"]);
             if (useAzureMonitor)
             {
-                builder.Services.AddOpenTelemetry().UseAzureMonitorExporter();
+                builder.Services.AddOpenTelemetry()
+                    .UseAzureMonitorExporter();
             }
-            
+
+            var exporter = builder.Configuration.GetSection("Grafana").Get<OtlpExporter>();
+            if (exporter is not null)
+            {
+                builder.Services.AddOpenTelemetry()
+                    .UseGrafana(config =>
+                    {
+                        config.ExporterSettings = exporter;
+                    });
+            }
+
             return builder;
         }
 

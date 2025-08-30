@@ -1,5 +1,5 @@
 using BouncerBot.Rest;
-
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using NetCord;
@@ -15,11 +15,13 @@ public interface IPuzzleService
 
 internal class PuzzleService(
     IOptionsMonitor<BouncerBotOptions> options,
+    ILogger<PuzzleService> logger,
     RestClient client,
     IMouseHuntRestClient mouseHuntRestClient
     ) : IPuzzleService
 {
     private bool _hasPuzzle = false;
+    private ulong? _puzzleMessageId = null;
     private uint? _hunterId = null;
 
     public async Task TriggerPuzzle()
@@ -33,7 +35,7 @@ internal class PuzzleService(
         _hunterId ??= (await mouseHuntRestClient.GetMeAsync()).UserId;
 
         var channel = await client.GetChannelAsync(options.CurrentValue.PuzzleChannel);
-        await ((TextChannel)channel).SendMessageAsync(new MessageProperties
+        var message = await ((TextChannel)channel).SendMessageAsync(new MessageProperties
         {
             Embeds = [
                 new EmbedProperties() {
@@ -49,6 +51,8 @@ internal class PuzzleService(
                     )
                 ]
         });
+
+        _puzzleMessageId = message.Id;
     }
 
     public async Task<bool> SolvePuzzleAsync(string code)
@@ -61,9 +65,16 @@ internal class PuzzleService(
         try
         {
             var success = await mouseHuntRestClient.SolvePuzzleAsync(code);
-            if (success)
+
+            if (_puzzleMessageId.HasValue)
             {
-                _hasPuzzle = false;
+                await client.DeleteMessageAsync(options.CurrentValue.PuzzleChannel, _puzzleMessageId.Value);
+                _puzzleMessageId = null;
+            }
+
+            if (!success)
+            {
+                logger.LogInformation("Puzzle attempt was incorrect.");
             }
 
             return success;
@@ -71,6 +82,10 @@ internal class PuzzleService(
         catch (Exception)
         {
             throw;
+        }
+        finally
+        {
+            _hasPuzzle = false;
         }
     }
 }

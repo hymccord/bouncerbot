@@ -3,7 +3,6 @@ using BouncerBot.Attributes;
 using BouncerBot.Modules.Privacy.Modules;
 using BouncerBot.Modules.Verification;
 using BouncerBot.Services;
-
 using Microsoft.Extensions.Options;
 
 using NetCord;
@@ -18,7 +17,8 @@ public class VerifyModule(
     IRandomPhraseGenerator randomPhraseGenerator,
     IRoleService roleService,
     IVerificationOrchestrator verificationOrchestrator,
-    IVerificationService verificationService
+    IVerificationService verificationService,
+    IBouncerBotMetrics metrics
 ): ApplicationCommandModule<ApplicationCommandContext>
 {
     [SlashCommand(VerifyModuleMetadata.VerifyCommand.Name, VerifyModuleMetadata.VerifyCommand.Description)]
@@ -26,6 +26,8 @@ public class VerifyModule(
         [SlashCommandParameter(Description = "Your MouseHunt ID", MinValue = 1)]uint mousehuntID,
         [SlashCommandParameter(Description = "Use DMs to communicate with me? (If having trouble with ephemeral messages)")]bool? dm = false)
     {
+        metrics.RecordCommand(VerifyModuleMetadata.VerifyCommand.Name);
+
         await RespondAsync(InteractionCallback.DeferredEphemeralMessage());
 
         if (await roleService.GetRoleIdAsync(Context.Guild!.Id, Role.Verified) is null)
@@ -192,6 +194,8 @@ public class VerifyModule(
     [SlashCommand(VerifyModuleMetadata.UnverifyCommand.Name, VerifyModuleMetadata.UnverifyCommand.Description)]
     public async Task UnverifyAsync()
     {
+        metrics.RecordCommand(VerifyModuleMetadata.UnverifyCommand.Name);
+
         await RespondAsync(InteractionCallback.DeferredEphemeralMessage());
         // This check is a sanity check, the precondition should ensure this is not called if the user is already verified.
         if (!await verificationService.IsDiscordUserVerifiedAsync(Context.Guild!.Id, Context.User.Id))

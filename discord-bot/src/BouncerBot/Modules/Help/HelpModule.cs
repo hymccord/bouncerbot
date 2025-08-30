@@ -16,13 +16,16 @@ using NetCord.Services.ApplicationCommands;
 namespace BouncerBot.Modules.Help;
 
 public class HelpModule(
-    ICommandMentionService cms
+    ICommandMentionService cms,
+    IBouncerBotMetrics metrics
     ) : ApplicationCommandModule<ApplicationCommandContext>
 {
     [SlashCommand("help", "Provides information about the bot and its commands.")]
     [RequireGuildContext<ApplicationCommandContext>]
     public async Task HelpAsync()
     {
+        metrics.RecordCommand("help");
+
         if (Context.User is GuildInteractionUser user)
         {
             var perms = user.Permissions;

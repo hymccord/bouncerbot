@@ -8,12 +8,14 @@ using NetCord.Services.ApplicationCommands;
 namespace BouncerBot.Modules.Privacy.Modules;
 [RequireGuildContext<ApplicationCommandContext>]
 public class PrivacyModule(
-    ICommandMentionService commandMentionService
+    ICommandMentionService commandMentionService,
+    IBouncerBotMetrics metrics
 ) : ApplicationCommandModule<ApplicationCommandContext>
 {
     [SlashCommand(PrivacyModuleMetadata.PrivacyCommand.Name, PrivacyModuleMetadata.PrivacyCommand.Description)]
     public async Task ShowPrivacyPolicyAsync()
     {
+        metrics.RecordCommand(PrivacyModuleMetadata.PrivacyCommand.Name);
         await RespondAsync(InteractionCallback.Message(new InteractionMessageProperties()
         {
             // This looks a lot nicer on Discord b/c of the markdown formatting
