@@ -4,27 +4,20 @@ A multi-component project featuring a C# Discord bot (utilizing [NetCord](https:
 
 ## Components
 
-### 1. Discord Bot (`bot/`)
+### 1. Discord Bot (`discord-bot/`)
 
 - Built with .NET 9.0
 - Uses NetCord for Discord API
 - Entity Framework Core for data access
 - Modular design: commands, services, gateway handlers
 
-#### Setup
+#### Building
 
 1. Install [.NET 9.0 SDK](https://dotnet.microsoft.com/download)
-2. Navigate to `bot/src/BouncerBot`
-3. Restore dependencies:
+2. Build:
 
    ```pwsh
-   dotnet restore
-   ```
-
-4. Build and run:
-
-   ```pwsh
-   dotnet run
+   dotnet build
    ```
 
 ### 2. Cloudflare Worker (`worker/`)
