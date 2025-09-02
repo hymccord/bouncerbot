@@ -46,7 +46,7 @@ internal class PuzzleService(
             ],
             Components = [
                 new ActionRowProperties()
-                    .AddButtons(
+                    .AddComponents(
                         new ButtonProperties("puzzle start", "Solve", ButtonStyle.Success)
                     )
                 ]

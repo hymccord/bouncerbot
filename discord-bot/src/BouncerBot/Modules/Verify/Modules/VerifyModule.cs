@@ -123,7 +123,7 @@ public class VerifyModule(
 
         var phrase = $"BouncerBot Verification: {randomPhraseGenerator.Generate()}";
 
-        IEnumerable<IComponentProperties> messageComponent = [
+        IEnumerable<IMessageComponentProperties> messageComponent = [
             new ComponentContainerProperties()
             .WithAccentColor(new Color(options.Value.Colors.Warning))
             .AddComponents(
@@ -151,8 +151,8 @@ public class VerifyModule(
                     .WithSpacing(ComponentSeparatorSpacingSize.Large)
                     .WithDivider(true),
                 new ActionRowProperties()
-                    .AddButtons(new ButtonProperties($"link start:{Context.Guild!.Id}:{mousehuntID}:{phrase}", "Verify", ButtonStyle.Secondary))
-                    .AddButtons(new ButtonProperties("link cancel", "Cancel", ButtonStyle.Success))
+                    .AddComponents(new ButtonProperties($"link start:{Context.Guild!.Id}:{mousehuntID}:{phrase}", "Verify", ButtonStyle.Secondary))
+                    .AddComponents(new ButtonProperties("link cancel", "Cancel", ButtonStyle.Success))
             )
         ];
 

@@ -41,7 +41,7 @@ public class AchieveModule(
                         new TextDisplayProperties(content)
                     ),
                 new ActionRowProperties()
-                    .AddButtons(new ButtonProperties($"achieve verify share:{content}", "Publicize", ButtonStyle.Primary))
+                    .AddComponents(new ButtonProperties($"achieve verify share:{content}", "Publicize", ButtonStyle.Primary))
                 ];
             m.Flags = MessageFlags.Ephemeral | MessageFlags.IsComponentsV2;
         });
@@ -72,8 +72,8 @@ public class AchieveModule(
                             )
                         ),
                     new ActionRowProperties()
-                        .AddButtons(new ButtonProperties($"achieve reset confirm:{(int)achievement}", "Confirm", ButtonStyle.Danger))
-                        .AddButtons(new ButtonProperties("achieve reset cancel", "Cancel", ButtonStyle.Secondary))
+                        .AddComponents(new ButtonProperties($"achieve reset confirm:{(int)achievement}", "Confirm", ButtonStyle.Danger))
+                        .AddComponents(new ButtonProperties("achieve reset cancel", "Cancel", ButtonStyle.Secondary))
                 ];
                 m.Flags = MessageFlags.IsComponentsV2;
             });

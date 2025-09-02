@@ -49,8 +49,8 @@ public class BounceModule(
                     .WithComponents([
                         new TextDisplayProperties("Are you sure you want to clear the entire ban list for this server?\n\nThis action cannot be undone."),
                         new ActionRowProperties()
-                            .AddButtons(new ButtonProperties($"bounce removeall:{Context.Guild!.Id}", "Confirm", ButtonStyle.Danger))
-                            .AddButtons(new ButtonProperties("bounce removeall cancel", "Cancel", ButtonStyle.Secondary))
+                            .AddComponents(new ButtonProperties($"bounce removeall:{Context.Guild!.Id}", "Confirm", ButtonStyle.Danger))
+                            .AddComponents(new ButtonProperties("bounce removeall cancel", "Cancel", ButtonStyle.Secondary))
                     ])
                 ],   
             Flags = MessageFlags.IsComponentsV2

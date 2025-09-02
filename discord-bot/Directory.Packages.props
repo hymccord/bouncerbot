@@ -15,7 +15,7 @@
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.8" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="9.0.8" />
     <PackageVersion Include="MinVer" Version="6.0.0" />
-    <PackageVersion Include="NetCord.Hosting.Services" Version="1.0.0-alpha.413" />
+    <PackageVersion Include="NetCord.Hosting.Services" Version="1.0.0-alpha.421" />
     <PackageVersion Include="NSubstitute" Version="5.3.0" />
     <PackageVersion Include="NSubstitute.Analyzers.CSharp" Version="1.0.17" />
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.12.0" />

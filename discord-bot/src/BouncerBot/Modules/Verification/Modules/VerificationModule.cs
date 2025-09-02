@@ -29,8 +29,8 @@ public class VerificationModule() : ApplicationCommandModule<ApplicationCommandC
                     <https://p.mshnt.ca/{hunterId}>
                     """),
                 new ActionRowProperties()
-                        .AddButtons(new ButtonProperties($"{VerificationInteractionIds.VerifyUserConfirm}:{hunterId}:{user.Id}", "Confirm", ButtonStyle.Success))
-                        .AddButtons(new ButtonProperties(VerificationInteractionIds.VerifyUserCancel, "Cancel", ButtonStyle.Danger))
+                        .AddComponents(new ButtonProperties($"{VerificationInteractionIds.VerifyUserConfirm}:{hunterId}:{user.Id}", "Confirm", ButtonStyle.Success))
+                        .AddComponents(new ButtonProperties(VerificationInteractionIds.VerifyUserCancel, "Cancel", ButtonStyle.Danger))
             ],
             AllowedMentions = AllowedMentionsProperties.None,
             Flags = MessageFlags.Ephemeral | MessageFlags.IsComponentsV2
@@ -80,8 +80,8 @@ public class VerificationModule() : ApplicationCommandModule<ApplicationCommandC
                             -# Hint: This command has the same effect as removing the <@&{verifiedRoleId}> role manually from the user.
                             """),
                         new ActionRowProperties()
-                            .AddButtons(new ButtonProperties($"{VerificationInteractionIds.VerifyRemoveConfirm}:{user.Id}", "Confirm", ButtonStyle.Danger))
-                            .AddButtons(new ButtonProperties(VerificationInteractionIds.VerifyRemoveCancel, "Cancel", ButtonStyle.Secondary))
+                            .AddComponents(new ButtonProperties($"{VerificationInteractionIds.VerifyRemoveConfirm}:{user.Id}", "Confirm", ButtonStyle.Danger))
+                            .AddComponents(new ButtonProperties(VerificationInteractionIds.VerifyRemoveCancel, "Cancel", ButtonStyle.Secondary))
                         ];
                     x.Flags = MessageFlags.IsComponentsV2;
                     x.AllowedMentions = AllowedMentionsProperties.None;
@@ -123,8 +123,8 @@ public class VerificationModule() : ApplicationCommandModule<ApplicationCommandC
                     
                     x.AddComponents(
                         new ActionRowProperties()
-                            .AddButtons(new ButtonProperties($"{VerificationInteractionIds.VerifyHistoryRemoveConfirm}:{user.Id}", "Confirm", ButtonStyle.Danger))
-                            .AddButtons(new ButtonProperties(VerificationInteractionIds.VerifyHistoryRemoveCancel, "Cancel", ButtonStyle.Secondary))
+                            .AddComponents(new ButtonProperties($"{VerificationInteractionIds.VerifyHistoryRemoveConfirm}:{user.Id}", "Confirm", ButtonStyle.Danger))
+                            .AddComponents(new ButtonProperties(VerificationInteractionIds.VerifyHistoryRemoveCancel, "Cancel", ButtonStyle.Secondary))
                     );
 
                     x.AllowedMentions = AllowedMentionsProperties.None;

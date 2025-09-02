@@ -6,7 +6,7 @@ using NetCord.Rest;
 namespace BouncerBot.Modules.Bounce;
 internal static class BounceListHelper
 {
-    public static async Task<IEnumerable<IComponentProperties>> CreateBounceListComponentsAsync(ulong guildId, int page, IBounceService bounceService)
+    public static async Task<IEnumerable<IMessageComponentProperties>> CreateBounceListComponentsAsync(ulong guildId, int page, IBounceService bounceService)
     {
         var results = await bounceService.ListBannedHuntersAsync(guildId, page);
 
@@ -41,7 +41,7 @@ internal static class BounceListHelper
                 .AddComponents(new TextDisplayProperties(title))
                 .AddComponents(new TextDisplayProperties(sb.ToString()))
                 .AddComponents(new ActionRowProperties()
-                    .AddButtons(
+                    .AddComponents(
                         new ButtonProperties($"bouncelist:{guildId}:{page - 1}", EmojiProperties.Standard("◀️"), ButtonStyle.Primary)
                             .WithDisabled(page < 1),
                         new ButtonProperties($"bouncelist:{guildId}:{page + 1}", EmojiProperties.Standard("▶️"), ButtonStyle.Primary)

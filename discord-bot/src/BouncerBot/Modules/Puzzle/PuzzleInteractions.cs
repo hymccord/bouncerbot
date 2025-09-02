@@ -12,12 +12,13 @@ public class PuzzleButtonInteraction : ComponentInteractionModule<ButtonInteract
     {
         return InteractionCallback.Modal(new ModalProperties("puzzle-modal", "BouncerBot's King's Reward")
             .AddComponents(
-            new TextInputProperties("puzzle-code", TextInputStyle.Short, "Puzzle")
-                .WithPlaceholder("Enter the code here")
-                .WithRequired(true)
-                .WithMinLength(5)
-                .WithMaxLength(5)
-            ));
+                new LabelProperties("Puzzle",
+                    new TextInputProperties("puzzle-code", TextInputStyle.Short)
+                        .WithPlaceholder("Enter the code here")
+                        .WithRequired(true)
+                        .WithMinLength(5)
+                        .WithMaxLength(5)
+            )));
     }
 }
 
@@ -49,7 +50,7 @@ public class PuzzleModalInteraction(
             {
                 m.Components = [
                     new ActionRowProperties()
-                        .WithButtons([
+                        .AddComponents([
                             new ButtonProperties("puzzle start", "Try Again", ButtonStyle.Success)
                             ])
                 ];
