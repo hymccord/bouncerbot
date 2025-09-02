@@ -14,6 +14,7 @@ namespace BouncerBot.Modules.Achieve.Modules;
 public class AchieveModule(
     IOptions<BouncerBotOptions> options,
     IAchievementService achievementService,
+    IAchievementRoleOrchestrator achievementRoleOrchestrator,
     IRoleService roleService) : ApplicationCommandModule<ApplicationCommandContext>
 {
     [SubSlashCommand(AchieveModuleMetadata.VerifyCommand.Name, AchieveModuleMetadata.VerifyCommand.Description)]
@@ -45,6 +46,44 @@ public class AchieveModule(
                 ];
             m.Flags = MessageFlags.Ephemeral | MessageFlags.IsComponentsV2;
         });
+    }
+
+    [SlashCommand(AchieveModuleMetadata.GrantCommand.Name, AchieveModuleMetadata.GrantCommand.Description)]
+    [RequireManageRoles<ApplicationCommandContext>]
+    public async Task GrantAchievementAsync(User user, AchievementRole achievement,
+        [SlashCommandParameter(Description = "Don't send an announcement to the achievement channel")] bool @private = false)
+    {
+        await RespondAsync(InteractionCallback.DeferredMessage());
+
+        var notificationMode = @private ? NotificationMode.Silent : NotificationMode.SendMessage;
+        var result = await achievementRoleOrchestrator.GrantAchievementAsync(user.Id, Context.Guild!.Id, achievement, notificationMode);
+
+        if (result == ClaimResult.Success)
+        {
+            await ModifyResponseAsync(m =>
+            {
+                new ComponentContainerProperties()
+                    .WithAccentColor(new Color(options.Value.Colors.Success))
+                    .AddTextDisplay($"Successfully granted the {achievement.Humanize()} achievement to <@{user.Id}.")
+                    .Build(m);
+                m.AllowedMentions = AllowedMentionsProperties.None;
+            });
+        }
+        else if (result == ClaimResult.AlreadyHasRole)
+        {
+            await ModifyResponseAsync(m =>
+            {
+                new ComponentContainerProperties()
+                    .WithAccentColor(new Color(options.Value.Colors.Warning))
+                    .AddTextDisplay($"<@{user.Id} already has the {achievement.Humanize()} achievement.")
+                    .Build(m);
+                m.AllowedMentions = AllowedMentionsProperties.None;
+            });
+        }
+        else
+        {
+            throw new InvalidOperationException("Unexpected claim result: " + result);
+        }
     }
 
     [SubSlashCommand(AchieveModuleMetadata.ResetCommand.Name, AchieveModuleMetadata.ResetCommand.Description)]

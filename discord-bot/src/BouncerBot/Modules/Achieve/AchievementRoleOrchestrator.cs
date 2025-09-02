@@ -6,6 +6,7 @@ namespace BouncerBot.Modules.Achieve;
 
 public interface IAchievementRoleOrchestrator
 {
+    Task<ClaimResult> GrantAchievementAsync(ulong userId, ulong guildId, AchievementRole achievement, NotificationMode notificationMode, CancellationToken cancellationToken = default);
     Task<ClaimResult> ProcessAchievementAsync(uint mhid, ulong userId, ulong guildId, AchievementRole achievement, CancellationToken cancellationToken = default);
     Task<ClaimResult> ProcessAchievementSilentlyAsync(uint mhid, ulong userId, ulong guildId, AchievementRole achievement, CancellationToken cancellationToken = default);
     Task ResetAchievementAsync(ulong guildId, AchievementRole achievement, Func<int, int, Task> progress, CancellationToken cancellationToken = default);
@@ -26,39 +27,27 @@ public class AchievementRoleOrchestrator(
 {
     public async Task<ClaimResult> ProcessAchievementAsync(uint mhid, ulong userId, ulong guildId, AchievementRole achievement, CancellationToken cancellationToken = default)
     {
-        if (await achievementService.HasAchievementAsync(mhid, achievement, cancellationToken))
+        if (!await achievementService.HasAchievementAsync(mhid, achievement, cancellationToken))
         {
-            var role = EnumUtils.ToRole(achievement);
-            if (await roleService.HasRoleAsync(userId, guildId, role))
-            {
-                return ClaimResult.AlreadyHasRole;
-            }
-
-            await roleService.AddRoleAsync(userId, guildId, role, cancellationToken);
-            await achievementMessageService.SendAchievementMessageAsync(userId, guildId, achievement, cancellationToken);
-
-            return ClaimResult.Success;
+            return ClaimResult.NotAchieved;
         }
 
-        return ClaimResult.NotAchieved;
+        return await AssignRoleIfNotHasAsync(userId, guildId, achievement, notification: NotificationMode.SendMessage, cancellationToken);
+    }
+
+    public async Task<ClaimResult> GrantAchievementAsync(ulong userId, ulong guildId, AchievementRole achievement, NotificationMode notificationMode, CancellationToken cancellationToken = default)
+    {
+        return await AssignRoleIfNotHasAsync(userId, guildId, achievement, notificationMode, cancellationToken);
     }
 
     public async Task<ClaimResult> ProcessAchievementSilentlyAsync(uint mhid, ulong userId, ulong guildId, AchievementRole achievement, CancellationToken cancellationToken = default)
     {
-        if (await achievementService.HasAchievementAsync(mhid, achievement, cancellationToken))
+        if (!await achievementService.HasAchievementAsync(mhid, achievement, cancellationToken))
         {
-            var role = EnumUtils.ToRole(achievement);
-            if (await roleService.HasRoleAsync(userId, guildId, role))
-            {
-                return ClaimResult.AlreadyHasRole;
-            }
-
-            await roleService.AddRoleAsync(userId, guildId, role, cancellationToken);
-
-            return ClaimResult.Success;
+            return ClaimResult.NotAchieved;
         }
 
-        return ClaimResult.NotAchieved;
+        return await AssignRoleIfNotHasAsync(userId, guildId, achievement, notification: NotificationMode.Silent, cancellationToken);
     }
 
     public async Task ResetAchievementAsync(ulong guildId, AchievementRole achievement, Func<int, int, Task> progress, CancellationToken cancellationToken = default)
@@ -67,22 +56,41 @@ public class AchievementRoleOrchestrator(
         var roleId = await roleService.GetRoleIdAsync(guildId, role)
             ?? throw new RoleNotConfiguredException(role);
 
-        GuildUser[] usersWithAchievement = [..gatewayClient.Cache.Guilds[guildId]?.Users.Values
-            .Where(u => u.RoleIds.Contains(roleId)) ?? []];
+        ulong[] usersWithAchievement = [..gatewayClient.Cache.Guilds[guildId]?.Users.Values
+            .Where(u => u.RoleIds.Contains(roleId)).Select(u => u.Id) ?? []];
 
         await progress(0, usersWithAchievement.Length);
 
         for (var i = 0; i < usersWithAchievement.Length; i++)
         {
             // Add achiever role first, since it may fail if not configured. That way we still have the achievement role set on the user.
-            await roleService.AddRoleAsync(usersWithAchievement[i].Id, guildId, Role.Achiever, cancellationToken: default);
-            await roleService.RemoveRoleAsync(usersWithAchievement[i].Id, guildId, role, cancellationToken: default);
+            await roleService.AddRoleAsync(usersWithAchievement[i], guildId, Role.Achiever, cancellationToken: default);
+            await roleService.RemoveRoleAsync(usersWithAchievement[i], guildId, role, cancellationToken: default);
 
             if (i % 10 == 0)
             {
                 await progress(i + 1, usersWithAchievement.Length);
             }
         }
+    }
+
+    private async Task<ClaimResult> AssignRoleIfNotHasAsync(ulong userId, ulong guildId, AchievementRole achievement, NotificationMode notification, CancellationToken cancellationToken)
+    {
+        var role = EnumUtils.ToRole(achievement);
+
+        if (await roleService.HasRoleAsync(userId, guildId, role))
+        {
+            return ClaimResult.AlreadyHasRole;
+        }
+
+        await roleService.AddRoleAsync(userId, guildId, role, cancellationToken);
+
+        if (notification == NotificationMode.SendMessage)
+        {
+            await achievementMessageService.SendAchievementMessageAsync(userId, guildId, achievement, cancellationToken);
+        }
+
+        return ClaimResult.Success;
     }
 }
 
@@ -91,4 +99,11 @@ public enum ClaimResult
     Success,
     AlreadyHasRole,
     NotAchieved,
+}
+
+public enum NotificationMode
+{
+    Silent,
+    SendMessage,
+    // Future: SendDM, LogOnly, etc.
 }

@@ -11,6 +11,12 @@ public static class AchieveModuleMetadata
         public const string Description = "Check if a Hunter ID qualifies for an achievement.";
     }
 
+    public static class GrantCommand
+    {
+        public const string Name = "grant";
+        public const string Description = "Manually grant an achievement role to a user.";
+    }
+
     public static class ResetCommand
     {
         public const string Name = "reset";
