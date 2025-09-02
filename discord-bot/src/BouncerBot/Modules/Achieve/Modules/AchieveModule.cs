@@ -48,7 +48,7 @@ public class AchieveModule(
         });
     }
 
-    [SlashCommand(AchieveModuleMetadata.GrantCommand.Name, AchieveModuleMetadata.GrantCommand.Description)]
+    [SubSlashCommand(AchieveModuleMetadata.GrantCommand.Name, AchieveModuleMetadata.GrantCommand.Description)]
     [RequireManageRoles<ApplicationCommandContext>]
     public async Task GrantAchievementAsync(User user, AchievementRole achievement,
         [SlashCommandParameter(Description = "Don't send an announcement to the achievement channel")] bool @private = false)
