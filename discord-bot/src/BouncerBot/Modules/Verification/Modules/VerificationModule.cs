@@ -1,5 +1,4 @@
 using BouncerBot.Attributes;
-using BouncerBot.Db;
 using BouncerBot.Services;
 using Microsoft.Extensions.Options;
 using NetCord;
@@ -8,9 +7,11 @@ using NetCord.Services.ApplicationCommands;
 
 namespace BouncerBot.Modules.Verification.Modules;
 
-[SlashCommand(VerificationModuleMetadata.ModuleName, VerificationModuleMetadata.ModuleDescription)]
-[RequireGuildContext<ApplicationCommandContext>]
-[RequireManageRoles<ApplicationCommandContext>]
+[SlashCommand(VerificationModuleMetadata.ModuleName, VerificationModuleMetadata.ModuleDescription,
+    Contexts = [InteractionContextType.Guild],
+    IntegrationTypes = [ApplicationIntegrationType.GuildInstall],
+    DefaultGuildPermissions = Permissions.ManageRoles
+)]
 public class VerificationModule() : ApplicationCommandModule<ApplicationCommandContext>
 {
 #if DEBUG
@@ -39,8 +40,6 @@ public class VerificationModule() : ApplicationCommandModule<ApplicationCommandC
 #endif
 
     [SubSlashCommand(VerificationModuleMetadata.RemoveCommand.Name, VerificationModuleMetadata.RemoveCommand.Description)]
-    [RequireGuildContext<ApplicationCommandContext>]
-    [RequireManageRoles<ApplicationCommandContext>]
     public class VerifyRemoveModule(
         IOptions<BouncerBotOptions> options,
         IRoleService roleService,

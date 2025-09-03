@@ -1,5 +1,3 @@
-using BouncerBot.Attributes;
-
 using Microsoft.Extensions.Options;
 
 using NetCord;
@@ -8,14 +6,16 @@ using NetCord.Services.ApplicationCommands;
 
 namespace BouncerBot.Modules.WhoIs.Modules;
 
-[SlashCommand(WhoIsModuleMetadata.ModuleName, WhoIsModuleMetadata.ModuleDescription)]
-[RequireManageRoles<ApplicationCommandContext>]
-[RequireGuildContext<ApplicationCommandContext>]
+[SlashCommand(WhoIsModuleMetadata.ModuleName, WhoIsModuleMetadata.ModuleDescription,
+        IntegrationTypes = [ApplicationIntegrationType.GuildInstall],
+        Contexts = [InteractionContextType.Guild],
+        DefaultGuildPermissions = Permissions.ManageRoles
+)]
 public class WhoIsModule(
     IOptionsSnapshot<BouncerBotOptions> options,
     IWhoIsOrchestrator whoIsOrchestrator) : ApplicationCommandModule<ApplicationCommandContext>
 {
-    private const int MessageTimeout = 5;
+    private const int MessageTimeoutSeconds = 300;
 
     [SubSlashCommand(WhoIsModuleMetadata.UserCommand.Name, WhoIsModuleMetadata.UserCommand.Description)]
     public async Task GetHunterIdAsync(
@@ -27,7 +27,7 @@ public class WhoIsModule(
         var result = await whoIsOrchestrator.GetHunterIdAsync(Context.Guild!.Id, user.Id);
 
         await ModifyWhoIsReponse("Whois User", result);
-        await Task.Delay(TimeSpan.FromSeconds(MessageTimeout));
+        await Task.Delay(TimeSpan.FromSeconds(MessageTimeoutSeconds));
         await TryDeleteResponseAsync();
     }
 
@@ -40,7 +40,7 @@ public class WhoIsModule(
         var result = await whoIsOrchestrator.GetUserIdAsync(Context.Guild!.Id, mousehuntID);
 
         await ModifyWhoIsReponse("Whois Hunter", result);
-        await Task.Delay(TimeSpan.FromSeconds(MessageTimeout));
+        await Task.Delay(TimeSpan.FromSeconds(MessageTimeoutSeconds));
         await TryDeleteResponseAsync();
     }
 
@@ -57,7 +57,7 @@ public class WhoIsModule(
                         new TextDisplayProperties($"""
                             {result.Message}
 
-                            -# This message will expire in <t:{DateTimeOffset.Now.ToUnixTimeSeconds() + MessageTimeout}:R>
+                            -# This message will expire in <t:{DateTimeOffset.Now.ToUnixTimeSeconds() + MessageTimeoutSeconds}:R>
                             """)
                     )
                 ];

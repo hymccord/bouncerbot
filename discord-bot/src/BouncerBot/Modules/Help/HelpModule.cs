@@ -17,13 +17,18 @@ namespace BouncerBot.Modules.Help;
 
 public class HelpModule(
     ICommandMentionService cms,
-    IBouncerBotMetrics metrics
+    IBouncerBotMetrics metrics,
+    IdApplicationCommandServiceStorage<ApplicationCommandContext> commandStorage
     ) : ApplicationCommandModule<ApplicationCommandContext>
 {
-    [SlashCommand("help", "Provides information about the bot and its commands.")]
+    [SlashCommand("help", "Provides information about the bot and its commands.",
+        IntegrationTypes = [ApplicationIntegrationType.GuildInstall],
+        Contexts = [InteractionContextType.Guild]
+    )]
     [RequireGuildContext<ApplicationCommandContext>]
     public async Task HelpAsync()
     {
+        var cmds = commandStorage.GetRegisteredCommands();
         metrics.RecordCommand("help");
 
         if (Context.User is GuildInteractionUser user)

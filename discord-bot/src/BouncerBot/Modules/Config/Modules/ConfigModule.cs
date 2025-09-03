@@ -6,13 +6,13 @@ using Microsoft.Extensions.Options;
 
 using NetCord;
 using NetCord.Rest;
-using NetCord.Services;
 using NetCord.Services.ApplicationCommands;
 
 namespace BouncerBot.Modules.Config.Modules;
 
-[SlashCommand(ConfigModuleMetadata.ModuleName, ConfigModuleMetadata.ModuleDescription)]
-[RequireGuildContext<ApplicationCommandContext>]
+[SlashCommand(ConfigModuleMetadata.ModuleName, ConfigModuleMetadata.ModuleDescription,
+    Contexts = [InteractionContextType.Guild]
+)]
 public partial class ConfigModule(
     IOptionsSnapshot<BouncerBotOptions> options,
     IConfigService configService)
@@ -20,7 +20,6 @@ public partial class ConfigModule(
 {
 
     [SubSlashCommand(ConfigModuleMetadata.LogCommand.Name, ConfigModuleMetadata.LogCommand.Description)]
-    [RequireManageGuild<ApplicationCommandContext>()]
     public async Task SetLogChannelAsync(
         [SlashCommandParameter(Description = "Log type", Name = "type")] LogChannel logChannel,
         [SlashCommandParameter(Description = "Output channel")] TextChannel? channel = default)
@@ -34,7 +33,6 @@ public partial class ConfigModule(
     }
 
     [SubSlashCommand(ConfigModuleMetadata.LogAchievementCommand.Name, ConfigModuleMetadata.LogAchievementCommand.Description)]
-    [RequireManageGuild<ApplicationCommandContext>()]
     public async Task SetLogAchievementChannelAsync(
         [SlashCommandParameter(Description = "Achievement")] AchievementRole achievement,
         [SlashCommandParameter(Description = "Output channel")] TextChannel? channel = default)
@@ -122,4 +120,3 @@ public partial class ConfigModule(
         All = Log | Role | Message | VerifyRank
     }
 }
-
