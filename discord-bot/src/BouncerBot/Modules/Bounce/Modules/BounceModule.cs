@@ -6,9 +6,7 @@ using NetCord.Services.ApplicationCommands;
 
 namespace BouncerBot.Modules.Bounce.Modules;
 
-[SlashCommand(BounceModuleMetadata.ModuleName, BounceModuleMetadata.ModuleDescription)]
-[RequireManageRoles<ApplicationCommandContext>]
-[RequireGuildContext<ApplicationCommandContext>]
+[ManageRolesSlashCommand(BounceModuleMetadata.ModuleName, BounceModuleMetadata.ModuleDescription)]
 public class BounceModule(
     IOptions<BouncerBotOptions> options,
     IBounceOrchestrator bounceOrchestrator,

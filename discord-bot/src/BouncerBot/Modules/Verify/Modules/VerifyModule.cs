@@ -10,7 +10,6 @@ using NetCord.Rest;
 using NetCord.Services.ApplicationCommands;
 
 namespace BouncerBot.Modules.Verify.Modules;
-[RequireGuildContext<ApplicationCommandContext>]
 public class VerifyModule(
     IOptionsSnapshot<BouncerBotOptions> options,
     ICommandMentionService commandMentionService,
@@ -21,7 +20,7 @@ public class VerifyModule(
     IBouncerBotMetrics metrics
 ): ApplicationCommandModule<ApplicationCommandContext>
 {
-    [SlashCommand(VerifyModuleMetadata.VerifyCommand.Name, VerifyModuleMetadata.VerifyCommand.Description)]
+    [BouncerBotSlashCommand(VerifyModuleMetadata.VerifyCommand.Name, VerifyModuleMetadata.VerifyCommand.Description)]
     public async Task VerifyAsync(
         [SlashCommandParameter(Description = "Your MouseHunt ID", MinValue = 1)]uint mousehuntID,
         [SlashCommandParameter(Description = "Use DMs to communicate with me? (If having trouble with ephemeral messages)")]bool? dm = false)
@@ -191,7 +190,7 @@ public class VerifyModule(
         }
     }
 
-    [SlashCommand(VerifyModuleMetadata.UnverifyCommand.Name, VerifyModuleMetadata.UnverifyCommand.Description)]
+    [BouncerBotSlashCommand(VerifyModuleMetadata.UnverifyCommand.Name, VerifyModuleMetadata.UnverifyCommand.Description)]
     public async Task UnverifyAsync()
     {
         metrics.RecordCommand(VerifyModuleMetadata.UnverifyCommand.Name);

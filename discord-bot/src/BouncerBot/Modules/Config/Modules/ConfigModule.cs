@@ -6,13 +6,11 @@ using Microsoft.Extensions.Options;
 
 using NetCord;
 using NetCord.Rest;
-using NetCord.Services;
 using NetCord.Services.ApplicationCommands;
 
 namespace BouncerBot.Modules.Config.Modules;
 
-[SlashCommand(ConfigModuleMetadata.ModuleName, ConfigModuleMetadata.ModuleDescription)]
-[RequireGuildContext<ApplicationCommandContext>]
+[ManageRolesSlashCommand(ConfigModuleMetadata.ModuleName, ConfigModuleMetadata.ModuleDescription)]
 public partial class ConfigModule(
     IOptionsSnapshot<BouncerBotOptions> options,
     IConfigService configService)
@@ -122,4 +120,3 @@ public partial class ConfigModule(
         All = Log | Role | Message | VerifyRank
     }
 }
-

@@ -9,8 +9,7 @@ using NetCord.Services.ApplicationCommands;
 
 namespace BouncerBot.Modules.Achieve.Modules;
 
-[SlashCommand(AchieveModuleMetadata.ModuleName, AchieveModuleMetadata.ModuleDescription)]
-[RequireGuildContext<ApplicationCommandContext>]
+[ManageRolesSlashCommand(AchieveModuleMetadata.ModuleName, AchieveModuleMetadata.ModuleDescription)]
 public class AchieveModule(
     IOptions<BouncerBotOptions> options,
     IAchievementService achievementService,
@@ -18,7 +17,6 @@ public class AchieveModule(
     IRoleService roleService) : ApplicationCommandModule<ApplicationCommandContext>
 {
     [SubSlashCommand(AchieveModuleMetadata.VerifyCommand.Name, AchieveModuleMetadata.VerifyCommand.Description)]
-    [RequireManageRoles<ApplicationCommandContext>]
     public async Task VerifyAsync(uint hunterID, AchievementRole achievement)
     {
         await RespondAsync(InteractionCallback.DeferredEphemeralMessage());
@@ -49,7 +47,6 @@ public class AchieveModule(
     }
 
     [SubSlashCommand(AchieveModuleMetadata.GrantCommand.Name, AchieveModuleMetadata.GrantCommand.Description)]
-    [RequireManageRoles<ApplicationCommandContext>]
     public async Task GrantAchievementAsync(User user, AchievementRole achievement,
         [SlashCommandParameter(Description = "Don't send an announcement to the achievement channel")] bool @private = false)
     {
@@ -87,7 +84,6 @@ public class AchieveModule(
     }
 
     [SubSlashCommand(AchieveModuleMetadata.ResetCommand.Name, AchieveModuleMetadata.ResetCommand.Description)]
-    [RequireManageRoles<ApplicationCommandContext>]
     public async Task ResetAchievementAsync(AchievementRole achievement)
     {
         await RespondAsync(InteractionCallback.DeferredMessage());

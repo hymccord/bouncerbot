@@ -8,9 +8,11 @@ using NetCord.Services.ApplicationCommands;
 
 namespace BouncerBot.Modules.WhoIs.Modules;
 
-[SlashCommand(WhoIsModuleMetadata.ModuleName, WhoIsModuleMetadata.ModuleDescription)]
-[RequireManageRoles<ApplicationCommandContext>]
-[RequireGuildContext<ApplicationCommandContext>]
+[SlashCommand(WhoIsModuleMetadata.ModuleName, WhoIsModuleMetadata.ModuleDescription,
+        IntegrationTypes = [ApplicationIntegrationType.GuildInstall],
+        Contexts = [InteractionContextType.Guild],
+        DefaultGuildPermissions = Permissions.ManageRoles
+)]
 public class WhoIsModule(
     IOptionsSnapshot<BouncerBotOptions> options,
     IWhoIsOrchestrator whoIsOrchestrator) : ApplicationCommandModule<ApplicationCommandContext>

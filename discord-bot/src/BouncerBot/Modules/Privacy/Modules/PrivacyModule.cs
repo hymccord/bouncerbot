@@ -6,13 +6,12 @@ using NetCord.Rest;
 using NetCord.Services.ApplicationCommands;
 
 namespace BouncerBot.Modules.Privacy.Modules;
-[RequireGuildContext<ApplicationCommandContext>]
 public class PrivacyModule(
     ICommandMentionService commandMentionService,
     IBouncerBotMetrics metrics
 ) : ApplicationCommandModule<ApplicationCommandContext>
 {
-    [SlashCommand(PrivacyModuleMetadata.PrivacyCommand.Name, PrivacyModuleMetadata.PrivacyCommand.Description)]
+    [BouncerBotSlashCommand(PrivacyModuleMetadata.PrivacyCommand.Name, PrivacyModuleMetadata.PrivacyCommand.Description)]
     public async Task ShowPrivacyPolicyAsync()
     {
         metrics.RecordCommand(PrivacyModuleMetadata.PrivacyCommand.Name);

@@ -1,15 +1,17 @@
 using System.Text;
-using BouncerBot.Attributes;
 using Humanizer;
 using NetCord;
 using NetCord.Rest;
 using NetCord.Services.ApplicationCommands;
 
 namespace BouncerBot.Modules.Config.Modules;
+
+/* Note that this attribute is already applied on the partial class
+ * [ManageRolesSlashCommand(ConfigModuleMetadata.ModuleName, ConfigModuleMetadata.ModuleDescription)]
+ */
 public partial class ConfigModule
 {
     [SubSlashCommand(ConfigModuleMetadata.ListCommand.Name, ConfigModuleMetadata.ListCommand.Description)]
-    [RequireManageRoles<ApplicationCommandContext>()]
     public async Task ViewConfigAsync(SettingType? setting = SettingType.All, bool? ephemeral = true)
     {
         var guildId = Context.Guild!.Id;

@@ -16,7 +16,6 @@ using NetCord.Services.ApplicationCommands;
 
 namespace BouncerBot.Modules.Claim.Modules;
 
-[RequireGuildContext<ApplicationCommandContext>]
 public class ClaimModule(
     ILogger<ClaimModule> logger,
     IOptions<BouncerBotOptions> options,
@@ -39,7 +38,7 @@ public class ClaimModule(
     ];
     private const string CacheKey = "ClaimCooldown";
 
-    [SlashCommand(ClaimModuleMetadata.ClaimCommand.Name, ClaimModuleMetadata.ClaimCommand.Description)]
+    [BouncerBotSlashCommand(ClaimModuleMetadata.ClaimCommand.Name, ClaimModuleMetadata.ClaimCommand.Description)]
     [RequireVerificationStatus<ApplicationCommandContext>(VerificationStatus.Verified)]
     public async Task ClaimAsync(AchievementRole achievement,
         [SlashCommandParameter(Description = "Keep private? (Don't send announcement)")]bool? @private = false)
