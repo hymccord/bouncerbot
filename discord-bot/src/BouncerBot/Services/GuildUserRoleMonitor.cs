@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 using NetCord;
-using NetCord.Rest;
 
 namespace BouncerBot.Services;
 

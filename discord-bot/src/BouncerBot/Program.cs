@@ -36,6 +36,7 @@ builder.Services
     })
     .AddTransient<IGuildLoggingService, GuildLoggingService>()
     .AddTransient<IGuildUserRoleMonitorService, GuildUserRoleMonitor>()
+    .AddTransient<IGuildRoleMembershipSynchronizer, GuildRoleMembershipSynchronizer>()
     .AddTransient<IRandomPhraseGenerator, RandomPhraseGenerator>()
     .AddTransient<IAchievementMessageService, AchievementMessageService>()
     .AddTransient<IRoleService, DiscordRoleService>()
