@@ -1,4 +1,5 @@
 using BouncerBot.Db;
+using BouncerBot.Modules.RankRole;
 using BouncerBot.Modules.Verification;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -16,6 +17,7 @@ public interface IGuildUserRoleMonitorService
 public class GuildUserRoleMonitor(
     ILogger<GuildUserRoleMonitor> logger,
     IGuildLoggingService guildLoggingService,
+    IRankRoleService rankRoleService,
     IVerificationService verificationService,
     IVerificationOrchestrator verificationOrchestrator,
     BouncerBotDbContext dbContext) : IGuildUserRoleMonitorService
@@ -33,6 +35,8 @@ public class GuildUserRoleMonitor(
         {
             await HandleVerifiedAddedAsync(guildUser, verifiedRoleId);
         }
+
+        await rankRoleService.CleanupRankRolesAsync(guildUser);
     }
 
     public async Task HandleRolesRemovedAsync(GuildUser guildUser, IEnumerable<ulong> removedRoles)

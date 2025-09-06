@@ -4,6 +4,7 @@ using BouncerBot.Modules.Achieve;
 using BouncerBot.Modules.Bounce;
 using BouncerBot.Modules.Config;
 using BouncerBot.Modules.Puzzle;
+using BouncerBot.Modules.RankRole;
 using BouncerBot.Modules.Verification;
 using BouncerBot.Modules.WhoIs;
 using BouncerBot.Services;
@@ -52,6 +53,7 @@ builder.Services
     .AddTransient<ICommandMentionService, CommandMentionService>()
     .AddTransient<IMouseHuntEmojiService, MouseHuntEmojiService>()
     .AddTransient<IHashService, HMACSHA3HashService>()
+    .AddTransient<IRankRoleService, RankRoleService>()
     .AddSingleton<IDiscordRestClient, DiscordRestClient>()
     .AddSingleton<IDiscordGatewayClient, DiscordGatewayClient>()
     .AddSingleton<IPuzzleService, PuzzleService>() // Singleton b/c of puzzle state capture

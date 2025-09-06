@@ -144,6 +144,7 @@ public enum Rank
     Recruit,
     Apprentice,
     Initiate,
+    [Display(Name = "Journeyman/Journeywoman")]
     Journeyman,
     Master,
     Grandmaster,
@@ -151,10 +152,15 @@ public enum Rank
     Hero,
     Knight,
     Lord,
+    [Display(Name = "Baron/Baroness")]
     Baron,
+    [Display(Name = "Count/Countess")]
     Count,
+    [Display(Name = "Duke/Duchess")]
     Duke,
+    [Display(Name = "Grand Duke/Grand Duchess")]
     GrandDuke,
+    [Display(Name = "Archduke/Archduchess")]
     Archduke,
     Viceroy,
     Elder,
