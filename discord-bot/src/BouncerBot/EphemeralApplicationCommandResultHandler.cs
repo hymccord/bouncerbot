@@ -49,7 +49,7 @@ internal class EphemeralApplicationCommandResultHandler<TContext>(
                     new TextDisplayProperties("""
                         Apologies, I'm a little busy trying to solve this King's Reward! It's difficult for me... 🤖
                 
-                        Please try again later.
+                        -# The modmins has been notified. Watch my online presence for updates.
                         """)
                 );
 
@@ -124,8 +124,8 @@ internal class EphemeralComponentInteractionResultHandler<TContext>(
             container.AddComponents(
                 new TextDisplayProperties("""
                         Apologies, I'm a little busy trying to solve this King's Reward! It's difficult for me... 🤖
-                
-                        Please try again later.
+
+                        -# The modmins has been notified. Watch my online presence for updates.
                         """)
             );
 

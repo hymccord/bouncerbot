@@ -37,6 +37,12 @@ public class ClaimModule(
         "Hah! You think you can outsmart me by not completing all the requirements? Not today!",
     ];
     private const string CacheKey = "ClaimCooldown";
+    private static TimeSpan s_claimCooldown =
+#if DEBUG
+        TimeSpan.FromSeconds(0);
+#else
+        TimeSpan.FromMinutes(1);
+#endif
 
     [BouncerBotSlashCommand(ClaimModuleMetadata.ClaimCommand.Name, ClaimModuleMetadata.ClaimCommand.Description)]
     [RequireVerificationStatus<ApplicationCommandContext>(VerificationStatus.Verified)]
@@ -87,7 +93,7 @@ public class ClaimModule(
 
             return;
         }
-        memoryCache.Set($"{CacheKey}-{Context.User.Id}", DateTimeOffset.UtcNow.AddMinutes(1), TimeSpan.FromMinutes(1));
+        memoryCache.Set($"{CacheKey}-{Context.User.Id}", DateTimeOffset.UtcNow + s_claimCooldown, TimeSpan.FromMinutes(1));
 
         try
         {

@@ -1,4 +1,5 @@
 using BouncerBot.Rest;
+using BouncerBot.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -17,11 +18,11 @@ internal class PuzzleService(
     IOptionsMonitor<BouncerBotOptions> options,
     ILogger<PuzzleService> logger,
     RestClient client,
-    IMouseHuntRestClient mouseHuntRestClient
+    IMouseHuntRestClient mouseHuntRestClient,
+    IBouncerBotPresenceService presenceService
     ) : IPuzzleService
 {
     private bool _hasPuzzle = false;
-    private ulong? _puzzleMessageId = null;
     private uint? _hunterId = null;
 
     public async Task TriggerPuzzle()
@@ -31,28 +32,13 @@ internal class PuzzleService(
             return;
         }
 
+        await presenceService.SetPuzzlePresence();
+
         _hasPuzzle = true;
         _hunterId ??= (await mouseHuntRestClient.GetMeAsync()).UserId;
 
         var channel = await client.GetChannelAsync(options.CurrentValue.PuzzleChannel);
-        var message = await ((TextChannel)channel).SendMessageAsync(new MessageProperties
-        {
-            Embeds = [
-                new EmbedProperties() {
-                    Title = "BouncerBot King's Reward",
-                    Description = "One of our guests triggered a puzzle. I need human assistance!",
-                    Image = $"https://www.mousehuntgame.com/images/puzzleimage.php?t={DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}&user_id={_hunterId}"
-                }
-            ],
-            Components = [
-                new ActionRowProperties()
-                    .AddComponents(
-                        new ButtonProperties("puzzle start", "Solve", ButtonStyle.Success)
-                    )
-                ]
-        });
-
-        _puzzleMessageId = message.Id;
+        await ((TextChannel)channel).SendMessageAsync(BuildPuzzleMessage(_hunterId.Value));
     }
 
     public async Task<bool> SolvePuzzleAsync(string code)
@@ -62,30 +48,43 @@ internal class PuzzleService(
             return true;
         }
 
+        var success = false;
+
         try
         {
-            var success = await mouseHuntRestClient.SolvePuzzleAsync(code);
+            success = await mouseHuntRestClient.SolvePuzzleAsync(code);
 
-            if (_puzzleMessageId.HasValue)
+            _hasPuzzle = !success;
+            if (!_hasPuzzle)
             {
-                await client.DeleteMessageAsync(options.CurrentValue.PuzzleChannel, _puzzleMessageId.Value);
-                _puzzleMessageId = null;
+                await presenceService.SetDefaultPresence();
             }
-
-            if (!success)
-            {
-                logger.LogInformation("Puzzle attempt was incorrect.");
-            }
-
-            return success;
         }
         catch (Exception)
         {
-            throw;
+            logger.LogInformation("Puzzle attempt failed.");
         }
-        finally
+
+        return success;
+    }
+
+    public static MessageProperties BuildPuzzleMessage(uint hunterId)
+    {
+        return new MessageProperties
         {
-            _hasPuzzle = false;
-        }
+            Embeds = [
+                new EmbedProperties() {
+                    Title = "BouncerBot King's Reward",
+                    Description = "One of our guests triggered a puzzle. I need human assistance!",
+                    Image = $"https://www.mousehuntgame.com/images/puzzleimage.php?t={DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}&user_id={hunterId}"
+                }
+            ],
+            Components = [
+                new ActionRowProperties()
+                    .AddComponents(
+                        new ButtonProperties($"puzzle start:{hunterId}", "Solve", ButtonStyle.Success)
+                    )
+                ]
+        };
     }
 }

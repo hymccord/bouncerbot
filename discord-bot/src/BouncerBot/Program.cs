@@ -57,6 +57,7 @@ builder.Services
     .AddSingleton<IDiscordRestClient, DiscordRestClient>()
     .AddSingleton<IDiscordGatewayClient, DiscordGatewayClient>()
     .AddSingleton<IPuzzleService, PuzzleService>() // Singleton b/c of puzzle state capture
+    .AddSingleton<IBouncerBotPresenceService, BouncerBotPresenceService>()
     .AddSingleton<IBouncerBotMetrics, BouncerBotMetrics>()
     .AddMouseHuntClient()
     ;
