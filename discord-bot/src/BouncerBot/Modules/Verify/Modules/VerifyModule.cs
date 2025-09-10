@@ -211,7 +211,12 @@ public class VerifyModule(
             return;
         }
 
-        await verificationService.RemoveVerifiedUser(Context.Guild!.Id, Context.User.Id);
+        await verificationOrchestrator.ProcessVerificationAsync(VerificationType.Remove, new VerificationParameters
+        {
+            DiscordUserId = Context.User.Id,
+            GuildId = Context.Guild.Id,
+        });
+
         await ModifyResponseAsync(x =>
         {
             new ComponentContainerProperties()
