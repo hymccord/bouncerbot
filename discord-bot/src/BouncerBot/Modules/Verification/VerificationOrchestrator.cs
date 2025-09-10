@@ -164,14 +164,18 @@ public class VerificationOrchestrator(
     {
         return await guildLoggingService.LogAsync(parameters.GuildId, LogType.Verification, new()
         {
-            Components = [
-                new ComponentContainerProperties()
-                    .AddComponents(
-                        new TextDisplayProperties($"<@{parameters.DiscordUserId}> {parameters.DiscordUserId} is hunter [{hunterId}](<https://p.mshnt.ca/{hunterId}>)")
-                    )
+            Embeds = [
+                new EmbedProperties()
+                .WithDescription($"<@{parameters.DiscordUserId}> {parameters.DiscordUserId} is hunter [{hunterId}](<https://p.mshnt.ca/{hunterId}>)")
                 ],
+            //Components = [
+            //    new ComponentContainerProperties()
+            //        .AddComponents(
+            //            new TextDisplayProperties($"<@{parameters.DiscordUserId}> {parameters.DiscordUserId} is hunter [{hunterId}](<https://p.mshnt.ca/{hunterId}>)")
+            //        )
+            //    ],
+            //Flags = MessageFlags.IsComponentsV2,
             AllowedMentions = AllowedMentionsProperties.None,
-            Flags = MessageFlags.IsComponentsV2
         }, cancellationToken);
     }
 }

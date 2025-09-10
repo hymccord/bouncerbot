@@ -114,13 +114,11 @@ internal class GuildLoggingService(
         {
             await guildChannel.SendMessageAsync(new MessageProperties
             {
-                Components = [
-                    new ComponentContainerProperties()
-                        .WithAccentColor(new Color(options.Value.Colors.Success))
-                        .AddComponents(
-                        new TextDisplayProperties(content))
-                    ],
-                Flags = MessageFlags.IsComponentsV2,
+                Embeds = [
+                    new EmbedProperties()
+                        .WithDescription(content)
+                        .WithColor(new Color(options.Value.Colors.Success))
+                ],
                 AllowedMentions = AllowedMentionsProperties.None,
             }, cancellationToken: cancellationToken);
         }
