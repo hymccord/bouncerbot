@@ -51,6 +51,7 @@ builder.Services
     .AddTransient<IWhoIsService, WhoIsService>()
     .AddTransient<IWhoIsOrchestrator, WhoIsOrchestrator>()
     .AddTransient<ICommandMentionService, CommandMentionService>()
+    .AddTransient<IReactionService, ReactionService>()
     .AddTransient<IMouseHuntEmojiService, MouseHuntEmojiService>()
     .AddTransient<IHashService, HMACSHA3HashService>()
     .AddTransient<IRankRoleService, RankRoleService>()

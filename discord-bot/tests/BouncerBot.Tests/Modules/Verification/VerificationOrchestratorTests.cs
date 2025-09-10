@@ -47,7 +47,7 @@ public class VerificationOrchestratorTests
         _verificationService.AddVerifiedUserAsync(mhid, 789, 456)
             .Returns(new VerificationAddResult(true, 123));
         _guildLoggingService.LogAsync(789, LogType.Verification, Arg.Any<MessageProperties>())
-            .Returns((1001u, 3u));
+            .Returns(new LogMessageResult { ChannelId = 1001u, MessageId = 3u });
 
         // Act
         var result = await _sut.ProcessVerificationAsync(VerificationType.Self, parameters);
@@ -126,7 +126,7 @@ public class VerificationOrchestratorTests
         _verificationService.AddVerifiedUserAsync(123, 789, 456)
             .Returns(new VerificationAddResult(true, 123));
         _guildLoggingService.LogAsync(789, LogType.Verification, Arg.Any<MessageProperties>())
-            .Returns(( 1u, 2u ));
+            .Returns(new LogMessageResult { ChannelId = 1u, MessageId = 2u });
 
         // Act
         var result = await _sut.ProcessVerificationAsync(VerificationType.Add, parameters);

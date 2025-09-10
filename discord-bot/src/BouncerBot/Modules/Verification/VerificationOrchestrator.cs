@@ -56,7 +56,7 @@ public class VerificationOrchestrator(
                     GuildId = parameters.GuildId,
                     DiscordUserId = parameters.DiscordUserId,
                     ChannelId = message.Value.ChannelId,
-                    MessageId = message.Value.Id,
+                    MessageId = message.Value.MessageId,
                 });
             }
 
@@ -117,7 +117,7 @@ public class VerificationOrchestrator(
                     GuildId = parameters.GuildId,
                     DiscordUserId = parameters.DiscordUserId,
                     ChannelId = message.Value.ChannelId,
-                    MessageId = message.Value.Id,
+                    MessageId = message.Value.MessageId,
                 });
             }
 
@@ -160,7 +160,7 @@ public class VerificationOrchestrator(
         }
     }
 
-    private async Task<(ulong ChannelId, ulong Id)?> LogVerificationAsync(VerificationParameters parameters, uint hunterId, CancellationToken cancellationToken = default)
+    private async Task<LogMessageResult?> LogVerificationAsync(VerificationParameters parameters, uint hunterId, CancellationToken cancellationToken = default)
     {
         return await guildLoggingService.LogAsync(parameters.GuildId, LogType.Verification, new()
         {

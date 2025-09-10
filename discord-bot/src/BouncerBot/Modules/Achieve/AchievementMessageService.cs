@@ -26,7 +26,8 @@ public interface IAchievementMessageService
 
 public class AchievementMessageService(
     BouncerBotDbContext dbContext,
-    IGuildLoggingService guildLoggingService) : IAchievementMessageService
+    IGuildLoggingService guildLoggingService,
+    IReactionService reactionService) : IAchievementMessageService
 {
     public async Task SendAchievementMessageAsync(ulong userId, ulong guildId, AchievementRole achievement, CancellationToken cancellationToken = default)
     {
@@ -40,6 +41,10 @@ public class AchievementMessageService(
             Mention = $"<@{userId}>"
         });
 
-        await guildLoggingService.LogAchievementAsync(guildId, achievement, content, cancellationToken);
+        var logResult = await guildLoggingService.LogAchievementAsync(guildId, achievement, content, cancellationToken);
+        if (logResult is not null)
+        {
+            await reactionService.AddAchievementReactionAsync(logResult.Value.ChannelId, logResult.Value.MessageId, achievement, cancellationToken);
+        }
     }
 }

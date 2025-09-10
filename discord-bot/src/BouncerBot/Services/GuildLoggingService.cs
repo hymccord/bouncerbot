@@ -12,8 +12,8 @@ namespace BouncerBot.Services;
 
 public interface IGuildLoggingService
 {
-    Task<(ulong ChannelId, ulong Id)?> LogAsync(ulong guildId, LogType logType, MessageProperties message, CancellationToken cancellationToken = default);
-    Task LogAchievementAsync(ulong guildId, AchievementRole achievement, string content, CancellationToken cancellationToken = default);
+    Task<LogMessageResult?> LogAsync(ulong guildId, LogType logType, MessageProperties message, CancellationToken cancellationToken = default);
+    Task<LogMessageResult?> LogAchievementAsync(ulong guildId, AchievementRole achievement, string content, CancellationToken cancellationToken = default);
     Task LogErrorAsync(ulong guildId, string title, string content, CancellationToken cancellationToken = default);
     Task LogSuccessAsync(ulong guildId, string title, string content, CancellationToken cancellationToken = default);
     Task LogWarningAsync(ulong guildId, string title, string content, CancellationToken cancellationToken = default);
@@ -33,7 +33,7 @@ internal class GuildLoggingService(
     BouncerBotDbContext dbContext,
     IDiscordGatewayClient gatewayClient) : IGuildLoggingService
 {
-    public async Task<(ulong ChannelId, ulong Id)?> LogAsync(ulong guildId, LogType logType, MessageProperties message, CancellationToken cancellationToken = default)
+    public async Task<LogMessageResult?> LogAsync(ulong guildId, LogType logType, MessageProperties message, CancellationToken cancellationToken = default)
     {
         // no guild, no log
         if (!gatewayClient.Cache.Guilds.TryGetValue(guildId, out var guild))
@@ -63,7 +63,12 @@ internal class GuildLoggingService(
         try
         {
             var restMessage = await guildChannel.SendMessageAsync(message, cancellationToken: cancellationToken);
-            return (restMessage.ChannelId, restMessage.Id);
+
+            return new LogMessageResult
+            {
+                ChannelId = restMessage.ChannelId,
+                MessageId = restMessage.Id
+            };
         }
         catch (RestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
         {
@@ -73,18 +78,18 @@ internal class GuildLoggingService(
         return null;
     }
 
-    public async Task LogAchievementAsync(ulong guildId, AchievementRole achievement, string content, CancellationToken cancellationToken = default)
+    public async Task<LogMessageResult?> LogAchievementAsync(ulong guildId, AchievementRole achievement, string content, CancellationToken cancellationToken = default)
     {
         // no guild, no log
         if (!gatewayClient.Cache.Guilds.TryGetValue(guildId, out var guild))
         {
-            return;
+            return null;
         }
 
         var logSetting = await dbContext.LogSettings.FindAsync([guildId], cancellationToken: cancellationToken);
         if (logSetting is null)
         {
-            return;
+            return null;
         }
 
         var logChannelId = logSetting.AchievementId;
@@ -99,33 +104,43 @@ internal class GuildLoggingService(
         {
             logger.LogWarning("No log channel configured for achievement logging in guild {GuildId}. Trying to send '{Message}'", guildId, content);
 
-            return;
+            return null;
         }
 
         if (!TryGetGuildChannel<TextChannel>(guild, logChannelId.Value, out var guildChannel))
         {
             logger.LogWarning("Log channel {LogChannelId} not found in guild {GuildId}. Trying to send '{Message}'", logChannelId.Value, guildId, content);
-            return;
+            return null;
         }
 
         logger.LogInformation("Logging achievement '{Achievement}' to channel {LogChannelId} in guild {GuildId}: {Message}", achievement, logChannelId.Value, guildId, content);
 
         try
         {
-            await guildChannel.SendMessageAsync(new MessageProperties
+            var messageId = await guildChannel.SendMessageAsync(new MessageProperties
             {
-                Embeds = [
-                    new EmbedProperties()
-                        .WithDescription(content)
-                        .WithColor(new Color(options.Value.Colors.Success))
-                ],
+                Components = [
+                    new ComponentContainerProperties()
+                        .WithAccentColor(new Color(options.Value.Colors.Success))
+                        .AddComponents(
+                        new TextDisplayProperties(content))
+                    ],
+                Flags = MessageFlags.IsComponentsV2,
                 AllowedMentions = AllowedMentionsProperties.None,
             }, cancellationToken: cancellationToken);
+
+            return new LogMessageResult
+            {
+                ChannelId = messageId.ChannelId,
+                MessageId = messageId.Id
+            };
         }
         catch (RestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
         {
             logger.LogWarning(ex, "Failed to log achievement '{Achievement}' to channel {LogChannelId} in guild {GuildId}: {Message}", achievement, logChannelId.Value, guildId, content);
         }
+
+        return null;
     }
 
     public Task LogErrorAsync(ulong guildId, string title, string content, CancellationToken cancellationToken = default)
@@ -177,4 +192,10 @@ internal class GuildLoggingService(
         guildChannel = default;
         return false;
     }
+}
+
+public readonly struct LogMessageResult
+{
+    public required ulong ChannelId { get; init; }
+    public required ulong MessageId { get; init; }
 }
