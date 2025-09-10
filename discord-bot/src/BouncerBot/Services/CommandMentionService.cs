@@ -1,3 +1,4 @@
+using BouncerBot.Attributes;
 using NetCord;
 using NetCord.Services;
 using NetCord.Services.ApplicationCommands;
@@ -262,6 +263,11 @@ internal class CommandMentionService(
             {
                 permission = Permissions.ManageRoles;
             }
+        }
+
+        if (preconditions.OfType<RequireOwnerAttribute<ApplicationCommandContext>>().Any())
+        {
+            permission = Permissions.Administrator;
         }
 
         return permission;

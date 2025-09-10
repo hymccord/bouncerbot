@@ -1,5 +1,7 @@
 using BouncerBot.Attributes;
+using BouncerBot.Db;
 using BouncerBot.Services;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using NetCord;
 using NetCord.Rest;
@@ -8,7 +10,9 @@ using NetCord.Services.ApplicationCommands;
 namespace BouncerBot.Modules.Verification.Modules;
 
 [ManageRolesSlashCommand(VerificationModuleMetadata.ModuleName, VerificationModuleMetadata.ModuleDescription)]
-public class VerificationModule() : ApplicationCommandModule<ApplicationCommandContext>
+public class VerificationModule(
+    BouncerBotDbContext dbContext
+    ) : ApplicationCommandModule<ApplicationCommandContext>
 {
 #if DEBUG
     [SubSlashCommand("add", "Manually verify a MouseHunt ID and Discord user")]
@@ -34,6 +38,95 @@ public class VerificationModule() : ApplicationCommandModule<ApplicationCommandC
         }));
     }
 #endif
+
+    [SubSlashCommand("update-message", "Update a verification log message")]
+    public async Task UpdateVerificationEmbedAsync()
+    {
+        await RespondAsync(InteractionCallback.DeferredEphemeralMessage());
+
+        var rest = Context.Client.Rest;
+        var guildId = Context.Guild!.Id;
+
+        var logChannel = dbContext.LogSettings
+            .Where(x => x.GuildId == guildId)
+            .Select(x => x.VerificationId)
+            .FirstOrDefault();
+
+        if (logChannel is null)
+        {
+            await ModifyResponseAsync(x =>
+            {
+                x.Content = "Verification log channel is not set.";
+            });
+
+            return;
+        }
+
+        var guildVerifiedUsers = await dbContext.VerifiedUsers
+            .Include(vu => vu.VerifyMessage)
+            .OrderBy(vu => vu.VerifyMessageId)
+            .ToListAsync();
+
+        await ModifyResponseAsync(x =>
+        {
+            x.Content = $"Found {guildVerifiedUsers.Count} verified users.";
+        });
+
+        for (var i = 0; i < guildVerifiedUsers.Count; i++)
+        {
+            if (i % 10 == 0)
+            {
+                await ModifyResponseAsync(x =>
+                {
+                    x.Content = $"Updating verification messages... ({i}/{guildVerifiedUsers.Count})";
+                });
+            }
+
+            var verifiedUser = guildVerifiedUsers[i];
+            if (verifiedUser.VerifyMessage is null)
+            {
+                var newMessage = await rest.SendMessageAsync(logChannel.Value, new MessageProperties()
+                {
+                    Embeds = [
+                        new EmbedProperties()
+                            .WithDescription($"<@{verifiedUser.DiscordId}> {verifiedUser.DiscordId} is hunter [{verifiedUser.MouseHuntId}](<https://p.mshnt.ca/{verifiedUser.MouseHuntId}>)")
+                        ],
+                });
+
+                verifiedUser.VerifyMessage = new Db.Models.VerifyMessage
+                {
+                    ChannelId = logChannel.Value,
+                    MessageId = newMessage.Id,
+                };
+            }
+            else
+            {
+                try
+                {
+                    await rest.DeleteMessageAsync(logChannel.Value, verifiedUser.VerifyMessage.MessageId);
+
+                } catch (RestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+
+                }
+
+                var newMessage = await rest.SendMessageAsync(logChannel.Value, new MessageProperties()
+                {
+                    Embeds = [
+                        new EmbedProperties()
+                            .WithDescription($"<@{verifiedUser.DiscordId}> {verifiedUser.DiscordId} is hunter [{verifiedUser.MouseHuntId}](<https://p.mshnt.ca/{verifiedUser.MouseHuntId}>)")
+                        ],
+                });
+                verifiedUser.VerifyMessage.MessageId = newMessage.Id;
+            }
+        }
+
+        await dbContext.SaveChangesAsync();
+        await ModifyResponseAsync(x =>
+        {
+            x.Content = "done!";
+        });
+    }
 
     [SubSlashCommand(VerificationModuleMetadata.RemoveCommand.Name, VerificationModuleMetadata.RemoveCommand.Description)]
     public class VerifyRemoveModule(
