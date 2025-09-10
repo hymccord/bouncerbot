@@ -55,6 +55,7 @@ public class VerificationOrchestratorTests
         // Assert
         Assert.IsTrue(result.Success);
         await _verificationService.Received(1).AddVerifiedUserAsync(mhid, 789, 456);
+        await _roleService.Received(1).AddRoleAsync(456, 789, Role.Verified, default);
         await _verificationService.Received(1).SetVerificationMessageAsync(Arg.Is<SetVerificationMessageParameters>(p =>
             p.GuildId == 789 && p.DiscordUserId == 456 && p.ChannelId == 1001u && p.MessageId == 3u));
     }
@@ -82,6 +83,7 @@ public class VerificationOrchestratorTests
         await _guildLoggingService
             .Received(1)
             .LogWarningAsync(789, "Verification Blocked", Arg.Any<string>());
+        await _roleService.DidNotReceiveWithAnyArgs().AddRoleAsync(default, default, default, default);
     }
 
     [TestMethod]
@@ -106,6 +108,7 @@ public class VerificationOrchestratorTests
         Assert.IsFalse(result.Success);
         Assert.IsTrue(result.Message.Contains("Linking failed"));
         await _guildLoggingService.DidNotReceiveWithAnyArgs().LogAsync(default, default, default!, default);
+        await _roleService.DidNotReceiveWithAnyArgs().AddRoleAsync(default, default, default, default);
     }
 
     [TestMethod]
@@ -132,6 +135,7 @@ public class VerificationOrchestratorTests
         Assert.IsTrue(result.Success);
         Assert.IsTrue(result.Message.Contains("Verified"));
         await _verificationService.Received(1).AddVerifiedUserAsync(123, 789, 456, Arg.Any<CancellationToken>());
+        await _roleService.Received(1).AddRoleAsync(456, 789, Role.Verified, default);
         await _verificationService.Received(1).SetVerificationMessageAsync(Arg.Any<SetVerificationMessageParameters>());
     }
 
@@ -155,7 +159,9 @@ public class VerificationOrchestratorTests
         Assert.IsFalse(result.Success);
         Assert.IsTrue(result.Message.Contains("already verified"));
         await _verificationService.DidNotReceive().AddVerifiedUserAsync(Arg.Any<uint>(), Arg.Any<ulong>(), Arg.Any<ulong>(), Arg.Any<CancellationToken>());
+        await _roleService.DidNotReceiveWithAnyArgs().AddRoleAsync(default, default, default, default);
     }
+
 
     [TestMethod]
     public async Task ProcessVerificationAsync_Remove_UserVerified_RemovesAndReturnsSuccess()
@@ -179,6 +185,7 @@ public class VerificationOrchestratorTests
         Assert.IsTrue(result.Success);
         Assert.IsTrue(result.Message.Contains("Removed verification"));
         await _verificationService.Received(1).RemoveVerifiedUser(789, 456, Arg.Any<CancellationToken>());
+        await _roleService.Received(1).RemoveRoleAsync(456, 789, Role.Verified, default);
     }
 
     [TestMethod]
