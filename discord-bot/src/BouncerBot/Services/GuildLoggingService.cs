@@ -126,7 +126,6 @@ internal class GuildLoggingService(
                         new TextDisplayProperties(content))
                     ],
                 Flags = MessageFlags.IsComponentsV2,
-                AllowedMentions = AllowedMentionsProperties.None,
             }, cancellationToken: cancellationToken);
 
             return new LogMessageResult
