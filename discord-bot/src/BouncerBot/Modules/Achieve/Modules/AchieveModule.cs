@@ -61,7 +61,7 @@ public class AchieveModule(
             {
                 new ComponentContainerProperties()
                     .WithAccentColor(new Color(options.Value.Colors.Success))
-                    .AddTextDisplay($"Successfully granted the {achievement.Humanize()} achievement to <@{user.Id}.")
+                    .AddTextDisplay($"Successfully granted the {achievement.Humanize()} achievement to <@{user.Id}>.")
                     .Build(m);
                 m.AllowedMentions = AllowedMentionsProperties.None;
             });
@@ -72,7 +72,7 @@ public class AchieveModule(
             {
                 new ComponentContainerProperties()
                     .WithAccentColor(new Color(options.Value.Colors.Warning))
-                    .AddTextDisplay($"<@{user.Id} already has the {achievement.Humanize()} achievement.")
+                    .AddTextDisplay($"<@{user.Id}> already has the {achievement.Humanize()} achievement.")
                     .Build(m);
                 m.AllowedMentions = AllowedMentionsProperties.None;
             });
