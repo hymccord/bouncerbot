@@ -13,7 +13,7 @@ namespace BouncerBot.Modules.Verify.Modules;
 public class VerifyModule(
     IOptionsSnapshot<BouncerBotOptions> options,
     ICommandMentionService commandMentionService,
-    IRandomPhraseGenerator randomPhraseGenerator,
+    IVerificationPhraseGenerator randomPhraseGenerator,
     IRoleService roleService,
     IVerificationOrchestrator verificationOrchestrator,
     IVerificationService verificationService,
@@ -120,7 +120,7 @@ public class VerifyModule(
             return;
         }
 
-        var phrase = $"BouncerBot Verification: {randomPhraseGenerator.Generate()}";
+        var phrase = randomPhraseGenerator.Generate();
 
         IEnumerable<IMessageComponentProperties> messageComponent = [
             new ComponentContainerProperties()

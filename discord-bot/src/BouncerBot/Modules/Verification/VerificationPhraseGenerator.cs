@@ -4,7 +4,7 @@ using CrypticWizard.RandomWordGenerator;
 
 namespace BouncerBot.Modules.Verification;
 
-public interface IRandomPhraseGenerator
+public interface IVerificationPhraseGenerator
 {
     /// <summary>
     /// Generates a random phrase.
@@ -13,19 +13,20 @@ public interface IRandomPhraseGenerator
     string Generate(int numAdjectives = 2, int numNouns = 2);
 }
 
-public class RandomPhraseGenerator : IRandomPhraseGenerator
+public class VerificationPhraseGenerator : IVerificationPhraseGenerator
 {
+    public const string Preamble = "BouncerBot Verification:";
+
     private static readonly WordGenerator s_wordGenerator = new();
 
     public string Generate(int numAdjectives = 2, int numNouns = 2)
     {
-
         var adjectives = s_wordGenerator.GetWords(WordGenerator.PartOfSpeech.adj, numAdjectives);
         var nouns = s_wordGenerator.GetWords(WordGenerator.PartOfSpeech.noun, numNouns);
         var words = string.Join(' ', adjectives.Concat(nouns).Select(Capitalize));
 
         static string Capitalize(string word) => $"{char.ToUpper(word[0])}{word[1..]}";
 
-        return words;
+        return $"{Preamble} {words}";
     }
 }

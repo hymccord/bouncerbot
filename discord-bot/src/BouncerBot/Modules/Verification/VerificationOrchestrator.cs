@@ -33,7 +33,7 @@ public class VerificationOrchestrator(
         var latestMessage = (await mouseHuntRestClient.GetCorkboardAsync(parameters.MouseHuntId, cancellationToken)).CorkboardMessages.FirstOrDefault();
 
         var snuidMatch = snuid.SnUserId == latestMessage?.SnUserId;
-        var phraseMatch = latestMessage?.Body == parameters.Phrase;
+        var phraseMatch = latestMessage?.Body == parameters.Phrase!;
         if (snuidMatch && phraseMatch)
         {
             var result = await verificationService.AddVerifiedUserAsync(parameters.MouseHuntId, parameters.GuildId, parameters.DiscordUserId, cancellationToken);
@@ -75,6 +75,21 @@ public class VerificationOrchestrator(
                 :warning: <@{parameters.DiscordUserId}> wrote a verification phrase on a profile that isn't theirs. :warning:
                 Profile SnuId: {snuid.SnUserId}, Corkboard Author SnuId: {latestMessage?.SnUserId}",
                 """, cancellationToken);
+        }
+
+        // Trim the preamble to see if they put the random words
+        var justWords = parameters.Phrase!.Replace(VerificationPhraseGenerator.Preamble, "").Trim();
+        if (snuidMatch && latestMessage?.Body == justWords)
+        {
+            return new VerificationResult
+            {
+                Success = false,
+                Message = $"""
+                    It looks like you forgot to include the preamble (`{VerificationPhraseGenerator.Preamble}`) in your corkboard message.
+
+                    Please try again!
+                    """,
+            };
         }
 
         return new VerificationResult
