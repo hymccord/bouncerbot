@@ -131,6 +131,24 @@ public partial class ConfigModule
                 ));
         }
 
+        if (setting?.HasFlag(SettingType.VerifyRank) ?? true)
+        {
+            var minRank = await configService.GetVerifyRankAsync(guildId);
+            var emoji = emojiService.GetTitleShieldEmoji(minRank);
+
+            components.Add(new ComponentContainerProperties()
+                .WithAccentColor(new(options.Value.Colors.Primary))
+                .AddComponents(
+                    new TextDisplayProperties("## Verification"),
+                    new ComponentSeparatorProperties()
+                        .WithDivider()
+                        .WithSpacing(ComponentSeparatorSpacingSize.Small),
+                    new TextDisplayProperties($"""
+                        - Min Rank: {emoji} {minRank.Humanize()}
+                        """)
+                ));
+        }
+
         await RespondAsync(InteractionCallback.Message(new InteractionMessageProperties()
         {
             Components = components,

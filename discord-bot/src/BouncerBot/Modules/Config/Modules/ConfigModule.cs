@@ -1,5 +1,7 @@
 using BouncerBot;
 using BouncerBot.Attributes;
+using BouncerBot.Modules.RankRole;
+using BouncerBot.Services;
 using Humanizer;
 
 using Microsoft.Extensions.Options;
@@ -13,7 +15,8 @@ namespace BouncerBot.Modules.Config.Modules;
 [ManageRolesSlashCommand(ConfigModuleMetadata.ModuleName, ConfigModuleMetadata.ModuleDescription)]
 public partial class ConfigModule(
     IOptionsSnapshot<BouncerBotOptions> options,
-    IConfigService configService)
+    IConfigService configService,
+    IMouseHuntEmojiService emojiService)
     : ApplicationCommandModule<ApplicationCommandContext>
 {
 

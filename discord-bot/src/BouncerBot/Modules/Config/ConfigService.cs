@@ -12,6 +12,7 @@ public interface IConfigService
     Task<ulong?> GetAchievementLogChannelAsync(ulong guildId, AchievementRole achievementRole);
     Task<string?> GetAchievementMessageAsync(ulong guildId, AchievementRole role);
     Task<ulong?> GetRoleIdAsync(ulong guildId, Role role);
+    Task<Rank> GetVerifyRankAsync(ulong guildId);
 
     Task SetLogChannelSettingAsync(ulong guildId, LogChannel channel, ulong? channelId);
     Task SetAchievementLogChannelAsync(ulong guildId, AchievementRole achievementRole, ulong? channelId);
@@ -113,6 +114,12 @@ public class ConfigService(BouncerBotDbContext dbContext) : IConfigService
         }
 
         await dbContext.SaveChangesAsync();
+    }
+
+    public async Task<Rank> GetVerifyRankAsync(ulong guildId)
+    {
+        var setting = await dbContext.VerifySettings.FindAsync(guildId);
+        return setting?.MinimumRank ?? Rank.Apprentice;
     }
 
     public async Task SetVerifyRankAsync(ulong id, Rank minRank)
