@@ -11,11 +11,11 @@ internal class HumanizedEnumTypeReader<T> : SlashCommandTypeReader<ApplicationCo
 {
     public override ApplicationCommandOptionType Type => ApplicationCommandOptionType.Integer;
 
-    public override ValueTask<TypeReaderResult> ReadAsync(string value, ApplicationCommandContext context, SlashCommandParameter<ApplicationCommandContext> parameter, ApplicationCommandServiceConfiguration<ApplicationCommandContext> configuration, IServiceProvider? serviceProvider)
+    public override ValueTask<SlashCommandTypeReaderResult> ReadAsync(string value, ApplicationCommandContext context, SlashCommandParameter<ApplicationCommandContext> parameter, ApplicationCommandServiceConfiguration<ApplicationCommandContext> configuration, IServiceProvider? serviceProvider)
     {
         return ulong.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var result)
-            ? new(TypeReaderResult.Success((T)Enum.ToObject(typeof(T), result)))
-            : new(TypeReaderResult.ParseFail(parameter.Name));
+            ? new(SlashCommandTypeReaderResult.Success((T)Enum.ToObject(typeof(T), result)))
+            : new(SlashCommandTypeReaderResult.ParseFail(parameter.Name));
     }
 
     public override Type? AutocompleteProviderType => typeof(HumanizedEnumAutocompleteProvider<T>);
