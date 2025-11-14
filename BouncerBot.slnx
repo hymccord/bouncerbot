@@ -5,6 +5,7 @@
   <Folder Name="/Solution Items/">
     <File Path="discord-bot/.editorconfig" />
     <File Path="discord-bot/Directory.Packages.props" />
+    <File Path="global.json" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="discord-bot/src/BouncerBot/BouncerBot.csproj" />
