@@ -106,7 +106,7 @@ public class VerificationOrchestratorTests
 
         // Assert
         Assert.IsFalse(result.Success);
-        Assert.IsTrue(result.Message.Contains("Linking failed"));
+        Assert.Contains("Linking failed", result.Message);
         await _guildLoggingService.DidNotReceiveWithAnyArgs().LogAsync(default, default, default!, default);
         await _roleService.DidNotReceiveWithAnyArgs().AddRoleAsync(default, default, default, default);
     }
@@ -133,7 +133,7 @@ public class VerificationOrchestratorTests
 
         // Assert
         Assert.IsTrue(result.Success);
-        Assert.IsTrue(result.Message.Contains("Verified"));
+        Assert.Contains("Verified", result.Message);
         await _verificationService.Received(1).AddVerifiedUserAsync(123, 789, 456, Arg.Any<CancellationToken>());
         await _roleService.Received(1).AddRoleAsync(456, 789, Role.Verified, default);
         await _verificationService.Received(1).SetVerificationMessageAsync(Arg.Any<SetVerificationMessageParameters>());
@@ -157,7 +157,7 @@ public class VerificationOrchestratorTests
 
         // Assert
         Assert.IsFalse(result.Success);
-        Assert.IsTrue(result.Message.Contains("already verified"));
+        Assert.Contains("already verified", result.Message);
         await _verificationService.DidNotReceive().AddVerifiedUserAsync(Arg.Any<uint>(), Arg.Any<ulong>(), Arg.Any<ulong>(), Arg.Any<CancellationToken>());
         await _roleService.DidNotReceiveWithAnyArgs().AddRoleAsync(default, default, default, default);
     }
@@ -183,7 +183,7 @@ public class VerificationOrchestratorTests
 
         // Assert
         Assert.IsTrue(result.Success);
-        Assert.IsTrue(result.Message.Contains("Removed verification"));
+        Assert.Contains("Removed verification", result.Message);
         await _verificationService.Received(1).RemoveVerifiedUser(789, 456, Arg.Any<CancellationToken>());
         await _roleService.Received(1).RemoveRoleAsync(456, 789, Role.Verified, default);
     }
@@ -206,7 +206,7 @@ public class VerificationOrchestratorTests
 
         // Assert
         Assert.IsFalse(result.Success);
-        Assert.IsTrue(result.Message.Contains("not verified"));
+        Assert.Contains("not verified", result.Message);
         await _verificationService.DidNotReceive().RemoveVerifiedUser(Arg.Any<ulong>(), Arg.Any<ulong>(), Arg.Any<CancellationToken>());
     }
 

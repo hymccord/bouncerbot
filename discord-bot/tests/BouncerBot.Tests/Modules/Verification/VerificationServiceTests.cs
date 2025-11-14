@@ -191,7 +191,7 @@ public class VerificationServiceTests
 
         // Assert
         Assert.IsFalse(result.CanVerify);
-        Assert.IsTrue(result.Message.Contains("VF-2156-B3"));
+        Assert.Contains("VF-2156-B3", result.Message);
         await _mockGuildLoggingService.Received(1).LogErrorAsync(TestGuildId, "Verification Blocked", Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
@@ -214,7 +214,7 @@ public class VerificationServiceTests
 
         // Assert
         Assert.IsFalse(result.CanVerify);
-        Assert.IsTrue(result.Message.Contains("VF-8429-A7"));
+        Assert.Contains("VF-8429-A7", result.Message);
         await _mockGuildLoggingService.Received(1).LogWarningAsync(TestGuildId, "Verification Blocked", Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
@@ -238,8 +238,8 @@ public class VerificationServiceTests
 
         // Assert
         Assert.IsFalse(result.CanVerify);
-        Assert.IsTrue(result.Message.Contains("You previously verified a different MouseHunt ID"));
-        Assert.IsTrue(result.Message.Contains(TestCommandMention));
+        Assert.Contains("You previously verified a different MouseHunt ID", result.Message);
+        Assert.Contains(TestCommandMention, result.Message);
         await _mockGuildLoggingService.Received(1).LogWarningAsync(TestGuildId, "Verification Blocked", Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
@@ -263,7 +263,7 @@ public class VerificationServiceTests
 
         // Assert
         Assert.IsFalse(result.CanVerify);
-        Assert.IsTrue(result.Message.Contains("VF-9518-C3"));
+        Assert.Contains("VF-9518-C3", result.Message);
         await _mockGuildLoggingService.Received(1).LogWarningAsync(TestGuildId, "Verification Blocked", Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
@@ -278,7 +278,7 @@ public class VerificationServiceTests
 
         // Assert
         Assert.IsFalse(result.CanVerify);
-        Assert.IsTrue(result.Message.Contains("Rank up to **Master**"));
+        Assert.Contains("Rank up to **Master**", result.Message);
         await _mockGuildLoggingService.Received(1).LogWarningAsync(TestGuildId, "Verification Blocked", Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
