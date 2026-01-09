@@ -6,6 +6,7 @@ using BouncerBot.Modules.Verify.Modules;
 using BouncerBot.Rest;
 using BouncerBot.Services;
 
+using Humanizer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -57,7 +58,7 @@ public class ClaimModule(
             .FirstOrDefaultAsync(vu => vu.DiscordId == Context.User.Id && vu.GuildId == Context.Guild!.Id))?.MouseHuntId;
 
         var container = new ComponentContainerProperties();
-        
+
         // Sanity check, precondition should handle this
         if (mhId is null)
         {
@@ -97,14 +98,15 @@ public class ClaimModule(
 
         try
         {
-            var achieved = await ((@private ?? false)
+            var claimResult = await ((@private ?? false)
                 ? achievementRoleOrchestrator.ProcessAchievementSilentlyAsync(mhId.Value, Context.User.Id, Context.Guild!.Id, achievement)
                 : achievementRoleOrchestrator.ProcessAchievementAsync(mhId.Value, Context.User.Id, Context.Guild!.Id, achievement));
-            switch (achieved)
+            switch (claimResult.Result)
             {
                 case ClaimResult.NotAchieved:
                     {
                         var randomRejectionPhrase = s_rejectionPhrases[Random.Shared.Next(s_rejectionPhrases.Length)];
+                        var progressText = AchievementProgressFormatter.GetProgressText(claimResult.Progress);
 
                         await ModifyResponseAsync(m =>
                         {
@@ -114,7 +116,8 @@ public class ClaimModule(
                             new TextDisplayProperties($"""
                             {randomRejectionPhrase}
 
-                            -# Hint: You are missing some requirements to claim this achievement. Make sure you have completed all the necessary tasks before trying again.
+                            -# Hint: Complete the missing requirements to claim this achievement.
+                            {progressText}
                             """
                         ))];
                             m.Flags = MessageFlags.Ephemeral | MessageFlags.IsComponentsV2;

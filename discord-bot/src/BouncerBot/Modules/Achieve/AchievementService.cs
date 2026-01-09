@@ -1,13 +1,12 @@
 using BouncerBot.Rest;
 using BouncerBot.Services;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
 namespace BouncerBot.Modules.Achieve;
 
 public interface IAchievementService
 {
-    Task<bool> HasAchievementAsync(uint mhId, AchievementRole achievement, CancellationToken cancellationToken = default);
+    Task<AchievementProgress> HasAchievementAsync(uint mhId, AchievementRole achievement, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -21,11 +20,20 @@ public class AchievementService(
     IMouseHuntRestClient mouseHuntClient,
     IMouseRipService mouseRipService) : IAchievementService
 {
-    public async Task<bool> HasAchievementAsync(uint mhId, AchievementRole achievement, CancellationToken cancellationToken = default)
+    public async Task<AchievementProgress> HasAchievementAsync(uint mhId, AchievementRole achievement, CancellationToken cancellationToken = default)
     {
         if (options.Value.Debug.DisableAchievementCheck)
         {
-            return true;
+            // Return a completed progress object when checks are disabled
+            return achievement switch
+            {
+                AchievementRole.Checkmark => new CheckmarkProgress { IsComplete = true, CompletedCategories = 1, TotalCategories = 1, IncompleteCategories = [] },
+                AchievementRole.Crown => new CrownProgress { IsComplete = true, MiceWithCrown = 1, TotalMice = 1, MissingMice = [] },
+                AchievementRole.Star => new StarProgress { IsComplete = true, CompletedLocations = 1, TotalLocations = 1, IncompleteLocations = [] },
+                AchievementRole.EggMaster => new EggMasterProgress { IsComplete = true },
+                AchievementRole.Fabled => new FabledProgress { IsComplete = true, CurrentRank = Rank.Fabled },
+                _ => new PowerTypeMasterProgress { IsComplete = true, PowerType = PowerType.Physical, MiceWithMastery = 1, TotalMice = 1, MissingMice = [] }
+            };
         }
 
         return achievement switch
@@ -50,39 +58,85 @@ public class AchievementService(
     }
 
     // If you've got all five checkmarks (Weapons, Bases, Maps, Collectibles, Skins)
-    private async Task<bool> HasCheckmarkAsync(uint mhId, CancellationToken cancellationToken = default)
+    private async Task<CheckmarkProgress> HasCheckmarkAsync(uint mhId, CancellationToken cancellationToken = default)
     {
         var data = await mouseHuntClient.GetUserProfileItems(mhId, cancellationToken);
 
-        return data.Categories.All(c => c.IsComplete ?? false);
+        var completed = (uint)data.Categories.Count(c => c.IsComplete ?? false);
+        var total = (uint)data.Categories.Length;
+        var incompleteCategories = data.Categories
+            .Where(c => !(c.IsComplete ?? false))
+            .Select(c => c.Name)
+            .ToList();
+
+        return new CheckmarkProgress
+        {
+            IsComplete = completed == total,
+            CompletedCategories = completed,
+            TotalCategories = total,
+            IncompleteCategories = incompleteCategories
+        };
     }
 
     // Egg Master Achievement: Collect all SEH eggs
-    private async Task<bool> HasEggMasterAsync(uint mhId, CancellationToken cancellationToken = default)
+    private async Task<EggMasterProgress> HasEggMasterAsync(uint mhId, CancellationToken cancellationToken = default)
     {
-        return await mouseHuntClient.IsEggMaster(mhId, cancellationToken);
+        var isComplete = await mouseHuntClient.IsEggMaster(mhId, cancellationToken);
+        return new EggMasterProgress
+        {
+            IsComplete = isComplete,
+        };
     }
 
-    // If you've got all five checkmarks (Weapons, Bases, Maps, Collectibles, Skins)
-    private async Task<bool> HasCrownAsync(uint mhId, CancellationToken cancellationToken = default)
+    // If you've got all 10+ catches on all mice (excluding Leppy and Mobster)
+    private async Task<CrownProgress> HasCrownAsync(uint mhId, CancellationToken cancellationToken = default)
     {
         var data = await mouseHuntClient.GetUserMiceAsync(mhId, cancellationToken);
+        var mouseNames = await GetMouseNames();
 
-        return data.Mice
+        var relevantMice = data.Mice
             // Filter out Leppy and Mobster
             .Where(m => m.MouseId != 113 && m.MouseId != 128)
-            .All(m => m.NumCatches >= 10);
+            .ToList();
+
+        var miceWithCrown = (uint)relevantMice.Count(m => m.NumCatches >= 10);
+        var totalMice = (uint)relevantMice.Count;
+        var missingMice = relevantMice
+            .Where(m => m.NumCatches < 10)
+            .OrderByDescending(m => m.NumCatches)
+            .ToDictionary(m => mouseNames.GetValueOrDefault(m.MouseId, $"Mouse #{m.MouseId}"), m => m.NumCatches);
+
+        return new CrownProgress
+        {
+            IsComplete = miceWithCrown == totalMice,
+            MiceWithCrown = miceWithCrown,
+            TotalMice = totalMice,
+            MissingMice = missingMice
+        };
     }
 
     // If you've got three stars in all locations (meaning you've caught all mice available while in that location)
-    private async Task<bool> HasStarAsync(uint mhId, CancellationToken cancellationToken = default)
+    private async Task<StarProgress> HasStarAsync(uint mhId, CancellationToken cancellationToken = default)
     {
         var data = await mouseHuntClient.GetUserLocationStatsAsync(mhId, cancellationToken);
 
-        return data.Categories.All(c => c.IsComplete ?? false);
+        var completed = (uint)data.Categories.Count(c => c.IsComplete ?? false);
+        var total = (uint)data.Categories.Length;
+        var incompleteLocations = data.Categories
+            .Where(c => !(c.IsComplete ?? false))
+            .Select(c => c.Name)
+            .ToList();
+
+        return new StarProgress
+        {
+            IsComplete = completed == total,
+            CompletedLocations = completed,
+            TotalLocations = total,
+            IncompleteLocations = incompleteLocations
+        };
     }
 
-    private async Task<bool> HasFabledRank(uint mhId, CancellationToken cancellationToken = default)
+    private async Task<FabledProgress> HasFabledRank(uint mhId, CancellationToken cancellationToken = default)
     {
         var titles = await mouseHuntClient.GetTitlesAsync(cancellationToken)
             ?? throw new Exception("Failed to fetch titles from MouseHunt API");
@@ -90,18 +144,48 @@ public class AchievementService(
         var userTitle = await mouseHuntClient.GetUserTitleAsync(mhId, cancellationToken)
             ?? throw new Exception("Failed to fetch user title from MouseHunt API");
 
-        return titles.Single(t => t.TitleId == userTitle.TitleId).Name == Rank.Fabled;
+        var currentRankName = titles.Single(t => t.TitleId == userTitle.TitleId).Name;
+        var isComplete = currentRankName == Rank.Fabled;
+
+        return new FabledProgress
+        {
+            IsComplete = isComplete,
+            CurrentRank = currentRankName,
+        };
     }
 
     // Every mouse of given powertype has 100 catches
-    private async Task<bool> HasPowerTypeMastery(uint mhId, PowerType powerType, CancellationToken cancellationToken = default)
+    private async Task<PowerTypeMasterProgress> HasPowerTypeMastery(uint mhId, PowerType powerType, CancellationToken cancellationToken = default)
     {
         var miceClassifications = await GetMiceClassifications();
+        var mouseNames = await GetMouseNames();
         var userMice = await mouseHuntClient.GetUserMiceAsync(mhId, cancellationToken);
 
-        return userMice.Mice
+        var relevantMice = userMice.Mice
             .Where(m => miceClassifications[m.MouseId] == powerType)
-            .All(m => m.NumCatches >= 100);
+            .ToList();
+
+        var miceWithMastery = (uint)relevantMice.Count(m => m.NumCatches >= 100);
+        var totalMice = (uint)relevantMice.Count;
+        var missingMice = relevantMice
+            .Where(m => m.NumCatches < 100)
+            .OrderByDescending(m => m.NumCatches)
+            .ToDictionary(m => mouseNames.GetValueOrDefault(m.MouseId, $"Mouse #{m.MouseId}"), m => m.NumCatches);
+
+        return new PowerTypeMasterProgress
+        {
+            IsComplete = miceWithMastery == totalMice,
+            PowerType = powerType,
+            MiceWithMastery = miceWithMastery,
+            TotalMice = totalMice,
+            MissingMice = missingMice
+        };
+    }
+
+    private async Task<Dictionary<uint, string>> GetMouseNames()
+    {
+        var data = await mouseRipService.GetAllMiceAsync() ?? throw new InvalidOperationException("Failed to retrieve mice from api.mouse.rip.");
+        return data.ToDictionary(m => m.Id, m => m.Name);
     }
 
     private async Task<Dictionary<uint, PowerType>> GetMiceClassifications()

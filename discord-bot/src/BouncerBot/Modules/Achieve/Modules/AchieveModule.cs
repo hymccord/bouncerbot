@@ -21,13 +21,17 @@ public class AchieveModule(
     {
         await RespondAsync(InteractionCallback.DeferredEphemeralMessage());
 
-        var hasAchievement = await achievementService.HasAchievementAsync(hunterID, achievement);
+        var progress = await achievementService.HasAchievementAsync(hunterID, achievement);
+
+        var statusEmoji = progress.IsComplete ? "✅" : "❌";
+        var progressText = AchievementProgressFormatter.GetProgressText(progress);
 
         var content = $"""
             Hunter ID: {hunterID}
             Achievement: {achievement.Humanize()}
 
-            Status: {(hasAchievement ? "✅" : "❌")}
+            Status: {statusEmoji}
+            {progressText}
             """;
         await ModifyResponseAsync(m =>
         {

@@ -4,11 +4,13 @@ using NetCord;
 
 namespace BouncerBot.Modules.Achieve;
 
+public record ClaimResultWithProgress(ClaimResult Result, AchievementProgress? Progress);
+
 public interface IAchievementRoleOrchestrator
 {
     Task<ClaimResult> GrantAchievementAsync(ulong userId, ulong guildId, AchievementRole achievement, NotificationMode notificationMode, CancellationToken cancellationToken = default);
-    Task<ClaimResult> ProcessAchievementAsync(uint mhid, ulong userId, ulong guildId, AchievementRole achievement, CancellationToken cancellationToken = default);
-    Task<ClaimResult> ProcessAchievementSilentlyAsync(uint mhid, ulong userId, ulong guildId, AchievementRole achievement, CancellationToken cancellationToken = default);
+    Task<ClaimResultWithProgress> ProcessAchievementAsync(uint mhid, ulong userId, ulong guildId, AchievementRole achievement, CancellationToken cancellationToken = default);
+    Task<ClaimResultWithProgress> ProcessAchievementSilentlyAsync(uint mhid, ulong userId, ulong guildId, AchievementRole achievement, CancellationToken cancellationToken = default);
     Task ResetAchievementAsync(ulong guildId, AchievementRole achievement, Func<int, int, Task> progress, CancellationToken cancellationToken = default);
 }
 
@@ -25,14 +27,16 @@ public class AchievementRoleOrchestrator(
     IAchievementMessageService achievementMessageService,
     IDiscordGatewayClient gatewayClient) : IAchievementRoleOrchestrator
 {
-    public async Task<ClaimResult> ProcessAchievementAsync(uint mhid, ulong userId, ulong guildId, AchievementRole achievement, CancellationToken cancellationToken = default)
+    public async Task<ClaimResultWithProgress> ProcessAchievementAsync(uint mhid, ulong userId, ulong guildId, AchievementRole achievement, CancellationToken cancellationToken = default)
     {
-        if (!await achievementService.HasAchievementAsync(mhid, achievement, cancellationToken))
+        var progress = await achievementService.HasAchievementAsync(mhid, achievement, cancellationToken);
+        if (!progress.IsComplete)
         {
-            return ClaimResult.NotAchieved;
+            return new ClaimResultWithProgress(ClaimResult.NotAchieved, progress);
         }
 
-        return await AssignRoleIfNotHasAsync(userId, guildId, achievement, notification: NotificationMode.SendMessage, cancellationToken);
+        var result = await AssignRoleIfNotHasAsync(userId, guildId, achievement, notification: NotificationMode.SendMessage, cancellationToken);
+        return new ClaimResultWithProgress(result, progress);
     }
 
     public async Task<ClaimResult> GrantAchievementAsync(ulong userId, ulong guildId, AchievementRole achievement, NotificationMode notificationMode, CancellationToken cancellationToken = default)
@@ -40,14 +44,16 @@ public class AchievementRoleOrchestrator(
         return await AssignRoleIfNotHasAsync(userId, guildId, achievement, notificationMode, cancellationToken);
     }
 
-    public async Task<ClaimResult> ProcessAchievementSilentlyAsync(uint mhid, ulong userId, ulong guildId, AchievementRole achievement, CancellationToken cancellationToken = default)
+    public async Task<ClaimResultWithProgress> ProcessAchievementSilentlyAsync(uint mhid, ulong userId, ulong guildId, AchievementRole achievement, CancellationToken cancellationToken = default)
     {
-        if (!await achievementService.HasAchievementAsync(mhid, achievement, cancellationToken))
+        var progress = await achievementService.HasAchievementAsync(mhid, achievement, cancellationToken);
+        if (!progress.IsComplete)
         {
-            return ClaimResult.NotAchieved;
+            return new ClaimResultWithProgress(ClaimResult.NotAchieved, progress);
         }
 
-        return await AssignRoleIfNotHasAsync(userId, guildId, achievement, notification: NotificationMode.Silent, cancellationToken);
+        var result = await AssignRoleIfNotHasAsync(userId, guildId, achievement, notification: NotificationMode.Silent, cancellationToken);
+        return new ClaimResultWithProgress(result, progress);
     }
 
     public async Task ResetAchievementAsync(ulong guildId, AchievementRole achievement, Func<int, int, Task> progress, CancellationToken cancellationToken = default)

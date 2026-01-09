@@ -43,7 +43,7 @@ public class AchievementRoleOrchestratorTests
     {
         // Arrange
         _achievementService.HasAchievementAsync(TestMhid, TestAchievement, Arg.Any<CancellationToken>())
-            .Returns(true);
+            .Returns(new StarProgress { IsComplete = true, CompletedLocations = 10, TotalLocations = 10, IncompleteLocations = [] });
         _roleService.HasRoleAsync(TestUserId, TestGuildId, Arg.Any<Role>())
             .Returns(false);
 
@@ -51,7 +51,9 @@ public class AchievementRoleOrchestratorTests
         var result = await _orchestrator.ProcessAchievementAsync(TestMhid, TestUserId, TestGuildId, TestAchievement);
 
         // Assert
-        Assert.AreEqual(ClaimResult.Success, result);
+        Assert.AreEqual(ClaimResult.Success, result.Result);
+        Assert.IsNotNull(result.Progress);
+        Assert.IsTrue(result.Progress.IsComplete);
         await _roleService.Received(1).AddRoleAsync(TestUserId, TestGuildId, Arg.Any<Role>(), Arg.Any<CancellationToken>());
         await _achievementMessageService.Received(1).SendAchievementMessageAsync(TestUserId, TestGuildId, TestAchievement, Arg.Any<CancellationToken>());
     }
@@ -61,7 +63,7 @@ public class AchievementRoleOrchestratorTests
     {
         // Arrange
         _achievementService.HasAchievementAsync(TestMhid, TestAchievement, Arg.Any<CancellationToken>())
-            .Returns(true);
+            .Returns(new StarProgress { IsComplete = true, CompletedLocations = 10, TotalLocations = 10, IncompleteLocations = [] });
         _roleService.HasRoleAsync(TestUserId, TestGuildId, Arg.Any<Role>())
             .Returns(true);
 
@@ -69,7 +71,8 @@ public class AchievementRoleOrchestratorTests
         var result = await _orchestrator.ProcessAchievementAsync(TestMhid, TestUserId, TestGuildId, TestAchievement);
 
         // Assert
-        Assert.AreEqual(ClaimResult.AlreadyHasRole, result);
+        Assert.AreEqual(ClaimResult.AlreadyHasRole, result.Result);
+        Assert.IsNotNull(result.Progress);
         await _roleService.DidNotReceive().AddRoleAsync(Arg.Any<ulong>(), Arg.Any<ulong>(), Arg.Any<Role>(), Arg.Any<CancellationToken>());
         await _achievementMessageService.DidNotReceive().SendAchievementMessageAsync(Arg.Any<ulong>(), Arg.Any<ulong>(), Arg.Any<AchievementRole>(), Arg.Any<CancellationToken>());
     }
@@ -79,13 +82,15 @@ public class AchievementRoleOrchestratorTests
     {
         // Arrange
         _achievementService.HasAchievementAsync(TestMhid, TestAchievement, Arg.Any<CancellationToken>())
-            .Returns(false);
+            .Returns(new StarProgress { IsComplete = false, CompletedLocations = 5, TotalLocations = 10, IncompleteLocations = ["Location1", "Location2", "Location3", "Location4", "Location5"] });
 
         // Act
         var result = await _orchestrator.ProcessAchievementAsync(TestMhid, TestUserId, TestGuildId, TestAchievement);
 
         // Assert
-        Assert.AreEqual(ClaimResult.NotAchieved, result);
+        Assert.AreEqual(ClaimResult.NotAchieved, result.Result);
+        Assert.IsNotNull(result.Progress);
+        Assert.IsFalse(result.Progress.IsComplete);
         await _roleService.DidNotReceive().HasRoleAsync(Arg.Any<ulong>(), Arg.Any<ulong>(), Arg.Any<Role>());
         await _roleService.DidNotReceive().AddRoleAsync(Arg.Any<ulong>(), Arg.Any<ulong>(), Arg.Any<Role>(), Arg.Any<CancellationToken>());
         await _achievementMessageService.DidNotReceive().SendAchievementMessageAsync(Arg.Any<ulong>(), Arg.Any<ulong>(), Arg.Any<AchievementRole>(), Arg.Any<CancellationToken>());
@@ -144,7 +149,7 @@ public class AchievementRoleOrchestratorTests
     {
         // Arrange
         _achievementService.HasAchievementAsync(TestMhid, TestAchievement, Arg.Any<CancellationToken>())
-            .Returns(true);
+            .Returns(new StarProgress { IsComplete = true, CompletedLocations = 10, TotalLocations = 10, IncompleteLocations = [] });
         _roleService.HasRoleAsync(TestUserId, TestGuildId, Arg.Any<Role>())
             .Returns(false);
 
@@ -152,7 +157,8 @@ public class AchievementRoleOrchestratorTests
         var result = await _orchestrator.ProcessAchievementSilentlyAsync(TestMhid, TestUserId, TestGuildId, TestAchievement);
 
         // Assert
-        Assert.AreEqual(ClaimResult.Success, result);
+        Assert.AreEqual(ClaimResult.Success, result.Result);
+        Assert.IsNotNull(result.Progress);
         await _roleService.Received(1).AddRoleAsync(TestUserId, TestGuildId, Arg.Any<Role>(), Arg.Any<CancellationToken>());
         await _achievementMessageService.DidNotReceive().SendAchievementMessageAsync(Arg.Any<ulong>(), Arg.Any<ulong>(), Arg.Any<AchievementRole>(), Arg.Any<CancellationToken>());
     }
@@ -162,7 +168,7 @@ public class AchievementRoleOrchestratorTests
     {
         // Arrange
         _achievementService.HasAchievementAsync(TestMhid, TestAchievement, Arg.Any<CancellationToken>())
-            .Returns(true);
+            .Returns(new StarProgress { IsComplete = true, CompletedLocations = 10, TotalLocations = 10, IncompleteLocations = [] });
         _roleService.HasRoleAsync(TestUserId, TestGuildId, Arg.Any<Role>())
             .Returns(true);
 
@@ -170,7 +176,8 @@ public class AchievementRoleOrchestratorTests
         var result = await _orchestrator.ProcessAchievementSilentlyAsync(TestMhid, TestUserId, TestGuildId, TestAchievement);
 
         // Assert
-        Assert.AreEqual(ClaimResult.AlreadyHasRole, result);
+        Assert.AreEqual(ClaimResult.AlreadyHasRole, result.Result);
+        Assert.IsNotNull(result.Progress);
         await _roleService.DidNotReceive().AddRoleAsync(Arg.Any<ulong>(), Arg.Any<ulong>(), Arg.Any<Role>(), Arg.Any<CancellationToken>());
         await _achievementMessageService.DidNotReceive().SendAchievementMessageAsync(Arg.Any<ulong>(), Arg.Any<ulong>(), Arg.Any<AchievementRole>(), Arg.Any<CancellationToken>());
     }
@@ -180,13 +187,15 @@ public class AchievementRoleOrchestratorTests
     {
         // Arrange
         _achievementService.HasAchievementAsync(TestMhid, TestAchievement, Arg.Any<CancellationToken>())
-            .Returns(false);
+            .Returns(new StarProgress { IsComplete = false, CompletedLocations = 5, TotalLocations = 10, IncompleteLocations = ["Location1", "Location2", "Location3", "Location4", "Location5"] });
 
         // Act
         var result = await _orchestrator.ProcessAchievementSilentlyAsync(TestMhid, TestUserId, TestGuildId, TestAchievement);
 
         // Assert
-        Assert.AreEqual(ClaimResult.NotAchieved, result);
+        Assert.AreEqual(ClaimResult.NotAchieved, result.Result);
+        Assert.IsNotNull(result.Progress);
+        Assert.IsFalse(result.Progress.IsComplete);
         await _roleService.DidNotReceive().HasRoleAsync(Arg.Any<ulong>(), Arg.Any<ulong>(), Arg.Any<Role>());
         await _roleService.DidNotReceive().AddRoleAsync(Arg.Any<ulong>(), Arg.Any<ulong>(), Arg.Any<Role>(), Arg.Any<CancellationToken>());
         await _achievementMessageService.DidNotReceive().SendAchievementMessageAsync(Arg.Any<ulong>(), Arg.Any<ulong>(), Arg.Any<AchievementRole>(), Arg.Any<CancellationToken>());
@@ -232,7 +241,7 @@ public class AchievementRoleOrchestratorTests
     //    // Assert
     //    await _roleService.Received(2).AddRoleAsync(Arg.Any<ulong>(), TestGuildId, Role.Achiever, Arg.Any<CancellationToken>());
     //    await _roleService.Received(2).RemoveRoleAsync(Arg.Any<ulong>(), TestGuildId, Arg.Any<Role>(), Arg.Any<CancellationToken>());
-        
+
     //    Assert.AreEqual(2, progressCalls.Count);
     //    Assert.AreEqual((0, 2), progressCalls[0]);
     //    Assert.AreEqual((1, 2), progressCalls[1]);
@@ -279,7 +288,7 @@ public class AchievementRoleOrchestratorTests
     //    // Assert
     //    await _roleService.DidNotReceive().AddRoleAsync(Arg.Any<ulong>(), Arg.Any<ulong>(), Arg.Any<Role>(), Arg.Any<CancellationToken>());
     //    await _roleService.DidNotReceive().RemoveRoleAsync(Arg.Any<ulong>(), Arg.Any<ulong>(), Arg.Any<Role>(), Arg.Any<CancellationToken>());
-        
+
     //    Assert.AreEqual(1, progressCalls.Count);
     //    Assert.AreEqual((0, 0), progressCalls[0]);
     //}
