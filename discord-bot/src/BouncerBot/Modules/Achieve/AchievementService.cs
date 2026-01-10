@@ -157,28 +157,36 @@ public class AchievementService(
     // Every mouse of given powertype has 100 catches
     private async Task<PowerTypeMasterProgress> HasPowerTypeMastery(uint mhId, PowerType powerType, CancellationToken cancellationToken = default)
     {
-        var miceClassifications = await GetMiceClassifications();
-        var mouseNames = await GetMouseNames();
+        // Get all mice classifications and user's catch data
+        var miceById = await GetMiceClassifications();
         var userMice = await mouseHuntClient.GetUserMiceAsync(mhId, cancellationToken);
+        var userCatchesByMouseId = userMice.Mice.ToDictionary(m => m.MouseId, m => m.NumCatches);
 
-        var relevantMice = userMice.Mice
-            .Where(m => miceClassifications[m.MouseId] == powerType)
+        // Filter mice by power type and build progress tracking
+        var requiredMice = miceById
+            .Where(kvp => kvp.Value.powerType == powerType)
+            .Select(kvp => new
+            {
+                MouseId = kvp.Key,  
+                Name = kvp.Value.name,
+                UserCatches = userCatchesByMouseId.GetValueOrDefault(kvp.Key, 0u)
+            })
             .ToList();
 
-        var miceWithMastery = (uint)relevantMice.Count(m => m.NumCatches >= 100);
-        var totalMice = (uint)relevantMice.Count;
-        var missingMice = relevantMice
-            .Where(m => m.NumCatches < 100)
-            .OrderByDescending(m => m.NumCatches)
-            .ToDictionary(m => mouseNames.GetValueOrDefault(m.MouseId, $"Mouse #{m.MouseId}"), m => m.NumCatches);
+        // Separate completed from incomplete mice
+        var completedMice = requiredMice.Where(m => m.UserCatches >= 100).ToList();
+        var incompleteMice = requiredMice
+            .Where(m => m.UserCatches < 100)
+            .OrderByDescending(m => m.UserCatches) // Closest to completion first
+            .ToDictionary(m => m.Name, m => m.UserCatches);
 
         return new PowerTypeMasterProgress
         {
-            IsComplete = miceWithMastery == totalMice,
+            IsComplete = incompleteMice.Count == 0,
             PowerType = powerType,
-            MiceWithMastery = miceWithMastery,
-            TotalMice = totalMice,
-            MissingMice = missingMice
+            MiceWithMastery = (uint)completedMice.Count,
+            TotalMice = (uint)requiredMice.Count,
+            MissingMice = incompleteMice
         };
     }
 
@@ -188,17 +196,17 @@ public class AchievementService(
         return data.ToDictionary(m => m.Id, m => m.Name);
     }
 
-    private async Task<Dictionary<uint, PowerType>> GetMiceClassifications()
+    private async Task<Dictionary<uint, (string name, PowerType powerType)>> GetMiceClassifications()
     {
         var data = await mouseRipService.GetAllMiceAsync() ?? throw new InvalidOperationException("Failed to retrieve mice from api.mouse.rip.");
 
-        var mice = new Dictionary<uint, PowerType>();
+        var mice = new Dictionary<uint, (string name, PowerType powerType)>();
         foreach (var mouse in data)
         {
             // Ignore Leppy, Mobster and Event Mice
             if (mouse.Id == 113 || mouse.Id == 128 || mouse.Group == "Event Mice")
             {
-                mice[mouse.Id] = PowerType.None;
+                mice[mouse.Id] = (mouse.Name, PowerType.None);
                 continue;
             }
 
@@ -216,11 +224,11 @@ public class AchievementService(
 
             if (keysWithHighestValue.Count > 1)
             {
-                mice[mouse.Id] = PowerType.Multi;
+                mice[mouse.Id] = (mouse.Name, PowerType.Multi);
             }
             else
             {
-                mice[mouse.Id] = keysWithHighestValue.Single() switch
+                mice[mouse.Id] = (mouse.Name, keysWithHighestValue.Single() switch
                 {
                     MouseRipEffectiveness.Arcane => PowerType.Arcane,
                     MouseRipEffectiveness.Draconic => PowerType.Draconic,
@@ -232,7 +240,7 @@ public class AchievementService(
                     MouseRipEffectiveness.Shadow => PowerType.Shadow,
                     MouseRipEffectiveness.Tactical => PowerType.Tactical,
                     _ => throw new ArgumentOutOfRangeException($"Unknown effectiveness: {keysWithHighestValue.Single()} for mouse {mouse.Id} ({mouse.Name})"),
-                };
+                });
             }
         }
 
