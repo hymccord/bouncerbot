@@ -85,7 +85,7 @@ public class ClaimModule(
             await ModifyResponseAsync(m => new ComponentContainerProperties()
                 .WithAccentColor(new Color(options.Value.Colors.Warning))
                 .AddTextDisplay($"""
-                Slow down there hunter, I just checked my list and you're already back? Back of the line!
+                Slow down there hunter, you want me to check again!? Get to the back of the line!
 
                 -# Hint: You're on cooldown. Try again in <t:{resetTime.ToUnixTimeSeconds()}:R>.
                 """)
@@ -135,7 +135,7 @@ public class ClaimModule(
                             new TextDisplayProperties($"""
                             You've already claimed this achievement! No need to do it again.
 
-                            -# {(@private ?? false ? "And don't worry, I won't tell anyone you tried!" : "Glad to see you're proud of your achievements!")}
+                            -# {(@private ?? false ? "And don't worry, it'll be our little secret!" : "Glad to see you're proud of your achievements!")}
                             """
                         ))];
                             m.Flags = MessageFlags.Ephemeral | MessageFlags.IsComponentsV2;
@@ -152,7 +152,7 @@ public class ClaimModule(
                             new TextDisplayProperties($"""
                                 Congratulations! I've checked your profile and you meet the requirements.
 
-                                I've awarded the role and {(@private ?? false ? "kept it our little secret!" : "shared it with everyone!")}
+                                I've awarded the role and {(@private ?? false ? "kept it just between us" : "shared it with everyone")}!
                                 """
                         ))];
                             m.Flags = MessageFlags.Ephemeral | MessageFlags.IsComponentsV2;

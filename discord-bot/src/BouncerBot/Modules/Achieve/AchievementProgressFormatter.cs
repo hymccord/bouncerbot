@@ -23,8 +23,7 @@ public static class AchievementProgressFormatter
         {
             CrownProgress crown => $"""
                 -# **Progress:** {crown.MiceWithCrown}/{crown.TotalMice}
-                -# **Remaining:** {crown.MissingMice.Count}
-                -# **Closest:** {string.Join(", ", crown.MissingMice.Take(5).Select(m => $"{m.Key} ({m.Value}/10)"))}"
+                -# **Closest:** {string.Join(", ", crown.MissingMice.Take(5).Select(m => $"{m.Key} ({m.Value}/10)"))}
                 """,
 
             StarProgress star => $"""
@@ -39,7 +38,6 @@ public static class AchievementProgressFormatter
 
             PowerTypeMasterProgress master => $"""
                 -# **Progress:** {master.MiceWithMastery}/{master.TotalMice}
-                -# **Mice Remaining:** {master.MissingMice.Count}
                 -# **Closest:** {string.Join(", ", master.MissingMice.Take(5).Select(m => $"{m.Key} ({m.Value}/100)"))}
                 """,
 
