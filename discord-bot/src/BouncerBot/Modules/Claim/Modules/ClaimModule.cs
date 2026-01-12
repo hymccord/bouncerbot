@@ -21,6 +21,7 @@ public class ClaimModule(
     ILogger<ClaimModule> logger,
     IOptions<BouncerBotOptions> options,
     IAchievementRoleOrchestrator achievementRoleOrchestrator,
+    IAchievementLockService achievementLockService,
     ICommandMentionService commandMentionService,
     IMemoryCache memoryCache,
     BouncerBotDbContext dbContext,
@@ -37,8 +38,8 @@ public class ClaimModule(
         "Denied. This club is for qualified hunters only!",
         "Hah! You think you can outsmart me by not completing all the requirements? Not today!",
     ];
-    private const string CacheKey = "ClaimCooldown";
-    private static TimeSpan s_claimCooldown =
+    private const string CooldownCacheKey = "ClaimCooldown";
+    private static readonly TimeSpan s_claimCooldown =
 #if DEBUG
         TimeSpan.FromSeconds(0);
 #else
@@ -79,8 +80,24 @@ public class ClaimModule(
             return;
         }
 
+        // Check if we're on lockdown due to area release
+        if (await achievementLockService.IsLockedAsync(Context.Guild!.Id))
+        {
+            var expiration = await achievementLockService.GetLockExpirationAsync(Context.Guild!.Id);
+            await ModifyResponseAsync(m => new ComponentContainerProperties()
+                .WithAccentColor(new Color(options.Value.Colors.Warning))
+                .AddTextDisplay($"""
+                Sorry hunter, but achievement claiming is temporarily disabled while we adjust to the new area release.
+
+                -# Hint: Try again after <t:{expiration.Value.ToUnixTimeSeconds()}:F>.
+                """)
+                .Build(m)
+            );
+            return;
+        }
+
         // Check if the user is on cooldown
-        if (memoryCache.TryGetValue($"{CacheKey}-{Context.User.Id}", out DateTimeOffset resetTime) && resetTime > DateTimeOffset.UtcNow)
+        if (memoryCache.TryGetValue($"{CooldownCacheKey}-{Context.User.Id}", out DateTimeOffset resetTime) && resetTime > DateTimeOffset.UtcNow)
         {
             await ModifyResponseAsync(m => new ComponentContainerProperties()
                 .WithAccentColor(new Color(options.Value.Colors.Warning))
@@ -94,7 +111,7 @@ public class ClaimModule(
 
             return;
         }
-        memoryCache.Set($"{CacheKey}-{Context.User.Id}", DateTimeOffset.UtcNow + s_claimCooldown, TimeSpan.FromMinutes(1));
+        memoryCache.Set($"{CooldownCacheKey}-{Context.User.Id}", DateTimeOffset.UtcNow + s_claimCooldown, TimeSpan.FromMinutes(1));
 
         try
         {

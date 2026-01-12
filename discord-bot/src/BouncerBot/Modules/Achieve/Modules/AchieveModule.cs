@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using NetCord;
 using NetCord.Rest;
 using NetCord.Services.ApplicationCommands;
+using TimeSpanParserUtil;
 
 namespace BouncerBot.Modules.Achieve.Modules;
 
@@ -14,7 +15,8 @@ public class AchieveModule(
     IOptions<BouncerBotOptions> options,
     IAchievementService achievementService,
     IAchievementRoleOrchestrator achievementRoleOrchestrator,
-    IRoleService roleService) : ApplicationCommandModule<ApplicationCommandContext>
+    IRoleService roleService,
+    IAchievementLockService achievementLockService) : ApplicationCommandModule<ApplicationCommandContext>
 {
     [SubSlashCommand(AchieveModuleMetadata.VerifyCommand.Name, AchieveModuleMetadata.VerifyCommand.Description)]
     public async Task VerifyAsync(uint hunterID, AchievementRole achievement)
@@ -138,5 +140,53 @@ public class AchieveModule(
                 m.Flags = MessageFlags.IsComponentsV2;
             });
         }
+    }
+
+    [SubSlashCommand(AchieveModuleMetadata.LockCommand.Name, AchieveModuleMetadata.LockCommand.Description)]
+    public async Task LockAsync(
+        [SlashCommandParameter(Description = "Duration (e.g. '2h', '30m', '1h30m')")]string duration)
+    {
+        await RespondAsync(InteractionCallback.DeferredMessage());
+
+        if (!TimeSpanParser.TryParse(duration, out var lockDuration))
+        {
+            await ModifyResponseAsync(m =>
+            {
+                new ComponentContainerProperties()
+                    .WithAccentColor(new Color(options.Value.Colors.Error))
+                    .AddTextDisplay("Invalid duration format. Please use formats like '2h', '30m', or '1h30m'.")
+                    .Build(m);
+            });
+            return;
+        }
+
+        await achievementLockService.SetLockAsync(Context.Guild!.Id, lockDuration);
+
+        await ModifyResponseAsync(m =>
+        {
+            new ComponentContainerProperties()
+                .WithAccentColor(new Color(options.Value.Colors.Success))
+                .AddTextDisplay($"""
+                🔒 Achievement claims locked
+                
+                Duration: {lockDuration.Humanize()}
+                Expires: <t:{DateTimeOffset.UtcNow.Add(lockDuration).ToUnixTimeSeconds()}:F>
+                """)
+                .Build(m);
+        });
+    }
+
+    [SubSlashCommand(AchieveModuleMetadata.UnlockCommand.Name, AchieveModuleMetadata.UnlockCommand.Description)]
+    public async Task UnlockAsync()
+    {
+        await RespondAsync(InteractionCallback.DeferredMessage());
+        await achievementLockService.RemoveLockAsync(Context.Guild!.Id);
+        await ModifyResponseAsync(m =>
+        {
+            new ComponentContainerProperties()
+                .WithAccentColor(new Color(options.Value.Colors.Success))
+                .AddTextDisplay("🔓 Achievement claims unlocked")
+                .Build(m);
+        });
     }
 }

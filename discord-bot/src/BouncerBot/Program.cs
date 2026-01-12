@@ -43,6 +43,7 @@ builder.Services
     .AddTransient<IRoleService, DiscordRoleService>()
     .AddTransient<IAchievementRoleOrchestrator, AchievementRoleOrchestrator>()
     .AddTransient<IAchievementService, AchievementService>()
+    .AddTransient<IAchievementLockService, AchievementLockService>()
     .AddTransient<IBounceService, BounceService>()
     .AddTransient<IBounceOrchestrator, BounceOrchestrator>()
     .AddTransient<IConfigService, ConfigService>()

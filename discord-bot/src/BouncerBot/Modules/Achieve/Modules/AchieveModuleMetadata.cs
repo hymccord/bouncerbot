@@ -20,6 +20,18 @@ public static class AchieveModuleMetadata
     public static class ResetCommand
     {
         public const string Name = "reset";
-        public const string Description = "Removes achievement role from all users (and grants Achiever)";
+        public const string Description = "Removes achievement role from all users (and grants Achiever).";
+    }
+
+    public static class LockCommand
+    {
+        public const string Name = "lock";
+        public const string Description = "Temporarily disable the /claim command.";
+    }
+
+    public static class UnlockCommand
+    {
+        public const string Name = "unlock";
+        public const string Description = "Re-enable the /claim command.";
     }
 }

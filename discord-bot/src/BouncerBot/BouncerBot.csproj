@@ -29,6 +29,7 @@
     <PackageReference Include="NetCord.Hosting.Services" />
     <PackageReference Include="Scriban" />
     <PackageReference Include="Sentry.Extensions.Logging" />
+    <PackageReference Include="TimeSpanParserUtil" />
   </ItemGroup>
 
   <ItemGroup>
