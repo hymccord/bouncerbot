@@ -1,3 +1,4 @@
+using Humanizer;
 using Microsoft.Extensions.Options;
 using NetCord;
 using NetCord.Rest;
@@ -76,7 +77,7 @@ public class AchieveButtonInteractions(
                     new ComponentContainerProperties()
                     .WithAccentColor(new Color(options.Value.Colors.Success))
                     .AddComponents(
-                        new TextDisplayProperties("Achievement reset completed successfully!")
+                        new TextDisplayProperties($"Successfully reset all {achievement.Humanize()} users and added the achiever role!")
                     )
                 ];
                 m.Flags = MessageFlags.IsComponentsV2;

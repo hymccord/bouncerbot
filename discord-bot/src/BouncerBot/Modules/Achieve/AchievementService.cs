@@ -158,7 +158,7 @@ public class AchievementService(
     private async Task<PowerTypeMasterProgress> HasPowerTypeMastery(uint mhId, PowerType powerType, CancellationToken cancellationToken = default)
     {
         // Get all mice classifications and user's catch data
-        var miceById = await GetMiceClassifications();
+        var miceById = await GetMouseRipMiceClassifications();
         var userMice = await mouseHuntClient.GetUserMiceAsync(mhId, cancellationToken);
         var userCatchesByMouseId = userMice.Mice.ToDictionary(m => m.MouseId, m => m.NumCatches);
 
@@ -192,13 +192,14 @@ public class AchievementService(
 
     private async Task<Dictionary<uint, string>> GetMouseNames()
     {
-        var data = await mouseRipService.GetAllMiceAsync() ?? throw new InvalidOperationException("Failed to retrieve mice from api.mouse.rip.");
+        var data = await mouseRipService.GetAllMiceAsync() ?? throw new InvalidOperationException("Failed to retrieve mice from api.mouse.rip");
         return data.ToDictionary(m => m.Id, m => m.Name);
     }
 
-    private async Task<Dictionary<uint, (string name, PowerType powerType)>> GetMiceClassifications()
+    public async Task<Dictionary<uint, (string name, PowerType powerType)>> GetMouseRipMiceClassifications()
     {
-        var data = await mouseRipService.GetAllMiceAsync() ?? throw new InvalidOperationException("Failed to retrieve mice from api.mouse.rip.");
+        var data = await mouseRipService.GetAllMiceAsync() ?? throw new InvalidOperationException("Failed to retrieve mice from api.mouse.rip");
+        var mhMice = await GetMouseHuntMiceClassifications();
 
         var mice = new Dictionary<uint, (string name, PowerType powerType)>();
         foreach (var mouse in data)
@@ -210,8 +211,18 @@ public class AchievementService(
                 continue;
             }
 
+            // If no effectiveness data, fallback to MouseHunt classification
             if (mouse.Effectivenesses is null)
             {
+                if (mhMice.TryGetValue(mouse.Id, out var mhMouse))
+                {
+                    mice[mouse.Id] = (mouse.Name, mhMouse.powerType);
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Mouse {mouse.Id} ({mouse.Name}) has no effectiveness data.");
+                }
+
                 continue;
             }
 
@@ -240,6 +251,50 @@ public class AchievementService(
                     MouseRipEffectiveness.Shadow => PowerType.Shadow,
                     MouseRipEffectiveness.Tactical => PowerType.Tactical,
                     _ => throw new ArgumentOutOfRangeException($"Unknown effectiveness: {keysWithHighestValue.Single()} for mouse {mouse.Id} ({mouse.Name})"),
+                });
+            }
+        }
+
+        return mice;
+    }
+
+    public async Task<Dictionary<uint, (string name, PowerType powerType)>> GetMouseHuntMiceClassifications()
+    {
+        var data = await mouseHuntClient.GetAllMiceAsync() ?? throw new InvalidOperationException("Failed to retrieve mice from mousehuntgame.com");
+
+        var mice = new Dictionary<uint, (string name, PowerType powerType)>();
+        foreach (var mouse in data)
+        {
+            // Ignore Leppy, Mobster and Event Mice
+            if (mouse.MouseId == 113 || mouse.MouseId == 128 || mouse.Group == "event")
+            {
+                mice[mouse.MouseId] = (mouse.Name, PowerType.None);
+                continue;
+            }
+
+            var maxEff = mouse.Weaknesses.Values.Max();
+            var keysWithHighestValue = mouse.Weaknesses.Keys
+                .Where(k => mouse.Weaknesses[k] == maxEff)
+                .ToHashSet();
+
+            if (keysWithHighestValue.Count > 1)
+            {
+                mice[mouse.MouseId] = (mouse.Name, PowerType.Multi);
+            }
+            else
+            {
+                mice[mouse.MouseId] = (mouse.Name, keysWithHighestValue.Single() switch
+                {
+                    "arcn" => PowerType.Arcane,
+                    "drcnc" => PowerType.Draconic,
+                    "frgttn" => PowerType.Forgotten,
+                    "hdr" => PowerType.Hydro,
+                    "law" => PowerType.Law,
+                    "phscl" => PowerType.Physical,
+                    "rift" => PowerType.Rift,
+                    "shdw" => PowerType.Shadow,
+                    "tctcl" => PowerType.Tactical,
+                    _ => throw new ArgumentOutOfRangeException($"Unknown effectiveness: {keysWithHighestValue.Single()} for mouse {mouse.MouseId} ({mouse.Name})"),
                 });
             }
         }

@@ -8,6 +8,7 @@ public interface IRoleService
 {
     Task AddRoleAsync(ulong userId, ulong guildId, Role role, CancellationToken cancellationToken = default);
     Task<int> GetRoleUserCount(ulong guildId, Role role);
+    Task<int> GetRoleUserCountWithExclude(ulong guildId, Role role, Role exclude);
     Task<ulong?> GetRoleIdAsync(ulong guildId, Role role);
     Task<bool> HasRoleAsync(ulong userId, ulong guildId, Role role);
     Task RemoveRoleAsync(ulong userId, ulong guildId, Role role, CancellationToken cancellationToken = default);
@@ -45,6 +46,15 @@ public class DiscordRoleService(
 
         return gatewayClient.Cache.Guilds[guildId]?.Users.Values
             .Count(u => u.RoleIds.Contains(roleId)) ?? 0;
+    }
+
+    public async Task<int> GetRoleUserCountWithExclude(ulong guildId, Role role, Role exclude)
+    {
+        var roleId = await GetRequiredRoleIdAsync(guildId, role);
+        var excludeRoleId = await GetRequiredRoleIdAsync(guildId, exclude);
+
+        return gatewayClient.Cache.Guilds[guildId]?.Users.Values
+            .Count(u => u.RoleIds.Contains(roleId) && !u.RoleIds.Contains(excludeRoleId)) ?? 0;
     }
 
     public async Task<bool> HasRoleAsync(ulong userId, ulong guildId, Role role)

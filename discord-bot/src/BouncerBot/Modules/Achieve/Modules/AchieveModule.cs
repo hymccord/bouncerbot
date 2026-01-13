@@ -96,8 +96,9 @@ public class AchieveModule(
 
         try
         {
-            var numUsers = await roleService.GetRoleUserCount(Context.Guild!.Id, EnumUtils.ToRole(achievement));
-            var numAchievers = await roleService.GetRoleUserCount(Context.Guild.Id, Role.Achiever);
+            var achievementRole = EnumUtils.ToRole(achievement);
+            var numUsers = await roleService.GetRoleUserCount(Context.Guild!.Id, achievementRole);
+            var numNewAchievers = await roleService.GetRoleUserCountWithExclude(Context.Guild.Id, achievementRole, exclude: Role.Achiever);
 
             await ModifyResponseAsync(m =>
             {
@@ -108,7 +109,8 @@ public class AchieveModule(
                             new TextDisplayProperties($"""
                                 Are you sure you want to reset all the roles for {achievement.Humanize()}?
 
-                                This will remove the role from {numUsers} users and grant the Achiever role to {numUsers - numAchievers} of them.
+                                This will remove the role from {numUsers} users.
+                                Amount of new Achiever roles to bestow: {numNewAchievers}.
                                 """
                             )
                         ),

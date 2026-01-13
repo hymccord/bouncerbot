@@ -1,5 +1,3 @@
-using System.Diagnostics;
-using System.Diagnostics.Metrics;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -16,6 +14,7 @@ namespace BouncerBot.Rest;
 
 public interface IMouseHuntRestClient
 {
+    Task<Mouse[]> GetAllMiceAsync(CancellationToken cancellationToken = default);
     Task<Corkboard> GetCorkboardAsync(uint mhId, CancellationToken cancellationToken = default);
     Task<User> GetMeAsync(CancellationToken cancellationToken = default);
     Task<Title[]> GetTitlesAsync(CancellationToken cancellationToken = default);
