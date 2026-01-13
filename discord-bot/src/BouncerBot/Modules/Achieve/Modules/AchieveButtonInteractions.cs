@@ -34,7 +34,7 @@ public class AchieveButtonInteractions(
     }
 
     [ComponentInteraction("achieve reset confirm")]
-    public async Task ResetConfirmAsync(AchievementRole achievement)
+    public async Task ResetConfirmAsync(AchievementRole achievement, bool skipAchiever)
     {
         await RespondAsync(InteractionCallback.DeferredModifyMessage);
 
@@ -52,7 +52,7 @@ public class AchieveButtonInteractions(
 
         try
         {
-            await achievementRoleOrchestrator.ResetAchievementAsync(Context.Guild!.Id, achievement, async (current, total) =>
+            await achievementRoleOrchestrator.ResetAchievementAsync(Context.Guild!.Id, achievement, skipAchiever: skipAchiever, async (current, total) =>
             {
                 await ModifyResponseAsync(m =>
                 {

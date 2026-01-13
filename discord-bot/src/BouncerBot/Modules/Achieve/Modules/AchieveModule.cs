@@ -90,7 +90,8 @@ public class AchieveModule(
     }
 
     [SubSlashCommand(AchieveModuleMetadata.ResetCommand.Name, AchieveModuleMetadata.ResetCommand.Description)]
-    public async Task ResetAchievementAsync(AchievementRole achievement)
+    public async Task ResetAchievementAsync(AchievementRole achievement,
+        [SlashCommandParameter(Description = "Skip adding the Achiever role to users")] bool skipAchiever = false)
     {
         await RespondAsync(InteractionCallback.DeferredMessage());
 
@@ -110,12 +111,12 @@ public class AchieveModule(
                                 Are you sure you want to reset all the roles for {achievement.Humanize()}?
 
                                 This will remove the role from {numUsers} users.
-                                Amount of new Achiever roles to bestow: {numNewAchievers}.
+                                {(skipAchiever ? "I will skip adding Achiever roles." : $"Amount of new Achiever roles to bestow: {numNewAchievers}.")}
                                 """
                             )
                         ),
                     new ActionRowProperties()
-                        .AddComponents(new ButtonProperties($"achieve reset confirm:{(int)achievement}", "Confirm", ButtonStyle.Danger))
+                        .AddComponents(new ButtonProperties($"achieve reset confirm:{(int)achievement}:{skipAchiever}", "Confirm", ButtonStyle.Danger))
                         .AddComponents(new ButtonProperties("achieve reset cancel", "Cancel", ButtonStyle.Secondary))
                 ];
                 m.Flags = MessageFlags.IsComponentsV2;
