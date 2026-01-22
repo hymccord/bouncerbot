@@ -79,11 +79,15 @@ public class DiscordRoleService(
 
     private GuildUser GetGuildUser(ulong userId, ulong guildId)
     {
-        var guild = gatewayClient.Cache.Guilds[guildId]
-            ?? throw new InvalidOperationException($"I was unable to find the server in my cache.");
+        if (!gatewayClient.Cache.Guilds.TryGetValue(guildId, out var guild))
+        {
+            throw new InvalidOperationException($"I was unable to find the server in my cache.");
+        }
 
-        var user = guild.Users[userId]
-            ?? throw new InvalidOperationException($"I was unable to find the user in my cache.");
+        if (!guild.Users.TryGetValue(userId, out var user))
+        {
+            throw new InvalidOperationException($"I was unable to find the user in my cache.");
+        }
 
         return user;
     }
