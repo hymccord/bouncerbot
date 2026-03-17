@@ -36,6 +36,25 @@ public partial class MouseHuntRestClient
         return result;
     }
 
+    public async Task<string> GetUserJournalPage(uint mhId, uint page = 1, CancellationToken cancellationToken = default)
+    {
+        var formData = new List<KeyValuePair<string, string>>()
+        {
+            new ("page", $"{page}"),
+            new("size", "jlarge"),
+            new ("owner", $"{mhId}"),
+
+        };
+        var document = await SendDesktopRequestAsync<JsonElement>(HttpMethod.Post, formData, "managers/ajax/pages/journal.php", cancellationToken);
+
+        var result = document
+            .GetProperty("journal_page")
+            .GetProperty("entries_string")
+            .GetString();
+
+        return result ?? string.Empty;
+    }
+
     public async Task<UserItemCategoryCompletion> GetUserLocationStatsAsync(uint mhId, CancellationToken cancellationToken = default)
     {
         var snuid = await GetUserSnuIdAsync(mhId, cancellationToken);
