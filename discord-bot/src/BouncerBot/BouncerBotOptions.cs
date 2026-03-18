@@ -24,6 +24,8 @@ public class BouncerBotOptions
 public class EmojiOptions
 {
     [Required]
+    public required string Loading { get; set; }
+    [Required]
     public required string Arcane { get; set; }
     [Required]
     public required string Draconic { get; set; }
