@@ -6,11 +6,12 @@ using Microsoft.Extensions.Options;
 using NetCord;
 using NetCord.Rest;
 using NetCord.Services.ApplicationCommands;
+using Scriban;
 
 namespace BouncerBot.Modules.Events.Module;
 
 [BouncerBotSlashCommand(EventsModuleMetadata.ModuleName, EventsModuleMetadata.ModuleDescription)]
-public partial class EventsModule(
+public class EventsModule(
     IOptionsSnapshot<BouncerBotOptions> options,
     IBouncerBotMetrics bouncerBotMetrics,
     IMouseHuntRestClient mouseHuntRestClient,
@@ -20,6 +21,28 @@ public partial class EventsModule(
     : ApplicationCommandModule<ApplicationCommandContext>
 {
     private const string CooldownCacheKey = "EventsCooldown";
+    private static readonly string[] s_summaryPhrases =
+    [
+        "Look at this big shot, **{{ discord_name }}** who has been going at it for **{{ since }}**.",
+        "Well, well, well — **{{ discord_name }}** has been grinding away for **{{ since }}**.",
+        "Feast your eyes on **{{ discord_name }}**, who's been on the hunt for **{{ since }}**.",
+        "Would you look at that? **{{ discord_name }}** has been keeping busy for **{{ since }}**.",
+        "Here's today's overachiever: **{{ discord_name }}** with **{{ since }}** of journal-worthy effort.",
+        "Oh, this is good — **{{ discord_name }}** has been at it for **{{ since }}**.",
+        "You wanted a summary, and **{{ discord_name }}** delivered **{{ since }}** worth of hunting.",
+        "Now that's some dedication: **{{ discord_name }}** has been chasing mice for **{{ since }}**.",
+    ];
+    private static readonly string[] s_statsPhrases =
+    [
+        "In that time, they secured **{{ loot_count }}** unique loot drops in **{{ hunt_count }}** hunts.",
+        "That's **{{ loot_count }}** unique loot drops across **{{ hunt_count }}** hunts.",
+        "They've racked up **{{ loot_count }}** unique loot drops over **{{ hunt_count }}** hunts.",
+        "**{{ loot_count }}** unique loot drops to show for **{{ hunt_count }}** hunts of effort.",
+        "A haul of **{{ loot_count }}** unique loot drops from **{{ hunt_count }}** hunts.",
+        "**{{ loot_count }}** unique loot drops. **{{ hunt_count }}** hunts. Not bad.",
+        "**{{ loot_count }}** unique loot drops earned, spread across **{{ hunt_count }}** hunts.",
+        "**{{ loot_count }}** unique loot drops collected across **{{ hunt_count }}** hunts."
+    ];
     private static readonly TimeSpan s_shortCooldown =
 #if DEBUG
         TimeSpan.FromSeconds(1);
@@ -30,18 +53,18 @@ public partial class EventsModule(
 #if DEBUG
     TimeSpan.FromSeconds(1);
 #else
-    TimeSpan.FromMinutes(15);
+    TimeSpan.FromMinutes(60);
 #endif
 
     [SubSlashCommand(EventsModuleMetadata.MlialCommand.Name, EventsModuleMetadata.MlialCommand.Description)]
-    public async Task MlialCommand([SlashCommandParameter(Description = "ID of the hunter to generate a summary for")] uint hunterId,
+    public async Task MlialCommand([SlashCommandParameter(Description = "ID of the hunter to generate a summary for", MinValue = 0, MaxValue = 20_000_000)] uint hunterId,
         [SlashCommandParameter(Description = "The journal page to look at", MinValue = 1, MaxValue = 6)] uint page = 1)
     {
         bouncerBotMetrics.RecordCommand(EventsModuleMetadata.MlialCommand.Name);
         await RespondAsync(InteractionCallback.DeferredEphemeralMessage());
         await ModifyResponseAsync(m => new ComponentContainerProperties()
             .WithAccentColor(new Color(options.Value.Colors.Primary))
-            .AddTextDisplay("Hold on tight, I'm hunting down that journal summary for you...")
+            .AddTextDisplay($"{options.Value.Emojis.Loading} Hold on tight, I'm hunting down that journal summary for you...")
             .Build(m)
         );
 
@@ -75,34 +98,49 @@ public partial class EventsModule(
         }
         else
         {
+            var name = mouseHuntRestClient.GetUserNameAsync(hunterId);
             await DeleteResponseAsync();
 
             var sb = new StringBuilder();
-
-            sb.AppendLine($"""
-            Look at this big shot (**{hunterId}**) who has been going at it for **{summary.Since}**.
-
-            In that time, they hunted **{summary.Hunts}** times and secured **{summary.LootCount}** unique loot drops.
-            """);
-
-            if (summary.ModificationMessages.Count > 0)
+            var randomSummaryPhrase = s_summaryPhrases[Random.Shared.Next(s_summaryPhrases.Length)];
+            var randomStatsPhrase = s_statsPhrases[Random.Shared.Next(s_statsPhrases.Length)];
+            var hunterName = (await name).Name;
+            var templateModel = new
             {
-                sb.AppendLine();
-                sb.AppendLine("-# Think I'm wrong!? Here's some modifications I made");
-                foreach (var mod in summary.ModificationMessages)
-                {
-                    sb.AppendLine($"-# • {mod}");
-                }
-            }
+                discord_name = Format.Escape(Context.User.GlobalName ?? Context.User.Username),
+                hunter_name = Format.Escape(hunterName),
+                hunter_id = hunterId,
+                since = summary.Since,
+                loot_count = summary.LootCount,
+                hunt_count = summary.Hunts,
+                mods = summary.ModificationMessages
+            };
+
+            var template = $$$"""
+                {{{randomSummaryPhrase}}}
+
+                {{{randomStatsPhrase}}}
+                {{- if array.size(mods) > 0 }}
+
+                -# Think I'm wrong!? Here's some modifications I made
+                {{- for mod in mods }}
+                -# • {{mod}}
+                {{- end }}
+                {{- end}}
+
+                -# <https://p.mshnt.ca/{{hunter_id}}>
+                -# {{hunter_name}},{{since}},{{loot_count}},{{hunt_count}}
+                """;
+            var rendered = Template.Parse(template).Render(templateModel);
 
             await Context.Channel.SendMessageAsync(new MessageProperties
             {
                 Components = [
                     new ComponentContainerProperties()
                     .WithAccentColor(new(options.Value.Colors.Success))
-                    .AddTextDisplay("MLIAL Journal Summary")
+                    .AddTextDisplay($"[MLIAL Journal Summary](<https://p.mshnt.ca/{hunterId}>)")
                     .AddSeparator()
-                    .AddTextDisplay(sb.ToString())
+                    .AddTextDisplay(rendered)
                 ],
                 Flags = MessageFlags.IsComponentsV2
             });

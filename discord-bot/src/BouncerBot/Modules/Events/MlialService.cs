@@ -1,4 +1,3 @@
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
@@ -62,10 +61,10 @@ public partial class MlialService
         var filteredLootCount = filteredLoot.Count();
         var messages = new List<string>();
 
-        // Remove one time spring eggs for current rules
+        // Remove one-time Spring Eggs for current rules
         if (lootData.Count != filteredLootCount)
         {
-            messages.Add($"I removed {lootData.Count - filteredLootCount} due to one time spring eggs.");
+            messages.Add($"I removed {lootData.Count - filteredLootCount} due to one-time Spring Eggs.");
         }
 
         // Add one for warmonger catches if they don't have the corresponding egg
