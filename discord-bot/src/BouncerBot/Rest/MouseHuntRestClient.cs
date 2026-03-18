@@ -21,6 +21,7 @@ public interface IMouseHuntRestClient
     Task<string> GetUserJournalPage(uint mhId, uint page = 1, CancellationToken cancellationToken = default);
     Task<UserItemCategoryCompletion> GetUserLocationStatsAsync(uint mhId, CancellationToken cancellationToken = default);
     Task<UserMouseStatistics> GetUserMiceAsync(uint mhId, CancellationToken cancellationToken = default);
+    Task<UserName> GetUserNameAsync(uint mhId, CancellationToken cancellationToken = default);
     Task<UserItemCategoryCompletion> GetUserProfileItems(uint mhId, CancellationToken cancellationToken = default);
     Task<UserSnuIdInfo> GetUserSnuIdAsync(uint mhId, CancellationToken cancellationToken = default);
     Task<UserTitle> GetUserTitleAsync(uint mhId, CancellationToken cancellationToken = default);
