@@ -6,14 +6,14 @@ A multi-component project featuring a C# Discord bot (utilizing [NetCord](https:
 
 ### 1. Discord Bot (`discord-bot/`)
 
-- Built with .NET 9.0
+- Built with .NET 10.0
 - Uses NetCord for Discord API
 - Entity Framework Core for data access
 - Modular design: commands, services, gateway handlers
 
 #### Building
 
-1. Install [.NET 9.0 SDK](https://dotnet.microsoft.com/download)
+1. Install [.NET 10.0 SDK](https://dotnet.microsoft.com/download)
 2. Build:
 
    ```pwsh
