@@ -104,7 +104,7 @@ public class EventsModule(
             var sb = new StringBuilder();
             var randomSummaryPhrase = s_summaryPhrases[Random.Shared.Next(s_summaryPhrases.Length)];
             var randomStatsPhrase = s_statsPhrases[Random.Shared.Next(s_statsPhrases.Length)];
-            var hunterName = (await name).Name;
+            var hunterName = (await name).Name.Trim();
             var templateModel = new
             {
                 discord_name = Format.Escape(Context.User.GlobalName ?? Context.User.Username),
