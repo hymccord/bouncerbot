@@ -120,7 +120,11 @@ public class VerifyModule(
             return;
         }
 
-        var phrase = randomPhraseGenerator.Generate();
+        const int MaxCustomIdLength = 100;
+
+        var linkStartCustomId = $"link start:{Context.Guild.Id}:{mousehuntID}:";
+        var charsRemaining = MaxCustomIdLength - linkStartCustomId.Length;
+        var randomPhrase = GeneratePhraseWithMaxLength(charsRemaining);
 
         IEnumerable<IMessageComponentProperties> messageComponent = [
             new ComponentContainerProperties()
@@ -142,7 +146,7 @@ public class VerifyModule(
 
                     If you agree with the above terms, place the **entirety** of this phrase on your MouseHunt profile corkboard (_everything_ in code block). I will read your corkboard and verify it matches.
                     ```
-                    {phrase}
+                    {randomPhrase}
                     ```
                     Press 'Verify' to proceed, otherwise 'Cancel'.
                     """),
@@ -150,7 +154,7 @@ public class VerifyModule(
                     .WithSpacing(ComponentSeparatorSpacingSize.Large)
                     .WithDivider(true),
                 new ActionRowProperties()
-                    .AddComponents(new ButtonProperties($"link start:{Context.Guild!.Id}:{mousehuntID}:{phrase}", "Verify", ButtonStyle.Secondary))
+                    .AddComponents(new ButtonProperties($"link start:{Context.Guild!.Id}:{mousehuntID}:{randomPhrase}", "Verify", ButtonStyle.Secondary))
                     .AddComponents(new ButtonProperties("link cancel", "Cancel", ButtonStyle.Success))
             )
         ];
@@ -228,5 +232,22 @@ public class VerifyModule(
                 .Build(x);
             x.Flags |= MessageFlags.Ephemeral;
         });
+    }
+
+    private string GeneratePhraseWithMaxLength(int maxLength)
+    {
+        const int MaxAttempts = 100;
+        var attempts = 0;
+        string? randomPhrase;
+        do
+        {
+            randomPhrase = randomPhraseGenerator.Generate();
+            if (randomPhrase.Length <= maxLength)
+            {
+                return randomPhrase;
+            }
+        } while (attempts < MaxAttempts);
+
+        return randomPhrase.Substring(0, maxLength);
     }
 }
