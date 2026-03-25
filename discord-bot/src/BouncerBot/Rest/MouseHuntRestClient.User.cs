@@ -88,11 +88,11 @@ public partial class MouseHuntRestClient
         return await SendRequestAsync<UserMouseStatistics>(HttpMethod.Post, $"get/user/{snuid.SnUserId}/mice", cancellationToken);
     }
 
-    public async Task<UserName> GetUserNameAsync(uint mhId, CancellationToken cancellationToken = default)
+    public async Task<UserProfileSimpleInfo> GetUserProfileSimpleInfoAsync(uint mhId, CancellationToken cancellationToken = default)
     {
         var snuid = await GetUserSnuIdAsync(mhId, cancellationToken);
 
-        return await SendRequestAsync<UserName>(HttpMethod.Post, null, $"get/user/{snuid.SnUserId}/name", cancellationToken);
+        return await SendRequestAsync<UserProfileSimpleInfo>(HttpMethod.Post, null, $"get/user/{snuid.SnUserId}/name,title_id", cancellationToken);
     }
 
     public async Task<UserItemCategoryCompletion> GetUserProfileItems(uint mhId, CancellationToken cancellationToken = default)

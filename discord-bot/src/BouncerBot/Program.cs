@@ -59,7 +59,7 @@ builder.Services
     .AddTransient<IHashService, HMACSHA3HashService>()
     .AddTransient<IRankRoleService, RankRoleService>()
     .AddTransient<IStatsService, StatsService>()
-    .AddTransient<MlialService>()
+    .AddTransient<IMlialService, MlialService>()
     .AddSingleton<IDiscordRestClient, DiscordRestClient>()
     .AddSingleton<IDiscordGatewayClient, DiscordGatewayClient>()
     .AddSingleton<IPuzzleService, PuzzleService>() // Singleton b/c of puzzle state capture

@@ -1,6 +1,7 @@
 using System.Text;
 using BouncerBot.Attributes;
 using BouncerBot.Rest;
+using Humanizer;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using NetCord;
@@ -16,7 +17,7 @@ public class EventsModule(
     IBouncerBotMetrics bouncerBotMetrics,
     IMouseHuntRestClient mouseHuntRestClient,
     IMemoryCache memoryCache,
-    MlialService mlialService
+    IMlialService mlialService
 )
     : ApplicationCommandModule<ApplicationCommandContext>
 {
@@ -98,17 +99,18 @@ public class EventsModule(
         }
         else
         {
-            var name = mouseHuntRestClient.GetUserNameAsync(hunterId);
+            var profileInfo = await mouseHuntRestClient.GetUserProfileSimpleInfoAsync(hunterId);
+            var titles = await mouseHuntRestClient.GetTitlesAsync();
             await DeleteResponseAsync();
 
             var sb = new StringBuilder();
             var randomSummaryPhrase = s_summaryPhrases[Random.Shared.Next(s_summaryPhrases.Length)];
             var randomStatsPhrase = s_statsPhrases[Random.Shared.Next(s_statsPhrases.Length)];
-            var hunterName = (await name).Name.Trim();
             var templateModel = new
             {
                 discord_name = Format.Escape(Context.User.GlobalName ?? Context.User.Username),
-                hunter_name = Format.Escape(hunterName),
+                hunter_name = Format.Escape(profileInfo.Name.Trim()),
+                title = titles.Single(t => t.TitleId == profileInfo.TitleId).Name.Humanize(),
                 hunter_id = hunterId,
                 since = summary.Since,
                 loot_count = summary.LootCount,
@@ -129,7 +131,7 @@ public class EventsModule(
                 {{- end}}
 
                 -# <https://p.mshnt.ca/{{hunter_id}}>
-                -# {{hunter_name}},{{since}},{{loot_count}},{{hunt_count}}
+                -# {{hunter_name}},{{title}},{{since}},{{loot_count}},{{hunt_count}}
                 """;
             var rendered = Template.Parse(template).Render(templateModel);
 

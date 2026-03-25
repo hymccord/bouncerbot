@@ -5,7 +5,12 @@ using HtmlAgilityPack;
 
 namespace BouncerBot.Modules.Events;
 
-public partial class MlialService
+public interface IMlialService
+{
+    Summary? GetJournalSummary(string journalPage);
+}
+
+public partial class MlialService : IMlialService
 {
     private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
@@ -85,11 +90,11 @@ public partial class MlialService
         };
     }
 
-    public class Summary
-    {
-        public string Since { get; init; } = string.Empty;
-        public int Hunts { get; init; }
-        public int LootCount { get; init; }
-        public required IReadOnlyList<string> ModificationMessages { get; init; }
-    }
+}
+public class Summary
+{
+    public string Since { get; init; } = string.Empty;
+    public int Hunts { get; init; }
+    public int LootCount { get; init; }
+    public required IReadOnlyList<string> ModificationMessages { get; init; }
 }
