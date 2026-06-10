@@ -38,10 +38,9 @@ public class ClaimModule(
         "Denied. This club is for qualified hunters only!",
         "Hah! You think you can outsmart me by not completing all the requirements? Not today!",
     ];
-    private const string CooldownCacheKey = "ClaimCooldown";
     private static readonly TimeSpan s_claimCooldown =
 #if DEBUG
-        TimeSpan.FromSeconds(0);
+        TimeSpan.FromSeconds(1);
 #else
         TimeSpan.FromMinutes(1);
 #endif
@@ -97,21 +96,23 @@ public class ClaimModule(
         }
 
         // Check if the user is on cooldown
-        if (memoryCache.TryGetValue($"{CooldownCacheKey}-{Context.User.Id}", out DateTimeOffset resetTime) && resetTime > DateTimeOffset.UtcNow)
+        var userCooldownKey = $"ClaimCooldown-{Context.User.Id}";
+        if (memoryCache.TryGetValue(userCooldownKey, out DateTimeOffset absoluteExpirationTime) && absoluteExpirationTime > DateTimeOffset.UtcNow)
         {
             await ModifyResponseAsync(m => new ComponentContainerProperties()
                 .WithAccentColor(new Color(options.Value.Colors.Warning))
                 .AddTextDisplay($"""
                 Slow down there hunter, you want me to check again!? Get to the back of the line!
 
-                -# Hint: You're on cooldown. Try again in <t:{resetTime.ToUnixTimeSeconds()}:R>.
+                -# Hint: You're on cooldown. Try again in <t:{absoluteExpirationTime.ToUnixTimeSeconds()}:R>.
                 """)
                 .Build(m)
             );
 
             return;
         }
-        memoryCache.Set($"{CooldownCacheKey}-{Context.User.Id}", DateTimeOffset.UtcNow + s_claimCooldown, TimeSpan.FromMinutes(1));
+        absoluteExpirationTime = DateTimeOffset.UtcNow.Add(s_claimCooldown);
+        memoryCache.Set(userCooldownKey, absoluteExpirationTime, absoluteExpirationRelativeToNow: s_claimCooldown);
 
         try
         {
