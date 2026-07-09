@@ -135,6 +135,8 @@ public class EventsModule(
                 """;
             var rendered = Template.Parse(template).Render(templateModel);
 
+            // There's no way to make an ephemeral message now public
+            // Sending a followup will look like a reply to a deleted message (since original is ephemeral)
             await Context.Channel.SendMessageAsync(new MessageProperties
             {
                 Components = [
