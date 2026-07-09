@@ -5,8 +5,6 @@ using BouncerBot.Modules.Verification;
 using BouncerBot.Modules.Verify.Modules;
 using BouncerBot.Rest;
 using BouncerBot.Services;
-
-using Humanizer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -80,9 +78,11 @@ public class ClaimModule(
         }
 
         // Check if we're on lockdown due to area release
-        if (await achievementLockService.IsLockedAsync(Context.Guild!.Id))
+        if (achievementLockService.IsAchievementLockable(achievement) &&
+            await achievementLockService.IsGuildLockedAsync(Context.Guild!.Id)
+        )
         {
-            var expiration = await achievementLockService.GetLockExpirationAsync(Context.Guild!.Id);
+            var expiration = await achievementLockService.GetGuildLockExpirationAsync(Context.Guild!.Id);
             await ModifyResponseAsync(m => new ComponentContainerProperties()
                 .WithAccentColor(new Color(options.Value.Colors.Warning))
                 .AddTextDisplay($"""

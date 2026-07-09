@@ -1,15 +1,23 @@
+using BouncerBot;
 using Microsoft.Extensions.Caching.Memory;
 
 internal class AchievementLockService(IMemoryCache cache) : IAchievementLockService
 {
     private static string GetCacheKey(ulong guildId) => $"achievement_lock_{guildId}";
 
-    public Task<bool> IsLockedAsync(ulong guildId)
+    public bool IsAchievementLockable(AchievementRole achievement)
+        => achievement switch
+        {
+            AchievementRole.Fabled => false,
+            _ => false
+        };
+
+    public Task<bool> IsGuildLockedAsync(ulong guildId)
     {
         return Task.FromResult(cache.TryGetValue(GetCacheKey(guildId), out _));
     }
 
-    public Task<DateTimeOffset?> GetLockExpirationAsync(ulong guildId)
+    public Task<DateTimeOffset?> GetGuildLockExpirationAsync(ulong guildId)
     {
         return Task.FromResult<DateTimeOffset?>(
             cache.TryGetValue<DateTimeOffset>(GetCacheKey(guildId), out var expiration) 
@@ -18,14 +26,14 @@ internal class AchievementLockService(IMemoryCache cache) : IAchievementLockServ
         );
     }
 
-    public Task SetLockAsync(ulong guildId, TimeSpan duration)
+    public Task SetGuildLockDurationAsync(ulong guildId, TimeSpan duration)
     {
         var expiration = DateTimeOffset.UtcNow.Add(duration);
         cache.Set(GetCacheKey(guildId), expiration, duration);
         return Task.CompletedTask;
     }
 
-    public Task RemoveLockAsync(ulong guildId)
+    public Task RemoveGuildLockAsync(ulong guildId)
     {
         cache.Remove(GetCacheKey(guildId));
         return Task.CompletedTask;
@@ -34,8 +42,9 @@ internal class AchievementLockService(IMemoryCache cache) : IAchievementLockServ
 
 public interface IAchievementLockService
 {
-    Task<DateTimeOffset?> GetLockExpirationAsync(ulong guildId);
-    Task<bool> IsLockedAsync(ulong guildId);
-    Task RemoveLockAsync(ulong guildId);
-    Task SetLockAsync(ulong guildId, TimeSpan duration);
+    Task<DateTimeOffset?> GetGuildLockExpirationAsync(ulong guildId);
+    bool IsAchievementLockable(AchievementRole achievement);
+    Task<bool> IsGuildLockedAsync(ulong guildId);
+    Task RemoveGuildLockAsync(ulong guildId);
+    Task SetGuildLockDurationAsync(ulong guildId, TimeSpan duration);
 }
