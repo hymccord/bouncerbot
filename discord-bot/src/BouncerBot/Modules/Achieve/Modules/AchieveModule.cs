@@ -110,8 +110,8 @@ public class AchieveModule(
                             new TextDisplayProperties($"""
                                 Are you sure you want to reset all the roles for {achievement.Humanize()}?
 
-                                This will remove the role from {numUsers} users.
-                                {(skipAchiever ? "I will skip adding Achiever roles." : $"Amount of new Achiever roles to bestow: {numNewAchievers}.")}
+                                I will remove the {achievement.Humanize()} role from {numUsers} users.
+                                I will {(skipAchiever ? "skip adding" : "add")} the {Role.Achiever.Humanize()} role to {numNewAchievers} users.
                                 """
                             )
                         ),
@@ -163,7 +163,7 @@ public class AchieveModule(
             return;
         }
 
-        await achievementLockService.SetLockAsync(Context.Guild!.Id, lockDuration);
+        await achievementLockService.SetGuildLockDurationAsync(Context.Guild!.Id, lockDuration);
 
         await ModifyResponseAsync(m =>
         {
@@ -183,7 +183,7 @@ public class AchieveModule(
     public async Task UnlockAsync()
     {
         await RespondAsync(InteractionCallback.DeferredMessage());
-        await achievementLockService.RemoveLockAsync(Context.Guild!.Id);
+        await achievementLockService.RemoveGuildLockAsync(Context.Guild!.Id);
         await ModifyResponseAsync(m =>
         {
             new ComponentContainerProperties()

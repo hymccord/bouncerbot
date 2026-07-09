@@ -52,7 +52,7 @@ public class AchieveButtonInteractions(
 
         try
         {
-            await achievementRoleOrchestrator.ResetAchievementAsync(Context.Guild!.Id, achievement, skipAchiever: skipAchiever, async (current, total) =>
+            var resetResult = await achievementRoleOrchestrator.ResetAchievementAsync(Context.Guild!.Id, achievement, skipAchiever: skipAchiever, async (current, total) =>
             {
                 await ModifyResponseAsync(m =>
                 {
@@ -77,7 +77,7 @@ public class AchieveButtonInteractions(
                     new ComponentContainerProperties()
                     .WithAccentColor(new Color(options.Value.Colors.Success))
                     .AddComponents(
-                        new TextDisplayProperties($"Successfully reset all {achievement.Humanize()} users and added the achiever role!")
+                        new TextDisplayProperties($"Successfully reset {resetResult.TotalUsers} {achievement.Humanize()} users and {(skipAchiever ? "skipped adding" : "added")} {resetResult.NewAchievers} new achievers!")
                     )
                 ];
                 m.Flags = MessageFlags.IsComponentsV2;

@@ -5,13 +5,14 @@ using NetCord;
 namespace BouncerBot.Modules.Achieve;
 
 public record ClaimResultWithProgress(ClaimResult Result, AchievementProgress? Progress);
+public record ResetAchievementResult(int TotalUsers, int NewAchievers);
 
 public interface IAchievementRoleOrchestrator
 {
     Task<ClaimResult> GrantAchievementAsync(ulong userId, ulong guildId, AchievementRole achievement, NotificationMode notificationMode, CancellationToken cancellationToken = default);
     Task<ClaimResultWithProgress> ProcessAchievementAsync(uint mhid, ulong userId, ulong guildId, AchievementRole achievement, CancellationToken cancellationToken = default);
     Task<ClaimResultWithProgress> ProcessAchievementSilentlyAsync(uint mhid, ulong userId, ulong guildId, AchievementRole achievement, CancellationToken cancellationToken = default);
-    Task ResetAchievementAsync(ulong guildId, AchievementRole achievement, bool skipAchiever, Func<int, int, Task> progress, CancellationToken cancellationToken = default);
+    Task<ResetAchievementResult> ResetAchievementAsync(ulong guildId, AchievementRole achievement, bool skipAchiever, Func<int, int, Task> progress, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -56,32 +57,37 @@ public class AchievementRoleOrchestrator(
         return new ClaimResultWithProgress(result, progress);
     }
 
-    public async Task ResetAchievementAsync(ulong guildId, AchievementRole achievement, bool skipAchiever, Func<int, int, Task> progress, CancellationToken cancellationToken = default)
+    public async Task<ResetAchievementResult> ResetAchievementAsync(ulong guildId, AchievementRole achievement, bool skipAchiever, Func<int, int, Task> progress, CancellationToken cancellationToken = default)
     {
         var role = EnumUtils.ToRole(achievement);
         var roleId = await roleService.GetRoleIdAsync(guildId, role)
             ?? throw new RoleNotConfiguredException(role);
+        var numNewAchievers = await roleService.GetRoleUserCountWithExclude(guildId, role, exclude: Role.Achiever);
 
-        ulong[] usersWithAchievement = [..gatewayClient.Cache.Guilds[guildId]?.Users.Values
-            .Where(u => u.RoleIds.Contains(roleId)).Select(u => u.Id) ?? []];
+        HashSet<GuildUser> usersWithAchievement = [.. gatewayClient.Cache.Guilds[guildId]?.Users.Values
+            .Where(u => u.RoleIds.Contains(roleId)) ?? []];
 
-        await progress(0, usersWithAchievement.Length);
+        await progress(0, usersWithAchievement.Count);
 
-        for (var i = 0; i < usersWithAchievement.Length; i++)
+        var i = 0;
+        foreach (var user in usersWithAchievement)
         {
+            i++;
             // Add achiever role first, since it may fail if not configured. That way we still have the achievement role set on the user.
             if (!skipAchiever)
             {
-                await roleService.AddRoleAsync(usersWithAchievement[i], guildId, Role.Achiever, cancellationToken: default);
+                await roleService.AddRoleAsync(user.Id, guildId, Role.Achiever, cancellationToken: default);
             }
 
-            await roleService.RemoveRoleAsync(usersWithAchievement[i], guildId, role, cancellationToken: default);
+            await roleService.RemoveRoleAsync(user.Id, guildId, role, cancellationToken: default);
 
             if (i % 10 == 0)
             {
-                await progress(i + 1, usersWithAchievement.Length);
+                await progress(i + 1, usersWithAchievement.Count);
             }
         }
+
+        return new ResetAchievementResult(usersWithAchievement.Count, numNewAchievers);
     }
 
     private async Task<ClaimResult> AssignRoleIfNotHasAsync(ulong userId, ulong guildId, AchievementRole achievement, NotificationMode notification, CancellationToken cancellationToken)
