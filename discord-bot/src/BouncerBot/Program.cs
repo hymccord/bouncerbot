@@ -107,8 +107,7 @@ builder.Services
         };
         options.Intents = 0
             | GatewayIntents.Guilds             // For joining new guilds
-            | GatewayIntents.GuildUsers         // Mainly when roles are added/removed to users
-            | GatewayIntents.GuildPresences;    // To cache Guild Users on GUILD_CREATE for small guilds
+            | GatewayIntents.GuildUsers;         // Mainly when roles are added/removed to users
     })
     .AddGatewayHandlers(typeof(Program).Assembly)
     ;
