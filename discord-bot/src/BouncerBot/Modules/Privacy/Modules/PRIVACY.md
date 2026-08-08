@@ -6,7 +6,7 @@
 * Achievement validation
 * Moderators can view Discord User IDs and MouseHunt IDs for server moderation purposes
 ## Data Retention:
-* We **permanently retain** [pseudonymized](<https://en.wikipedia.org/wiki/Pseudonymization>) versions of your Discord ID and MouseHunt ID when you successfully {commandMentionService.GetCommandMention(VerifyModuleMetadata.VerifyCommand.Name)}
+* We **permanently retain** [pseudonymized](<https://en.wikipedia.org/wiki/Pseudonymization>) versions of your Discord ID and MouseHunt ID when you successfully `/verify`
 * Discord ID and MouseHunt ID are stored together **while you are verified**
 * When you `/unverify` or leave the server (willingly or not), all identifiable information is removed
 ## Data Protection:
