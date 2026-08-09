@@ -12,6 +12,8 @@ public class BouncerBotOptions
     [Required]
     public required ColorOptions Colors { get; set;}
 
+    public ColorRoleOptions ColorRoles { get; set; } = new();
+
     [Required]
     public required ulong PuzzleChannel { get; set; }
 
@@ -91,4 +93,25 @@ public class ColorOptions
 public class DebugOptions
 {
     public bool DisableAchievementCheck { get; set; } = false;
+}
+
+public class ColorRoleOptions
+{
+    public ulong[] BaseAccessRoleIds { get; set; } = [];
+    public List<SelectableColorRole> BaseColors { get; set; } = [];
+    public List<FancyColorRole> FancyColors { get; set; } = [];
+}
+
+public class SelectableColorRole
+{
+    public string Name { get; set; } = string.Empty;
+    public ulong RoleId { get; set; }
+}
+
+public class FancyColorRole : SelectableColorRole
+{
+    /// <summary>
+    /// Roles that unlock this specific color. A user needs any one of them.
+    /// </summary>
+    public ulong[] RequiredRoleIds { get; set; } = [];
 }
