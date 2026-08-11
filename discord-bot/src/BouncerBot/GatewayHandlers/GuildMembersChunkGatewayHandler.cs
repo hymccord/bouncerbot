@@ -12,16 +12,14 @@ public class GuildMembersChunkGatewayHandler(
     IServiceScopeFactory serviceScopeFactory
     ) : IGuildUserChunkGatewayHandler
 {
-    public ValueTask HandleAsync(GuildUserChunkEventArgs arg)
+    public async ValueTask HandleAsync(GuildUserChunkEventArgs arg)
     {
         logger.LogInformation("Received GUILD_MEMBERS_CHUNK for {GuildId}. Received {ReceivedCount} users. Chunk index: {ChunkIndex}, Chunk count: {ChunkCount}.",
             arg.GuildId, arg.Users.Count, arg.ChunkIndex, arg.ChunkCount);
 
-        using (var scope = serviceScopeFactory.CreateScope())
-        {
-            var guildUserRoleMonitor = scope.ServiceProvider.GetRequiredService<IGuildRoleMembershipSynchronizer>();
+        using var scope = serviceScopeFactory.CreateScope();
+        var guildUserRoleMonitor = scope.ServiceProvider.GetRequiredService<IGuildRoleMembershipSynchronizer>();
 
-            return new ValueTask(guildUserRoleMonitor.ProcessCachedUsersAsync(arg.GuildId, arg.Users.ToDictionary(u => u.Id)));
-        }
+        await guildUserRoleMonitor.ProcessCachedUsersAsync(arg.GuildId, arg.Users.ToDictionary(u => u.Id));
     }
 }
