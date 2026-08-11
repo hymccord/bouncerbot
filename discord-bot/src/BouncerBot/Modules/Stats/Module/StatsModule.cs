@@ -1,5 +1,4 @@
 using BouncerBot.Attributes;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using NetCord;
 using NetCord.Rest;
@@ -9,7 +8,6 @@ namespace BouncerBot.Modules.Stats.Module;
 
 public class StatsApplicationModule(
     IOptions<BouncerBotOptions> options,
-    IMemoryCache memoryCache,
     IStatsService statsService,
     IBouncerBotMetrics bouncerBotMetrics
 ) : ApplicationCommandModule<ApplicationCommandContext>

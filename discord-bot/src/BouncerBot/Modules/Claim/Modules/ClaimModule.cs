@@ -88,7 +88,7 @@ public class ClaimModule(
                 .AddTextDisplay($"""
                 Sorry hunter, but achievement claiming is temporarily disabled while we adjust to the new area release.
 
-                -# Hint: Try again after <t:{expiration.Value.ToUnixTimeSeconds()}:F>.
+                -# Hint: Try again after <t:{expiration!.Value.ToUnixTimeSeconds()}:F>.
                 """)
                 .Build(m)
             );
