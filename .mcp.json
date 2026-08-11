@@ -1,0 +1,10 @@
+{
+  "inputs": [],
+  "servers": {
+    "Discord Docs": {
+      "type": "http",
+      "url": "https://docs.discord.com/mcp",
+      "headers": {}
+    }
+  }
+}

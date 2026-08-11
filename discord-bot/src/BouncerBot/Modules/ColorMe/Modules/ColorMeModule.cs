@@ -5,7 +5,7 @@ using NetCord;
 using NetCord.Rest;
 using NetCord.Services.ApplicationCommands;
 
-namespace BouncerBot.Modules.ColorRole.Modules;
+namespace BouncerBot.Modules.ColorMe.Modules;
 
 public class ColorMeModule(
     IOptions<BouncerBotOptions> options,
@@ -15,10 +15,13 @@ public class ColorMeModule(
     IBouncerBotMetrics bouncerBotMetrics
 ) : ApplicationCommandModule<ApplicationCommandContext>
 {
-    private const int MaxColors = 25;
-
     [BouncerBotSlashCommand(ColorMeModuleMetadata.ColorCommand.Name, ColorMeModuleMetadata.ColorCommand.Description)]
-    public async Task ColorAsync()
+    public async Task ColorAsync(
+        [SlashCommandParameter(
+            Name = "color",
+            Description = "The color to use, or 'None' to clear your current color.",
+            AutocompleteProviderType = typeof(ColorMeAutocompleteProvider))]
+        string color)
     {
         bouncerBotMetrics.RecordCommand(ColorMeModuleMetadata.ColorCommand.Name);
         await RespondAsync(InteractionCallback.DeferredEphemeralMessage());
@@ -31,46 +34,52 @@ public class ColorMeModule(
 
         var user = ColorMeHelpers.GetGuildUser(gatewayClient, Context.Guild.Id, Context.User.Id);
         var colorRoles = colorRoleRegistry.GetRoles(Context.Guild.Id);
-        var achievementRoleIds = await ColorMeHelpers.GetAchievementRoleIdsAsync(Context.Guild.Id, colorRoles, roleService);
-        var availableColors = ColorMeHelpers.GetAvailableColors(user, colorRoles, achievementRoleIds);
+        var managedRoleIds = ColorMeHelpers.GetManagedRoleIds(colorRoles);
 
-        if (availableColors.Count == 0)
+        try
         {
-            await ShowMessageAsync("You do not currently have a role that grants access to server colors.", options.Value.Colors.Warning);
-            return;
-        }
+            if (color == ColorMeModuleMetadata.RemoveColorValue)
+            {
+                foreach (var roleId in managedRoleIds.Where(user.RoleIds.Contains))
+                {
+                    await user.RemoveRoleAsync(roleId);
+                }
 
-        // One menu slot is reserved for the "Remove color" option.
-        if (availableColors.Count > MaxColors - 1)
+                await ShowMessageAsync("Your color role has been removed.", options.Value.Colors.Success);
+                return;
+            }
+
+            // Re-check access at execution time so stale autocomplete results cannot bypass a role change.
+            var achievementRoleIds = await ColorMeHelpers.GetAchievementRoleIdsAsync(Context.Guild.Id, colorRoles, roleService);
+            var availableColors = ColorMeHelpers.GetAvailableColors(user, colorRoles, achievementRoleIds);
+            var selectedColor = availableColors.FirstOrDefault(availableColor => availableColor.RoleId.ToString() == color);
+
+            if (selectedColor is null)
+            {
+                await ShowMessageAsync("Your color selection is invalid.", options.Value.Colors.Warning);
+                return;
+            }
+
+            // Add the requested role first so a transient failure does not remove the user's
+            // existing color before the new one can be assigned.
+            if (!user.RoleIds.Contains(selectedColor.RoleId))
+            {
+                await user.AddRoleAsync(selectedColor.RoleId);
+            }
+
+            foreach (var roleId in managedRoleIds.Where(roleId => roleId != selectedColor.RoleId && user.RoleIds.Contains(roleId)))
+            {
+                await user.RemoveRoleAsync(roleId);
+            }
+
+            await ShowMessageAsync($"Your color has been changed to **{selectedColor.Name}**.", options.Value.Colors.Success);
+        }
+        catch (Exception ex)
         {
             await ShowMessageAsync(
-                $"Color roles are misconfigured: {availableColors.Count} colors are available, but this menu only has room for {MaxColors - 1}. Please contact a server administrator.",
+                $"I could not update your color role. Please make sure BouncerBot's role is above all configured color roles.\n\nError: `{ex.Message}`",
                 options.Value.Colors.Error);
-            return;
         }
-
-        var selectOptions = availableColors
-            .Select(color => new StringMenuSelectOptionProperties(TrimLabel(color.Name), color.RoleId.ToString()))
-            .Append(new StringMenuSelectOptionProperties("Remove color", ColorMeModuleMetadata.RemoveColorValue))
-            .ToArray();
-
-        var menu = new StringMenuProperties("color role select", selectOptions)
-            .WithPlaceholder("Choose a color")
-            .WithMinValues(1)
-            .WithMaxValues(1);
-
-        var container = new ComponentContainerProperties()
-            .WithAccentColor(new(options.Value.Colors.Primary))
-            .AddComponents(
-                new TextDisplayProperties("### Choose your color\nSelect a color you have access to, or **Remove color** to clear your current one."),
-                menu
-            );
-
-        await ModifyResponseAsync(message =>
-        {
-            message.Components = [container];
-            message.Flags = MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral;
-        });
     }
 
     private async Task ShowMessageAsync(string message, int color)
@@ -85,7 +94,4 @@ public class ColorMeModule(
             response.Flags = MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral;
         });
     }
-
-    private static string TrimLabel(string label)
-        => label.Length <= 100 ? label : label[..100];
 }

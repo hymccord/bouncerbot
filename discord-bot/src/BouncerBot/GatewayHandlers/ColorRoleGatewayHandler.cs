@@ -1,11 +1,11 @@
 using BouncerBot.Modules.Achieve;
-using BouncerBot.Modules.ColorRole;
 using BouncerBot.Services;
 using Microsoft.Extensions.DependencyInjection;
 using NetCord;
 using NetCord.Gateway;
 using DiscordRole = NetCord.Role;
 using NetCord.Hosting.Gateway;
+using BouncerBot.Modules.ColorMe;
 
 namespace BouncerBot.GatewayHandlers;
 

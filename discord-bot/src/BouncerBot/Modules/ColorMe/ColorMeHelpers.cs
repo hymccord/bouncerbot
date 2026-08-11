@@ -1,7 +1,7 @@
 using BouncerBot.Services;
 using NetCord;
 
-namespace BouncerBot.Modules.ColorRole;
+namespace BouncerBot.Modules.ColorMe;
 
 internal static class ColorMeHelpers
 {

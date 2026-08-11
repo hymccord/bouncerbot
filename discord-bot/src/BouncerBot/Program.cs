@@ -2,7 +2,7 @@ using BouncerBot;
 using BouncerBot.Db;
 using BouncerBot.Modules.Achieve;
 using BouncerBot.Modules.Bounce;
-using BouncerBot.Modules.ColorRole;
+using BouncerBot.Modules.ColorMe;
 using BouncerBot.Modules.Config;
 using BouncerBot.Modules.Events;
 using BouncerBot.Modules.Puzzle;

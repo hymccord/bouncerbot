@@ -2,7 +2,7 @@ using NetCord;
 using NetCord.Gateway;
 using DiscordRole = NetCord.Role;
 
-namespace BouncerBot.Modules.ColorRole;
+namespace BouncerBot.Modules.ColorMe;
 
 public interface IColorRoleRegistry
 {

@@ -1,4 +1,4 @@
-namespace BouncerBot.Modules.ColorRole.Modules;
+namespace BouncerBot.Modules.ColorMe.Modules;
 
 public static class ColorMeModuleMetadata
 {
@@ -9,7 +9,7 @@ public static class ColorMeModuleMetadata
     }
 
     /// <summary>
-    /// Select menu value for the "Remove color" option. Never collides with
+    /// Autocomplete value for the "Remove color" option. Never collides with
     /// color values because those are numeric role IDs.
     /// </summary>
     public const string RemoveColorValue = "remove";
