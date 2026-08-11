@@ -2,6 +2,7 @@ using BouncerBot;
 using BouncerBot.Db;
 using BouncerBot.Modules.Achieve;
 using BouncerBot.Modules.Bounce;
+using BouncerBot.Modules.ColorRole;
 using BouncerBot.Modules.Config;
 using BouncerBot.Modules.Events;
 using BouncerBot.Modules.Puzzle;
@@ -60,6 +61,7 @@ builder.Services
     .AddTransient<IRankRoleService, RankRoleService>()
     .AddTransient<IStatsService, StatsService>()
     .AddTransient<IMlialService, MlialService>()
+    .AddSingleton<IColorRoleRegistry, ColorMeRoleRegistry>()
     .AddSingleton<IDiscordRestClient, DiscordRestClient>()
     .AddSingleton<IDiscordGatewayClient, DiscordGatewayClient>()
     .AddSingleton<IPuzzleService, PuzzleService>() // Singleton b/c of puzzle state capture

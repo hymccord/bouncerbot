@@ -1,3 +1,4 @@
+using BouncerBot.Services;
 using Microsoft.Extensions.Options;
 using NetCord;
 using NetCord.Rest;
@@ -5,9 +6,11 @@ using NetCord.Services.ComponentInteractions;
 
 namespace BouncerBot.Modules.ColorRole.Modules;
 
-public class ColorRoleStringMenuInteractions(
+public class ColorMeStringMenuInteractions(
     IOptions<BouncerBotOptions> options,
-    IDiscordGatewayClient gatewayClient)
+    IDiscordGatewayClient gatewayClient,
+    IColorRoleRegistry colorRoleRegistry,
+    IRoleService roleService)
     : ComponentInteractionModule<StringMenuInteractionContext>
 {
     [ComponentInteraction("color role select")]
@@ -22,14 +25,14 @@ public class ColorRoleStringMenuInteractions(
         }
 
         var guildId = Context.Guild.Id;
-        var user = ColorRoleHelpers.GetGuildUser(gatewayClient, guildId, Context.User.Id);
-        var colorOptions = options.Value.ColorRoles;
+        var user = ColorMeHelpers.GetGuildUser(gatewayClient, guildId, Context.User.Id);
         var selectedValue = Context.SelectedValues[0];
-        var managedRoleIds = ColorRoleHelpers.GetManagedRoleIds(colorOptions);
+        var colorRoles = colorRoleRegistry.GetRoles(guildId);
+        var managedRoleIds = ColorMeHelpers.GetManagedRoleIds(colorRoles);
 
         try
         {
-            if (selectedValue == ColorRoleModuleMetadata.RemoveColorValue)
+            if (selectedValue == ColorMeModuleMetadata.RemoveColorValue)
             {
                 foreach (var roleId in managedRoleIds.Where(user.RoleIds.Contains))
                 {
@@ -40,9 +43,9 @@ public class ColorRoleStringMenuInteractions(
                 return;
             }
 
-            // Re-check access at selection time. This prevents an old menu from granting a
-            // fancy color after the user's access role has been removed.
-            var availableColors = ColorRoleHelpers.GetAvailableColors(user, colorOptions);
+            // Re-check access at selection time so an old menu cannot bypass a role change.
+            var achievementRoleIds = await ColorMeHelpers.GetAchievementRoleIdsAsync(guildId, colorRoles, roleService);
+            var availableColors = ColorMeHelpers.GetAvailableColors(user, colorRoles, achievementRoleIds);
             var selectedColor = availableColors.FirstOrDefault(color => color.RoleId.ToString() == selectedValue);
 
             if (selectedColor is null)

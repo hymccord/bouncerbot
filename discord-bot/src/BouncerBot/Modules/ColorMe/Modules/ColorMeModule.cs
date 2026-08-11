@@ -1,4 +1,5 @@
 using BouncerBot.Attributes;
+using BouncerBot.Services;
 using Microsoft.Extensions.Options;
 using NetCord;
 using NetCord.Rest;
@@ -6,18 +7,20 @@ using NetCord.Services.ApplicationCommands;
 
 namespace BouncerBot.Modules.ColorRole.Modules;
 
-public class ColorRoleModule(
+public class ColorMeModule(
     IOptions<BouncerBotOptions> options,
     IDiscordGatewayClient gatewayClient,
+    IColorRoleRegistry colorRoleRegistry,
+    IRoleService roleService,
     IBouncerBotMetrics bouncerBotMetrics
 ) : ApplicationCommandModule<ApplicationCommandContext>
 {
     private const int MaxColors = 25;
 
-    [BouncerBotSlashCommand(ColorRoleModuleMetadata.ColorCommand.Name, ColorRoleModuleMetadata.ColorCommand.Description)]
+    [BouncerBotSlashCommand(ColorMeModuleMetadata.ColorCommand.Name, ColorMeModuleMetadata.ColorCommand.Description)]
     public async Task ColorAsync()
     {
-        bouncerBotMetrics.RecordCommand(ColorRoleModuleMetadata.ColorCommand.Name);
+        bouncerBotMetrics.RecordCommand(ColorMeModuleMetadata.ColorCommand.Name);
         await RespondAsync(InteractionCallback.DeferredEphemeralMessage());
 
         if (Context.Guild is null)
@@ -26,9 +29,10 @@ public class ColorRoleModule(
             return;
         }
 
-        var colorOptions = options.Value.ColorRoles;
-        var user = ColorRoleHelpers.GetGuildUser(gatewayClient, Context.Guild.Id, Context.User.Id);
-        var availableColors = ColorRoleHelpers.GetAvailableColors(user, colorOptions);
+        var user = ColorMeHelpers.GetGuildUser(gatewayClient, Context.Guild.Id, Context.User.Id);
+        var colorRoles = colorRoleRegistry.GetRoles(Context.Guild.Id);
+        var achievementRoleIds = await ColorMeHelpers.GetAchievementRoleIdsAsync(Context.Guild.Id, colorRoles, roleService);
+        var availableColors = ColorMeHelpers.GetAvailableColors(user, colorRoles, achievementRoleIds);
 
         if (availableColors.Count == 0)
         {
@@ -47,7 +51,7 @@ public class ColorRoleModule(
 
         var selectOptions = availableColors
             .Select(color => new StringMenuSelectOptionProperties(TrimLabel(color.Name), color.RoleId.ToString()))
-            .Append(new StringMenuSelectOptionProperties("Remove color", ColorRoleModuleMetadata.RemoveColorValue))
+            .Append(new StringMenuSelectOptionProperties("Remove color", ColorMeModuleMetadata.RemoveColorValue))
             .ToArray();
 
         var menu = new StringMenuProperties("color role select", selectOptions)

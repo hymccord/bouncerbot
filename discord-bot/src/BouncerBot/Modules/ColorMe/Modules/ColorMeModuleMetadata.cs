@@ -1,10 +1,10 @@
 namespace BouncerBot.Modules.ColorRole.Modules;
 
-public static class ColorRoleModuleMetadata
+public static class ColorMeModuleMetadata
 {
     public static class ColorCommand
     {
-        public const string Name = "color";
+        public const string Name = "colorme";
         public const string Description = "Choose your server display color.";
     }
 
