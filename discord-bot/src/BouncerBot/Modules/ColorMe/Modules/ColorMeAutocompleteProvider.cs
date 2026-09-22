@@ -23,17 +23,17 @@ public sealed class ColorMeAutocompleteProvider(
         var colorRoles = colorRoleRegistry.GetRoles(context.Guild.Id);
         var user = ColorMeHelpers.GetGuildUser(gatewayClient, context.Guild.Id, context.User.Id);
         var achievementRoleIds = await ColorMeHelpers.GetAchievementRoleIdsAsync(context.Guild.Id, colorRoles, roleService);
-        var availableColors = ColorMeHelpers.GetAvailableColors(user, colorRoles, achievementRoleIds);
+        var availableColors = ColorMeHelpers.GetAvailableColors(
+            user, context.Guild, gatewayClient.Cache.User!.Id, colorRoles, achievementRoleIds);
         var search = option.Value ?? string.Empty;
 
-        return availableColors
+        return [.. availableColors
             .Where(color => color.Name.Contains(search, StringComparison.OrdinalIgnoreCase))
             .OrderByDescending(color => color.PowerType is not null)
             .Select(color => new ApplicationCommandOptionChoiceProperties(TrimLabel(color.Name), color.RoleId.ToString()))
             .Append(new ApplicationCommandOptionChoiceProperties("None", ColorMeModuleMetadata.RemoveColorValue))
             .Where(choice => choice.Name.Contains(search, StringComparison.OrdinalIgnoreCase))
-            .Take(25)
-            .ToArray();
+            .Take(25)];
     }
 
     private static string TrimLabel(string label)

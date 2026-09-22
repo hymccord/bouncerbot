@@ -51,7 +51,8 @@ public class ColorMeModule(
 
             // Re-check access at execution time so stale autocomplete results cannot bypass a role change.
             var achievementRoleIds = await ColorMeHelpers.GetAchievementRoleIdsAsync(Context.Guild.Id, colorRoles, roleService);
-            var availableColors = ColorMeHelpers.GetAvailableColors(user, colorRoles, achievementRoleIds);
+            var availableColors = ColorMeHelpers.GetAvailableColors(
+                user, Context.Guild, gatewayClient.Cache.User!.Id, colorRoles, achievementRoleIds);
             var selectedColor = availableColors.FirstOrDefault(availableColor => availableColor.RoleId.ToString() == color);
 
             if (selectedColor is null)

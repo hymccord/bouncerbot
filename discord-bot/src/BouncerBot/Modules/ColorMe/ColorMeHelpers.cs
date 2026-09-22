@@ -1,5 +1,6 @@
 using BouncerBot.Services;
 using NetCord;
+using NetCord.Gateway;
 
 namespace BouncerBot.Modules.ColorMe;
 
@@ -22,16 +23,44 @@ internal static class ColorMeHelpers
 
     public static IReadOnlyList<SelectableColorMeRole> GetAvailableColors(
         GuildUser user,
+        Guild guild,
+        ulong botUserId,
         IEnumerable<SelectableColorMeRole> colors,
         IReadOnlyDictionary<PowerType, ulong> achievementRoleIds)
-        => [.. colors
+    {
+        var botRolePosition = GetBotRolePosition(guild, botUserId);
+
+        return [.. colors
             .Where(color
-                => color.PowerType is null
+                => (color.PowerType is null
                     || achievementRoleIds.TryGetValue(color.PowerType.Value, out var roleId)
-                    && user.RoleIds.Contains(roleId))];
-                    /*
-                    && true )];
-                    */
+                    && user.RoleIds.Contains(roleId))
+                && guild.Roles.TryGetValue(color.RoleId, out var role)
+                && role.RawPosition < botRolePosition)];
+    }
+
+    /// <summary>
+    /// Returns the position of the bot's highest currently-assigned role in the guild.
+    /// Discord only allows a member (including a bot) to assign/remove roles that sit
+    /// strictly below this position, so this is the ceiling for what BouncerBot can manage.
+    /// </summary>
+    private static int GetBotRolePosition(Guild guild, ulong botUserId)
+    {
+        var position = guild.EveryoneRole?.RawPosition ?? 0;
+
+        if (guild.Users.TryGetValue(botUserId, out var botUser))
+        {
+            foreach (var roleId in botUser.RoleIds)
+            {
+                if (guild.Roles.TryGetValue(roleId, out var role) && role.RawPosition > position)
+                {
+                    position = role.RawPosition;
+                }
+            }
+        }
+
+        return position;
+    }
 
     public static async Task<IReadOnlyDictionary<PowerType, ulong>> GetAchievementRoleIdsAsync(
         ulong guildId,
