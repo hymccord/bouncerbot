@@ -74,12 +74,17 @@ public class ColorMeModule(
 
             await ShowMessageAsync($"Your color has been changed to **{selectedColor.Name}**.", options.Value.Colors.Success);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is RestException { StatusCode: System.Net.HttpStatusCode.Forbidden })
         {
             await ShowMessageAsync(
-                $"I could not update your color role. Please make sure BouncerBot's role is above all configured color roles.\n\nError: `{ex.Message}`",
-                options.Value.Colors.Error);
+                $"I cannot assign that color. BouncerBot's role needs to be above assignable color roles.",
+                options.Value.Colors.Warning);
         }
+        catch (Exception ex)
+        {
+            await ShowMessageAsync($"An unexpected error occurred: `{ex.Message}`", options.Value.Colors.Error);
+        }
+
     }
 
     private async Task ShowMessageAsync(string message, int color)
