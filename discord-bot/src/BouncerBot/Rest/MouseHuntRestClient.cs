@@ -101,9 +101,16 @@ public sealed partial class MouseHuntRestClient(
             throw;
         }
 
-        var token = await LoginAsync(_options.Value.Username, _options.Value.Password, cancellationToken);
+        try
+        {
+            var token = await LoginAsync(_options.Value.Username, _options.Value.Password, cancellationToken);
 
-        await SaveSessionToken(token, cancellationToken);
+            await SaveSessionToken(token, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogCritical(ex, "Failed to login to MouseHunt API. {Message}", ex.Message);
+        }
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
