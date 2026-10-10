@@ -166,14 +166,11 @@ dist
 .yarn/install-state.gz
 .pnp.\*
 
-# wrangler project
-
-.dev.vars
-
-.wrangler
-
 # Sentry Config File
 .sentryclirc
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
+
+# Relay deployment secrets
+deploy/relay/.env

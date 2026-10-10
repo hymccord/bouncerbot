@@ -48,6 +48,17 @@ public class RestException : Exception
     public RestError? Error { get; }
 }
 
+public sealed class CloudflareChallengeException : RestException
+{
+    public CloudflareChallengeException(HttpStatusCode statusCode, string? rayId)
+        : base(statusCode, "The upstream returned a Cloudflare managed challenge.")
+    {
+        RayId = rayId;
+    }
+
+    public string? RayId { get; }
+}
+
 public class RestError
 {
     [JsonPropertyName("error")]

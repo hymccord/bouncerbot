@@ -73,6 +73,14 @@ public sealed partial class MouseHuntRestClient(
 
             return;
         }
+        catch (CloudflareChallengeException ex)
+        {
+            _logger.LogWarning(
+                ex,
+                "MouseHunt API returned a Cloudflare managed challenge. Ray ID: {RayId}. Configure an authorized service/API rule; automatic retries are disabled.",
+                ex.RayId);
+            return;
+        }
         catch (RestException ex) when ((int)ex.StatusCode >= 500 && (int)ex.StatusCode < 600)
         {
             _logger.LogWarning(ex, "Failed to login to MouseHunt API. Status code: {StatusCode}. Retrying in 1 minute.", ex.StatusCode);
@@ -219,16 +227,40 @@ public sealed partial class MouseHuntRestClient(
 
         if (content.Headers.ContentType is { MediaType: "application/json" })
         {
+            var json = await content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                using var document = JsonDocument.Parse(json);
+                if (document.RootElement.TryGetProperty("error", out var errorProperty) &&
+                    errorProperty.ValueKind == JsonValueKind.String &&
+                    errorProperty.GetString() == "upstream_cloudflare_challenge")
+                {
+                    var rayId = document.RootElement.TryGetProperty("rayId", out var rayIdProperty)
+                        ? rayIdProperty.GetString()
+                        : response.Headers.TryGetValues("cf-ray", out var values) ? values.FirstOrDefault() : null;
+                    throw new CloudflareChallengeException(response.StatusCode, rayId);
+                }
+            }
+            catch (JsonException)
+            {
+                // Fall through to the normal REST error handling below.
+            }
+
             RestError error;
             try
             {
-                error = (await JsonSerializer.DeserializeAsync<RestError>(await content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false), cancellationToken: cancellationToken).ConfigureAwait(false))!;
+                error = JsonSerializer.Deserialize<RestError>(json, s_jsonSerializerOptions)!;
             }
             catch (JsonException)
             {
                 throw new RestException(response.StatusCode, response.ReasonPhrase);
             }
             throw new RestException(response.StatusCode, response.ReasonPhrase, error);
+        }
+        else if (content.Headers.ContentType is { MediaType: "text/html" })
+        {
+            var errorMessage = await content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            throw new RestException(response.StatusCode, errorMessage);
         }
         else
         {

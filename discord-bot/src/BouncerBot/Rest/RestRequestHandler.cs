@@ -27,6 +27,11 @@ internal sealed class RestRequestHandler : IDisposable
         _httpClient.DefaultRequestHeaders.Add("User-Agent", "BouncerBot/1.0 (Discord: Xellis)");
         _httpClient.DefaultRequestHeaders.Add("Accept", "application/json, text/javascript, */*; q=0.01");
         _httpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
+
+        if (!string.IsNullOrEmpty(options.Value.MouseHuntRelayKey))
+        {
+            _httpClient.DefaultRequestHeaders.Add("X-BouncerBot-Relay-Key", options.Value.MouseHuntRelayKey);
+        }
     }
 
     public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)

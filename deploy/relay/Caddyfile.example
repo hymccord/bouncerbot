@@ -1,0 +1,4 @@
+# Add to your Caddyfile. Use 127.0.0.1:8080 if Caddy runs on the host.
+mh-relay.example.com {
+	reverse_proxy bouncerbot-relay:8080
+}

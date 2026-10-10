@@ -18,6 +18,11 @@ public class BouncerBotOptions
     [Required]
     public required string MouseHuntUrl { get; set; }
 
+    /// <summary>
+    /// Shared secret sent as X-BouncerBot-Relay-Key when <see cref="MouseHuntUrl"/> points at a relay that requires one.
+    /// </summary>
+    public string? MouseHuntRelayKey { get; set; }
+
     public DebugOptions Debug { get; set; } = new();
 }
 

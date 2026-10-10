@@ -1,0 +1,26 @@
+# Home-server deployment for the MouseHunt relay (relay/src/server.ts).
+# Usage: cp .env.example .env, fill in RELAY_KEY, then `docker compose up -d`.
+services:
+  bouncerbot-relay:
+    image: ghcr.io/hymccord/bouncerbot-relay:latest
+    restart: unless-stopped
+    environment:
+      RELAY_KEY: ${RELAY_KEY:?RELAY_KEY must be set in .env}
+      # Optional: also ship logs over OTLP (e.g. Grafana). Blank = stdout only.
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      OTEL_EXPORTER_OTLP_HEADERS: ${OTEL_EXPORTER_OTLP_HEADERS:-}
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+    networks:
+      - reverse-proxy
+    # If Caddy runs on the host instead of in Docker, replace `networks` with:
+    # ports:
+    #   - "127.0.0.1:8080:8080"
+
+networks:
+  reverse-proxy:
+    name: custom-docker-network # the Docker network your reverse proxy container is attached to
+    external: true # the Docker network your reverse proxy container is attached to
